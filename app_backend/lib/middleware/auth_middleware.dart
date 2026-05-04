@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs
 
+import 'dart:io';
+
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dotenv/dotenv.dart';
@@ -23,9 +25,11 @@ Handler middleware(Handler handler) {
     final token = authHeader.split(' ')[1];
 
     try {
-      final env = DotEnv()..load();
+      // final env = DotEnv()..load();
 
-      JWT.verify(token, SecretKey(env['JWT_SECRET']!));
+      // JWT.verify(token, SecretKey(env['JWT_SECRET']!));
+      final secret = Platform.environment['JWT_SECRET']!;
+      JWT.verify(token, SecretKey(secret));
 
       // Token valid → allow request
       return handler(context);
