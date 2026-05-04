@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:app_frontend/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend/features/auth/bloc/auth_state.dart';
 import 'package:app_frontend/features/auth/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService service;
@@ -24,6 +27,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       try {
         final response = await service.login(event.loginModel);
+
+        log("login response = ${response.message}");
+        log("login response = ${response.token}");
+final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', response.token);
 
         // if using String token
         emit(AuthSuccess("Login Successful", token: response.toString()));
