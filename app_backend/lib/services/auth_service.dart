@@ -1,6 +1,8 @@
+// ignore_for_file: public_member_api_docs
+
 import 'package:bcrypt/bcrypt.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import '../config/env.dart';
+import 'package:my_backend/config/env.dart';
 
 class AuthService {
   static String hashPassword(String password) {
@@ -16,7 +18,7 @@ class AuthService {
 
     return jwt.sign(
       SecretKey(Env.jwtSecret),
-      expiresIn: Duration(days: 7),
+      expiresIn: const Duration(days: 7),
     );
   }
 }

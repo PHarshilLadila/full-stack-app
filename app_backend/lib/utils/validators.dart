@@ -1,3 +1,5 @@
+// ignore_for_file: public_member_api_docs
+
 import 'package:validators/validators.dart';
 
 bool isValidEmail(String email) => isEmail(email);

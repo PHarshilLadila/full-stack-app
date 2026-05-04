@@ -1,13 +1,15 @@
+// ignore_for_file: avoid_print, avoid_dynamic_calls
+
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
-import '../../lib/db/mongo.dart';
-import '../../lib/services/auth_service.dart';
-import '../../lib/utils/validators.dart';
+import 'package:my_backend/db/mongo.dart';
+import 'package:my_backend/services/auth_service.dart';
+import 'package:my_backend/utils/validators.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   final body = jsonDecode(await context.request.body());
 
-  print("REGISTER BODY: $body");
+  print('REGISTER BODY: $body');
 
   final fullName = body['fullName'];
   final username = body['username'];
@@ -55,7 +57,7 @@ Future<Response> onRequest(RequestContext context) async {
     'createdAt': DateTime.now(),
   });
 
-  print("✅ User inserted");
+  print('✅ User inserted');
 
   return Response.json(body: {'message': 'Registered successfully'});
 }

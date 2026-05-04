@@ -1,9 +1,11 @@
+// ignore_for_file: avoid_print
+
 import 'package:dart_frog/dart_frog.dart';
-import '../lib/db/mongo.dart';
+import 'package:my_backend/db/mongo.dart';
 
 Handler middleware(Handler handler) {
   return (context) async {
-    print("🔥 Middleware hit");
+    print('🔥 Middleware hit');
 
     await MongoService.connect();
 
