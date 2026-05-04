@@ -17,6 +17,7 @@ class ApiClient {
   Future<http.Response> get(
     String endpoint, {
     Map<String, dynamic>? queryParams,
+    String? token,
   }) async {
     final uri = Uri.parse("$baseUrl$endpoint").replace(
       queryParameters: queryParams?.map(
@@ -24,6 +25,12 @@ class ApiClient {
       ),
     );
 
-    return await http.get(uri, headers: {"Content-Type": "application/json"});
+    final headers = {"Content-Type": "application/json"};
+
+    if (token != null) {
+      headers["Authorization"] = "Bearer $token";
+    }
+
+    return await http.get(uri, headers: headers);
   }
 }

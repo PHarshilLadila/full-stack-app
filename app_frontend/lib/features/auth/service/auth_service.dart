@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:app_frontend/core/network/api_client.dart';
 import 'package:app_frontend/features/auth/model/login_model.dart';
@@ -25,6 +26,7 @@ class AuthService {
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200) {
+      log("${data.toString()}");
       return LoginResponseModel.fromJson(data);
     } else {
       throw Exception(data['error'] ?? "Login failed");
