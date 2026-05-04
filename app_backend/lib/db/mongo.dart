@@ -16,7 +16,7 @@ class MongoService {
       print('Connecting Mongo...');
 
       db = await Db.create(Env.mongoUrl);
-      await db!.open();
+      await db!.open(secure: true);
 
       users = db!.collection('users');
 

@@ -10,7 +10,7 @@ class RegisterModel {
     required this.fullName,
     required this.username,
     required this.email,
-    required this.mobile,
+    required this.mobile, 
     required this.password,
     required this.confirmPassword,
   });

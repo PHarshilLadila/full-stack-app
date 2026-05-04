@@ -1,3 +1,4 @@
+import 'package:app_frontend/features/auth/view/auth_screen.dart';
 import 'package:app_frontend/features/auth/view/login_screen.dart';
 import 'package:app_frontend/features/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
     } else if (state is SplashUnauthenticated) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
       );
     }
   }
