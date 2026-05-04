@@ -17,6 +17,7 @@ Future<Response> onRequest(RequestContext context) async {
   final mobile = body['mobile'];
   final password = body['password'];
   final confirmPassword = body['confirmPassword'];
+  final profileImage = body['profileImage']; // base64 or URL (optional)
 
   if (MongoService.users == null) {
     return Response.json(body: {'error': 'DB not connected'});
@@ -54,6 +55,7 @@ Future<Response> onRequest(RequestContext context) async {
     'email': email,
     'mobile': mobile,
     'passwordHash': hashed,
+    'profileImage': profileImage ?? "", // optional field
     'createdAt': DateTime.now(),
   });
 

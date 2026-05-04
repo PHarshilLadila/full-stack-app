@@ -19,5 +19,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthError(e.toString()));
       }
     });
+    on<LoginEvent>((event, emit) async {
+      emit(AuthLoading());
+
+      try {
+        final response = await service.login(event.loginModel);
+
+        // if using String token
+        emit(AuthSuccess("Login Successful", token: response.toString()));
+
+        // if using LoginResponseModel:
+        // emit(AuthSuccess(response.message, token: response.token));
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
+    });
   }
 }

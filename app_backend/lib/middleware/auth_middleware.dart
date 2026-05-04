@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dotenv/dotenv.dart';
+import 'package:my_backend/config/env.dart';
 
 Handler middleware(Handler handler) {
   return (context) async {
@@ -28,8 +29,9 @@ Handler middleware(Handler handler) {
       // final env = DotEnv()..load();
 
       // JWT.verify(token, SecretKey(env['JWT_SECRET']!));
-      final secret = Platform.environment['JWT_SECRET']!;
-      JWT.verify(token, SecretKey(secret));
+      // final secret = Platform.environment['JWT_SECRET']!;
+      JWT.verify(token, SecretKey(Env.jwtSecret));
+      // JWT.verify(token, SecretKey(secret));
 
       // Token valid → allow request
       return handler(context);
