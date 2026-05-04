@@ -1,12 +1,14 @@
+// ignore_for_file: avoid_print, avoid_dynamic_calls
+
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
-import '../../lib/db/mongo.dart';
-import '../../lib/services/auth_service.dart';
+import 'package:my_backend/db/mongo.dart';
+import 'package:my_backend/services/auth_service.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   final body = jsonDecode(await context.request.body());
 
-  print("LOGIN BODY: $body");
+  print('LOGIN BODY: $body');
 
   final identifier = body['identifier'];
   final password = body['password'];
@@ -19,8 +21,8 @@ Future<Response> onRequest(RequestContext context) async {
     r'$or': [
       {'email': identifier},
       {'username': identifier},
-      {'mobile': identifier}
-    ]
+      {'mobile': identifier},
+    ],
   });
 
   if (user == null) {
@@ -38,10 +40,7 @@ Future<Response> onRequest(RequestContext context) async {
 
   final token = AuthService.generateToken(user['_id'].toString());
 
-  print("✅ Login success");
+  print('✅ Login success');
 
-  return Response.json(body: {
-    'message': 'Login success',
-    'token': token,
-  });
+  return Response.json(body: {'message': 'Login success', 'token': token});
 }
