@@ -33,4 +33,19 @@ class ApiClient {
 
     return await http.get(uri, headers: headers);
   }
+
+  Future<http.Response> put(
+    String endpoint,
+    Map<String, dynamic> body, {
+    String? token,
+  }) async {
+    final url = Uri.parse("$baseUrl$endpoint");
+
+    final headers = {"Content-Type": "application/json"};
+    if (token != null) {
+      headers["Authorization"] = "Bearer $token";
+    }
+
+    return await http.put(url, headers: headers, body: jsonEncode(body));
+  }
 }

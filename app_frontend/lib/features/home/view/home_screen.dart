@@ -4,6 +4,7 @@ import 'package:app_frontend/features/home/bloc/user_bloc.dart';
 import 'package:app_frontend/features/home/bloc/user_event.dart';
 import 'package:app_frontend/features/home/bloc/user_state.dart';
 import 'package:app_frontend/features/home/service/user_service.dart';
+import 'package:app_frontend/features/home/view/edit_user_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -149,20 +150,36 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                height: 40,
-                                width: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.grey,
-                                    width: 0.6,
+                              Material(
+                                color:
+                                    Colors
+                                        .transparent, // Important: makes background transparent
+                                shape: const CircleBorder(),
+                                clipBehavior:
+                                    Clip.hardEdge, // Clips the ripple effect to circle
+                                child: InkWell(
+                                  onTap: () {
+                                    _userBloc = UserBloc(
+                                      userService: UserService(),
+                                    );
+                                    _loadUserData();
+                                  },
+                                  child: Container(
+                                    height: 40,
+                                    width: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.grey,
+                                        width: 0.6,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.home,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                ),
-                                child: Icon(
-                                  Icons.keyboard_backspace,
-                                  color: Colors.black,
                                 ),
                               ),
                               Icon(
@@ -252,8 +269,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                 SizedBox(
                                   height: 26,
                                   child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      // Action to perform on click
+                                    onPressed: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => EditUserScreen(
+                                                user: state.user,
+                                              ),
+                                        ),
+                                      );
+                                      if (result == true) {
+                                        // Refresh user data after update
+                                        final prefs =
+                                            await SharedPreferences.getInstance();
+                                        final token = prefs.getString(
+                                          'auth_token',
+                                        );
+                                        if (token != null) {
+                                          _userBloc.add(
+                                            FetchUserProfile(token),
+                                          );
+                                        }
+                                      }
                                     },
                                     style: ButtonStyle(
                                       backgroundColor: WidgetStatePropertyAll(
@@ -269,11 +307,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     icon: const Icon(
                                       Icons.edit,
                                       color: Colors.black,
-                                    ), // Your icon widget
+                                    ),
                                     label: const Text(
                                       "Edit Details",
                                       style: TextStyle(color: Colors.black),
-                                    ), // Your text label
+                                    ),
                                   ),
                                 ),
                               ],
