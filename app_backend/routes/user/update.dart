@@ -8,7 +8,7 @@ import 'package:my_backend/config/env.dart';
 import 'package:my_backend/db/mongo.dart';
 
 Future<Response> onRequest(RequestContext context) async {
-  print("🔥 /user/update API HIT");
+  print('🔥 /user/update API HIT');
 
   final authHeader = context.request.headers['authorization'];
 
@@ -23,7 +23,7 @@ Future<Response> onRequest(RequestContext context) async {
     final userId = jwt.payload['id'] as String;
 
     final body = jsonDecode(await context.request.body());
-    print("📦 Update Body: $body");
+    print('📦 Update Body: $body');
 
     final updateData = <String, dynamic>{};
 
@@ -52,7 +52,7 @@ Future<Response> onRequest(RequestContext context) async {
       return Response.json(body: {'error': 'Update failed'});
     }
 
-    print("✅ User updated successfully");
+    print('✅ User updated successfully');
 
     return Response.json(
       body: {
@@ -61,7 +61,7 @@ Future<Response> onRequest(RequestContext context) async {
       },
     );
   } catch (e) {
-    print("❌ ERROR: $e");
+    print('❌ ERROR: $e');
     return Response.json(statusCode: 401, body: {'error': 'Invalid token'});
   }
 }

@@ -55,7 +55,7 @@ Future<Response> onRequest(RequestContext context) async {
     'email': email,
     'mobile': mobile,
     'passwordHash': hashed,
-    'profileImage': profileImage ?? "", // optional field
+    'profileImage': profileImage ?? '',
     'createdAt': DateTime.now(),
   });
 

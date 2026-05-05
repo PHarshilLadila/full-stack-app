@@ -47,8 +47,8 @@ Future<Response> onRequest(RequestContext context) async {
 
   final token = AuthService.generateToken(objectId.oid);
 
-  print("🆔 ObjectId: ${objectId.oid}");
-  print("🔐 Generated Token: $token");
+  print('🆔 ObjectId: ${objectId.oid}');
+  print('🔐 Generated Token: $token');
   print('✅ Login success');
 
   return Response.json(body: {'message': 'Login success', 'token': token});

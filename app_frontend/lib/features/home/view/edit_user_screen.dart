@@ -1,7 +1,8 @@
 // lib/features/home/view/edit_user_screen.dart
 
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+
 import 'dart:io';
-import 'package:app_frontend/features/auth/view/register_screen.dart';
 import 'package:app_frontend/features/home/bloc/user_bloc.dart';
 import 'package:app_frontend/features/home/bloc/user_event.dart';
 import 'package:app_frontend/features/home/bloc/user_state.dart';

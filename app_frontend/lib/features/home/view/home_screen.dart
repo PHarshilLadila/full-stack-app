@@ -1,5 +1,7 @@
 // lib/features/home/view/home_screen.dart
 
+// ignore_for_file: deprecated_member_use
+
 import 'package:app_frontend/features/home/bloc/user_bloc.dart';
 import 'package:app_frontend/features/home/bloc/user_event.dart';
 import 'package:app_frontend/features/home/bloc/user_state.dart';
