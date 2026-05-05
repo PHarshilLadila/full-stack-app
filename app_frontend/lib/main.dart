@@ -22,13 +22,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Driver Fleet App',
         debugShowCheckedModeBanner: false,
-
-        // ✅ GLOBAL NUNITO FONT
         theme: ThemeData.dark().copyWith(
-          // scaffoldBackgroundColor: const Color(0xFF1A1A2E),
           textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme),
         ),
-
         initialRoute: '/auth',
         routes: {
           '/auth': (context) => const AuthScreen(),
