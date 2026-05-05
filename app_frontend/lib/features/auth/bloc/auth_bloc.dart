@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthError(e.toString()));
       }
     });
+
     on<LoginEvent>((event, emit) async {
       emit(AuthLoading());
 
@@ -30,14 +31,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         log("login response = ${response.message}");
         log("login response = ${response.token}");
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', response.token);
 
-        // if using String token
-        emit(AuthSuccess("Login Successful", token: response.toString()));
-
-        // if using LoginResponseModel:
-        // emit(AuthSuccess(response.message, token: response.token));
+        // Fixed: emit with correct token
+        emit(AuthSuccess(response.message, token: response.token));
       } catch (e) {
         debugPrint("Login Error : $e");
         emit(AuthError(e.toString()));
