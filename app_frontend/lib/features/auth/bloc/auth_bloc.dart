@@ -18,7 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final message = await service.register(event.registerModel);
         emit(AuthSuccess(message));
       } catch (e) {
-        debugPrint("Register Error");
+        debugPrint("Register Error : $e");
         emit(AuthError(e.toString()));
       }
     });
@@ -30,7 +30,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         log("login response = ${response.message}");
         log("login response = ${response.token}");
-final prefs = await SharedPreferences.getInstance();
+        final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', response.token);
 
         // if using String token
@@ -39,6 +39,7 @@ final prefs = await SharedPreferences.getInstance();
         // if using LoginResponseModel:
         // emit(AuthSuccess(response.message, token: response.token));
       } catch (e) {
+        debugPrint("Login Error : $e");
         emit(AuthError(e.toString()));
       }
     });

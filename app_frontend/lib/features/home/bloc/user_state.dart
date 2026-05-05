@@ -8,6 +8,8 @@ class UserInitial extends UserState {}
 
 class UserLoading extends UserState {}
 
+class UserUpdating extends UserState {}
+
 class UserLoaded extends UserState {
   final UserModel user;
   UserLoaded(this.user);
@@ -16,4 +18,10 @@ class UserLoaded extends UserState {
 class UserError extends UserState {
   final String error;
   UserError(this.error);
+}
+
+class UserUpdated extends UserState {
+  final UserModel user;
+  final String message;
+  UserUpdated(this.user, this.message);
 }
