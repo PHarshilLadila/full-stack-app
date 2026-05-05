@@ -3,6 +3,7 @@ import 'package:app_frontend/features/auth/view/auth_screen.dart';
 import 'package:app_frontend/features/home/view/home_screen.dart';
 import 'package:app_frontend/features/home/bloc/user_bloc.dart';
 import 'package:app_frontend/features/home/service/user_service.dart';
+import 'package:app_frontend/features/splash/view/splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -22,11 +23,13 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Driver Fleet App',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData.dark().copyWith(
-          textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme),
+        theme: ThemeData.light().copyWith(
+          textTheme: GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),
+          scaffoldBackgroundColor: Colors.white,
         ),
-        initialRoute: '/auth',
+        initialRoute: '/',
         routes: {
+          '/': (context) => const SplashScreen(),
           '/auth': (context) => const AuthScreen(),
           '/home': (context) => const HomeScreen(),
         },
