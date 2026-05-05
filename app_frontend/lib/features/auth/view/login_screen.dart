@@ -168,6 +168,7 @@ import 'package:app_frontend/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend/features/auth/bloc/auth_state.dart';
 import 'package:app_frontend/features/auth/model/login_model.dart';
 import 'package:app_frontend/features/auth/view/register_screen.dart';
+import 'package:app_frontend/utils/common/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

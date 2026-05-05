@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
 
         // ✅ GLOBAL NUNITO FONT
         theme: ThemeData.dark().copyWith(
-          scaffoldBackgroundColor: const Color(0xFF1A1A2E),
+          // scaffoldBackgroundColor: const Color(0xFF1A1A2E),
           textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme),
         ),
 
