@@ -26,7 +26,7 @@ class AuthService {
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200) {
-      log("${data.toString()}");
+      log(data.toString());
       return LoginResponseModel.fromJson(data);
     } else {
       throw Exception(data['error'] ?? "Login failed");
