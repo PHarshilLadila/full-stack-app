@@ -177,8 +177,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(24),
                             child: Image.network(
-                              "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
+                              (state.user.profileImage != null &&
+                                      state.user.profileImage!.isNotEmpty)
+                                  ? state.user.profileImage!
+                                  : "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
                               width: 160,
+                              fit: BoxFit.cover,
                             ),
                           ),
                           const SizedBox(height: 24),
