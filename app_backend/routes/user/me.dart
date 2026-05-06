@@ -36,7 +36,6 @@ Future<Response> onRequest(RequestContext context) async {
       return Response.json(body: {'error': 'User not found'});
     }
 
-    // 🔥 FIX START
     user.remove('passwordHash');
 
     // Convert ObjectId → String
@@ -46,7 +45,6 @@ Future<Response> onRequest(RequestContext context) async {
     if (user['createdAt'] is DateTime) {
       user['createdAt'] = (user['createdAt'] as DateTime).toIso8601String();
     }
-    // 🔥 FIX END
 
     print('✅ User fetched successfully');
 
