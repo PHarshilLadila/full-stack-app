@@ -35,14 +35,14 @@ Future<Response> onRequest(RequestContext context) async {
       updateData['profileImage'] = body['profileImage'];
     }
 
-    // ✅ IMPORTANT: convert DateTime to String
+    // Convert DateTime to String
     updateData['updatedAt'] = DateTime.now().toIso8601String();
 
     if (updateData.isEmpty) {
       return Response.json(body: {'error': 'No data to update'});
     }
 
-    // 🔥 BEST UPDATE METHOD
+    // BEST UPDATE METHOD
     final result = await MongoService.users!.updateOne(
       where.id(ObjectId.parse(userId)),
       {r'$set': updateData},
