@@ -1,5 +1,7 @@
 // lib/features/splash/view/splash_screen.dart
 
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/splash_bloc.dart';
@@ -53,68 +55,140 @@ class _SplashScreenState extends State<SplashScreen> {
           },
           child: BlocBuilder<SplashBloc, SplashState>(
             builder: (context, state) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
+              return Stack(
+                children: [
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    child: Container(
+                      width: 200,
+                      height: 180,
                       decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.all(24),
-                      child: const Icon(
-                        Icons.electric_rickshaw,
-                        size: 60,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    const Text(
-                      'Driver Fleet',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Your Ride, Your Earnings',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
+                        gradient: LinearGradient(
+                          colors: [Colors.transparent, Colors.transparent],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.only(
+                          bottomRight: Radius.circular(60),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.yellow.withOpacity(0.09),
+                            blurRadius: 80,
+                            spreadRadius: 80,
+                            offset: Offset(0, 0),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    if (state is SplashLoading || state is SplashInitial)
-                      const CircularProgressIndicator(
-                        color: Colors.amber,
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: 200,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.transparent, Colors.transparent],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.07),
+                            blurRadius: 50,
+                            spreadRadius: 40,
+                            offset: Offset(0, 0),
+                          ),
+                        ],
                       ),
-                    if (state is SplashApiSuccess)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          '✓ ${state.message}',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 14,
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 200,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.transparent, Colors.transparent],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.pink.withOpacity(0.04),
+                            blurRadius: 80,
+                            spreadRadius: 80,
+                            offset: Offset(0, 0),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.amber,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.all(24),
+                          child: const Icon(
+                            Icons.electric_rickshaw,
+                            size: 60,
+                            color: Colors.black,
                           ),
                         ),
-                      ),
-                    if (state is SplashApiError)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          '⚠️ ${state.error}',
-                          style: const TextStyle(
-                            color: Colors.orange,
-                            fontSize: 14,
+                        const SizedBox(height: 30),
+                        const Text(
+                          'Driver Fleet',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
                           ),
                         ),
-                      ),
-                  ],
-                ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Your Ride, Your Earnings',
+                          style: TextStyle(fontSize: 16, color: Colors.black54),
+                        ),
+                        const SizedBox(height: 40),
+                        if (state is SplashLoading || state is SplashInitial)
+                          const CircularProgressIndicator(color: Colors.amber),
+                        // if (state is SplashApiSuccess)
+                        //   Padding(
+                        //     padding: const EdgeInsets.only(top: 20),
+                        //     child: Text(
+                        //       '✓ ${state.message}',
+                        //       style: const TextStyle(
+                        //         color: Colors.green,
+                        //         fontSize: 14,
+                        //       ),
+                        //     ),
+                        //   ),
+                        // if (state is SplashApiError)
+                        //   Padding(
+                        //     padding: const EdgeInsets.only(top: 20),
+                        //     child: Text(
+                        //       '⚠️ ${state.error}',
+                        //       style: const TextStyle(
+                        //         color: Colors.orange,
+                        //         fontSize: 14,
+                        //       ),
+                        //     ),
+                        //   ),
+                      ],
+                    ),
+                  ),
+                ],
               );
             },
           ),
