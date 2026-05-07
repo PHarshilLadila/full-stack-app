@@ -18,9 +18,15 @@ Future<Response> onRequest(RequestContext context) async {
   final password = body['password'];
   final confirmPassword = body['confirmPassword'];
   final profileImage = body['profileImage']; // base64 or URL (optional)
+  final role = body['role']?.toString() ?? 'customer'; // 'customer' or 'seller'
 
   if (MongoService.users == null) {
     return Response.json(body: {'error': 'DB not connected'});
+  }
+
+  // Validate role
+  if (role != 'customer' && role != 'seller') {
+    return Response.json(body: {'error': 'Invalid role. Must be customer or seller'});
   }
 
   if (!isValidEmail(email.toString())) {
@@ -56,10 +62,16 @@ Future<Response> onRequest(RequestContext context) async {
     'mobile': mobile,
     'passwordHash': hashed,
     'profileImage': profileImage ?? '',
+    'role': role, // Add role field
     'createdAt': DateTime.now(),
   });
 
-  print('✅ User inserted');
+  print('✅ User inserted with role: $role');
 
-  return Response.json(body: {'message': 'Registered successfully'});
+  return Response.json(
+    body: {
+      'message': 'Registered successfully',
+      'role': role,
+    },
+  );
 }

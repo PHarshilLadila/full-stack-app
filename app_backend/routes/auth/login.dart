@@ -44,12 +44,21 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final objectId = user['_id'] as ObjectId;
+  final userRole = user['role']?.toString() ?? 'customer'; // Default to customer
 
-  final token = AuthService.generateToken(objectId.oid);
+  final token = AuthService.generateToken(objectId.oid, userRole);
 
   print('🆔 ObjectId: ${objectId.oid}');
+  print('👤 User Role: $userRole');
   print('🔐 Generated Token: $token');
   print('✅ Login success');
 
-  return Response.json(body: {'message': 'Login success', 'token': token});
+  return Response.json(
+    body: {
+      'message': 'Login success',
+      'token': token,
+      'role': userRole,
+      'userId': objectId.oid,
+    },
+  );
 }

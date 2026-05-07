@@ -6,6 +6,7 @@ import 'package:my_backend/config/env.dart';
 class MongoService {
   static Db? db;
   static DbCollection? users;
+  static DbCollection? products;
 
   static bool isConnected = false;
 
@@ -19,7 +20,12 @@ class MongoService {
       await db!.open(secure: true);
 
       users = db!.collection('users');
+      products = db!.collection('products');
 
+      await products!.createIndex(keys: {'productName': 'text', 'category': 1});
+      await products!.createIndex(keys: {'sellerId': 1});
+      await products!.createIndex(keys: {'price': 1});
+      await products!.createIndex(keys: {'tags': 1});
       isConnected = true;
 
       print('✅ MongoDB Connected');

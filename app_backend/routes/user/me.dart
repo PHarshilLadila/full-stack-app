@@ -25,7 +25,9 @@ Future<Response> onRequest(RequestContext context) async {
     print('✅ Token verified');
 
     final userId = jwt.payload['id'] as String;
+    final userRole = jwt.payload['role'] as String? ?? 'customer';
     print('👤 User ID: $userId');
+    print('👤 User Role: $userRole');
 
     final user = await MongoService.users!.findOne({
       '_id': ObjectId.parse(userId),
@@ -48,7 +50,13 @@ Future<Response> onRequest(RequestContext context) async {
 
     print('✅ User fetched successfully');
 
-    return Response.json(body: {'message': 'User fetched', 'data': user});
+    return Response.json(
+      body: {
+        'message': 'User fetched',
+        'data': user,
+        'role': userRole,
+      },
+    );
   } catch (e) {
     print('❌ ERROR: $e');
     return Response.json(statusCode: 401, body: {'error': 'Invalid token'});
