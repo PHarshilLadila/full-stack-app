@@ -13,8 +13,8 @@ class AuthService {
     return BCrypt.checkpw(password, hash);
   }
 
-  static String generateToken(String id) {
-    final jwt = JWT({'id': id});
+  static String generateToken(String id, String role) {
+    final jwt = JWT({'id': id, 'role': role});
 
     return jwt.sign(
       SecretKey(Env.jwtSecret),

@@ -34,6 +34,15 @@ Future<Response> onRequest(RequestContext context) async {
     if (body['profileImage'] != null) {
       updateData['profileImage'] = body['profileImage'];
     }
+    
+    // Only allow role update if provided (optional)
+    if (body['role'] != null) {
+      if (body['role'] == 'customer' || body['role'] == 'seller') {
+        updateData['role'] = body['role'];
+      } else {
+        return Response.json(body: {'error': 'Invalid role. Must be customer or seller'});
+      }
+    }
 
     // Convert DateTime to String
     updateData['updatedAt'] = DateTime.now().toIso8601String();
