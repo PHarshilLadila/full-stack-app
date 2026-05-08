@@ -15,21 +15,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class CustomerProfileScreen extends StatefulWidget {
-  const CustomerProfileScreen({super.key});
+class SellerProfileScreen extends StatefulWidget {
+  const SellerProfileScreen({super.key});
 
   @override
-  State<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
+  State<SellerProfileScreen> createState() => _SellerProfileScreenState();
 }
 
-class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
+class _SellerProfileScreenState extends State<SellerProfileScreen> {
   late UserBloc _userBloc;
+  Map<String, dynamic>? _sellerStats;
 
   @override
   void initState() {
     super.initState();
     _userBloc = UserBloc(userService: UserService());
     _loadUserData();
+    _loadSellerStats();
   }
 
   Future<void> _loadUserData() async {
@@ -38,6 +40,22 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
     if (token != null) {
       _userBloc.add(FetchUserProfile(token));
+    }
+  }
+
+  Future<void> _loadSellerStats() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token != null) {
+      try {
+        final stats = await UserService().getSellerStats(token);
+        setState(() {
+          _sellerStats = stats;
+        });
+      } catch (e) {
+        print("Error loading seller stats: $e");
+      }
     }
   }
 
@@ -84,7 +102,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   ),
                   child: BlocBuilder<UserBloc, UserState>(
                     builder: (context, state) {
-                      String userName = "Customer";
+                      String userName = "Seller";
                       if (state is UserLoaded) {
                         userName = state.user.fullName.split(' ')[0];
                       }
@@ -96,7 +114,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                             radius: 40,
                             backgroundColor: Colors.amber,
                             child: const Icon(
-                              Icons.person,
+                              Icons.store,
                               size: 40,
                               color: Colors.black,
                             ),
@@ -121,7 +139,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Text(
-                              "Customer",
+                              "Seller",
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 12,
@@ -132,11 +150,37 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                           const SizedBox(height: 30),
                           ListTile(
                             leading: const Icon(
-                              Icons.home,
+                              Icons.dashboard,
                               color: Colors.black,
                             ),
                             title: const Text(
-                              "Home",
+                              "Dashboard",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(
+                              Icons.inventory_2,
+                              color: Colors.black,
+                            ),
+                            title: const Text(
+                              "Products",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(
+                              Icons.shopping_bag,
+                              color: Colors.black,
+                            ),
+                            title: const Text(
+                              "Orders",
                               style: TextStyle(color: Colors.black),
                             ),
                             onTap: () {
@@ -178,15 +222,15 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           ),
         ),
         appBar: CustomAppBar(
-          title: "My Profile",
+          title: "Seller Profile",
           onMenuTap: () {
             _scaffoldKey.currentState?.openDrawer();
           },
           onNotificationTap: () {},
           onFavouriteTap: () {},
           showMenu: true,
-          showNotification: true,
-          showFavourite: true,
+          showNotification: false,
+          showFavourite: false,
         ),
         body: Stack(
           children: [
@@ -245,7 +289,6 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 24),
-                                // Welcome Text
                                 Text(
                                   state.user.fullName,
                                   style: const TextStyle(
@@ -276,13 +319,66 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 const Text(
-                                  'Welcome to your customer dashboard',
+                                  'Welcome to your seller dashboard',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey,
                                   ),
                                 ),
                                 const SizedBox(height: 18),
+                                // Stats Cards
+                                if (_sellerStats != null) ...[
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _statCard(
+                                          title: 'Total Products',
+                                          value:
+                                              _sellerStats!['totalProducts']
+                                                  ?.toString() ??
+                                              '0',
+                                          icon: Icons.inventory_2,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _statCard(
+                                          title: 'Total Orders',
+                                          value:
+                                              _sellerStats!['totalOrders']
+                                                  ?.toString() ??
+                                              '0',
+                                          icon: Icons.shopping_bag,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _statCard(
+                                          title: 'Total Revenue',
+                                          value:
+                                              '₹${_sellerStats!['totalRevenue']?.toString() ?? '0'}',
+                                          icon: Icons.currency_rupee,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _statCard(
+                                          title: 'Pending Orders',
+                                          value:
+                                              _sellerStats!['pendingOrders']
+                                                  ?.toString() ??
+                                              '0',
+                                          icon: Icons.pending,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 24),
+                                ],
                                 // User Details Card
                                 Container(
                                   padding: const EdgeInsets.all(8),
@@ -363,47 +459,6 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 24),
-                                // Order History Section
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: Colors.grey.withOpacity(0.2),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Row(
-                                        children: [
-                                          Icon(
-                                            Icons.history,
-                                            color: Colors.amber,
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Recent Orders',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      const Center(
-                                        child: Text(
-                                          'No orders yet',
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
                                 // Logout Button
                                 SizedBox(
                                   width: double.infinity,
@@ -472,6 +527,41 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _statCard({
+    required String title,
+    required String value,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.amber, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

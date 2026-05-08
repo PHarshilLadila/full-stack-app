@@ -29,15 +29,27 @@ Future<Response> onRequest(RequestContext context) async {
     print('👤 User ID: $userId');
     print('👤 User Role: $userRole');
 
+    // Check if users collection exists
+    if (MongoService.users == null) {
+      return Response.json(
+        statusCode: 500,
+        body: {'error': 'Database not connected'},
+      );
+    }
+
     final user = await MongoService.users!.findOne({
       '_id': ObjectId.parse(userId),
     });
 
     if (user == null) {
       print('❌ User not found');
-      return Response.json(body: {'error': 'User not found'});
+      return Response.json(
+        statusCode: 404,
+        body: {'error': 'User not found'},
+      );
     }
 
+    // Remove sensitive data
     user.remove('passwordHash');
 
     // Convert ObjectId → String
@@ -47,18 +59,31 @@ Future<Response> onRequest(RequestContext context) async {
     if (user['createdAt'] is DateTime) {
       user['createdAt'] = (user['createdAt'] as DateTime).toIso8601String();
     }
+    
+    if (user['updatedAt'] is DateTime) {
+      user['updatedAt'] = (user['updatedAt'] as DateTime).toIso8601String();
+    }
+
+    // Ensure role field exists (for backward compatibility)
+    if (user['role'] == null) {
+      user['role'] = userRole;
+    }
 
     print('✅ User fetched successfully');
 
     return Response.json(
       body: {
-        'message': 'User fetched',
+        'success': true,
+        'message': 'User fetched successfully',
         'data': user,
-        'role': userRole,
+        'role': user['role'],
       },
     );
   } catch (e) {
     print('❌ ERROR: $e');
-    return Response.json(statusCode: 401, body: {'error': 'Invalid token'});
+    return Response.json(
+      statusCode: 401,
+      body: {'error': 'Invalid token', 'success': false},
+    );
   }
 }

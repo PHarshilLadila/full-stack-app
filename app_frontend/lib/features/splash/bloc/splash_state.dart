@@ -14,6 +14,9 @@ class SplashApiError extends SplashState {
   SplashApiError(this.error);
 }
 
-class Authenticated extends SplashState {}
+class Authenticated extends SplashState {
+  final String? role;
+  Authenticated({this.role});
+}
 
 class Unauthenticated extends SplashState {}

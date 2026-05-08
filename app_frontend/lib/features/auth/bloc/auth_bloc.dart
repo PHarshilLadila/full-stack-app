@@ -16,8 +16,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       try {
         final message = await service.register(event.registerModel);
+        log("Register Success: $message");
         emit(AuthSuccess(message));
       } catch (e) {
+        log("Register Error: $e");
         debugPrint("Register Error : $e");
         emit(AuthError(e.toString()));
       }
@@ -29,15 +31,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final response = await service.login(event.loginModel);
 
-        log("login response = ${response.message}");
-        log("login response = ${response.token}");
+        log("Login Success - Role: ${response.role}");
+        log("Login Success - UserId: ${response.userId}");
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', response.token);
+        await prefs.setString('user_role', response.role);
+        await prefs.setString('user_id', response.userId);
+        
+        if (response.user != null) {
+          await prefs.setString('user_name', response.user!.fullName);
+        }
 
-        // Fixed: emit with correct token
-        emit(AuthSuccess(response.message, token: response.token));
+        // Emit success with role
+        emit(AuthSuccess(response.message, token: response.token, role: response.role));
       } catch (e) {
+        log("Login Error: $e");
         debugPrint("Login Error : $e");
         emit(AuthError(e.toString()));
       }

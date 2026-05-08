@@ -13,7 +13,10 @@ Future<Response> onRequest(RequestContext context) async {
   final authHeader = context.request.headers['authorization'];
 
   if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-    return Response.json(statusCode: 401, body: {'error': 'Token missing'});
+    return Response.json(
+      statusCode: 401,
+      body: {'error': 'Token missing', 'success': false},
+    );
   }
 
   final token = authHeader.split(' ')[1];
@@ -21,56 +24,147 @@ Future<Response> onRequest(RequestContext context) async {
   try {
     final jwt = JWT.verify(token, SecretKey(Env.jwtSecret));
     final userId = jwt.payload['id'] as String;
+    final currentRole = jwt.payload['role'] as String? ?? 'customer';
 
-    final body = jsonDecode(await context.request.body());
+    // Check if users collection exists
+    if (MongoService.users == null) {
+      return Response.json(
+        statusCode: 500,
+        body: {'error': 'Database not connected', 'success': false},
+      );
+    }
+
+    final body = jsonDecode(await context.request.body()) as Map<String, dynamic>;
     print('📦 Update Body: $body');
 
     final updateData = <String, dynamic>{};
 
-    if (body['fullName'] != null) updateData['fullName'] = body['fullName'];
-    if (body['username'] != null) updateData['username'] = body['username'];
-    if (body['email'] != null) updateData['email'] = body['email'];
-    if (body['mobile'] != null) updateData['mobile'] = body['mobile'];
-    if (body['profileImage'] != null) {
-      updateData['profileImage'] = body['profileImage'];
+    // Validate and add update fields
+    if (body['fullName'] != null && body['fullName'].toString().isNotEmpty) {
+      updateData['fullName'] = body['fullName'].toString();
     }
     
-    // Only allow role update if provided (optional)
+    if (body['username'] != null && body['username'].toString().isNotEmpty) {
+      // Check if username is already taken by another user
+      final existingUser = await MongoService.users!.findOne({
+        'username': body['username'].toString(),
+        '_id': {'\$ne': ObjectId.parse(userId)},
+      });
+      
+      if (existingUser != null) {
+        return Response.json(
+          body: {'error': 'Username already taken', 'success': false},
+        );
+      }
+      updateData['username'] = body['username'].toString();
+    }
+    
+    if (body['email'] != null && body['email'].toString().isNotEmpty) {
+      // Check if email is already taken by another user
+      final existingUser = await MongoService.users!.findOne({
+        'email': body['email'].toString(),
+        '_id': {'\$ne': ObjectId.parse(userId)},
+      });
+      
+      if (existingUser != null) {
+        return Response.json(
+          body: {'error': 'Email already taken', 'success': false},
+        );
+      }
+      updateData['email'] = body['email'].toString();
+    }
+    
+    if (body['mobile'] != null && body['mobile'].toString().isNotEmpty) {
+      // Check if mobile is already taken by another user
+      final existingUser = await MongoService.users!.findOne({
+        'mobile': body['mobile'].toString(),
+        '_id': {'\$ne': ObjectId.parse(userId)},
+      });
+      
+      if (existingUser != null) {
+        return Response.json(
+          body: {'error': 'Mobile number already taken', 'success': false},
+        );
+      }
+      updateData['mobile'] = body['mobile'].toString();
+    }
+    
+    if (body['profileImage'] != null && body['profileImage'].toString().isNotEmpty) {
+      updateData['profileImage'] = body['profileImage'].toString();
+    }
+    
+    // Role update - only allow if properly authorized
     if (body['role'] != null) {
-      if (body['role'] == 'customer' || body['role'] == 'seller') {
-        updateData['role'] = body['role'];
+      final newRole = body['role'].toString();
+      if (newRole == 'customer' || newRole == 'seller') {
+        // In production, you might want to restrict role changes
+        // or require admin approval
+        updateData['role'] = newRole;
+        print('⚠️ Role changing from $currentRole to $newRole');
       } else {
-        return Response.json(body: {'error': 'Invalid role. Must be customer or seller'});
+        return Response.json(
+          body: {'error': 'Invalid role. Must be customer or seller', 'success': false},
+        );
       }
     }
 
-    // Convert DateTime to String
-    updateData['updatedAt'] = DateTime.now().toIso8601String();
+    // Add updated timestamp
+    updateData['updatedAt'] = DateTime.now();
 
     if (updateData.isEmpty) {
-      return Response.json(body: {'error': 'No data to update'});
+      return Response.json(
+        body: {'error': 'No data to update', 'success': false},
+      );
     }
 
-    // BEST UPDATE METHOD
+    // Update user
     final result = await MongoService.users!.updateOne(
-      where.id(ObjectId.parse(userId)),
-      {r'$set': updateData},
+      {'_id': ObjectId.parse(userId)},
+      {'\$set': updateData},
     );
 
     if (!result.isSuccess) {
-      return Response.json(body: {'error': 'Update failed'});
+      return Response.json(
+        body: {'error': 'Update failed', 'success': false},
+      );
+    }
+
+    // Get updated user data
+    final updatedUser = await MongoService.users!.findOne({
+      '_id': ObjectId.parse(userId),
+    });
+
+    // Remove sensitive data
+    updatedUser?.remove('passwordHash');
+    
+    // Convert ObjectId to string
+    if (updatedUser != null && updatedUser['_id'] is ObjectId) {
+      updatedUser['_id'] = (updatedUser['_id'] as ObjectId).oid;
+    }
+    
+    // Convert DateTime to string
+    if (updatedUser != null && updatedUser['createdAt'] is DateTime) {
+      updatedUser['createdAt'] = (updatedUser['createdAt'] as DateTime).toIso8601String();
+    }
+    if (updatedUser != null && updatedUser['updatedAt'] is DateTime) {
+      updatedUser['updatedAt'] = (updatedUser['updatedAt'] as DateTime).toIso8601String();
     }
 
     print('✅ User updated successfully');
 
     return Response.json(
       body: {
+        'success': true,
         'message': 'User updated successfully',
         'updatedFields': updateData,
+        'data': updatedUser,
       },
     );
   } catch (e) {
     print('❌ ERROR: $e');
-    return Response.json(statusCode: 401, body: {'error': 'Invalid token'});
+    return Response.json(
+      statusCode: 500,
+      body: {'error': 'Failed to update user: $e', 'success': false},
+    );
   }
 }
