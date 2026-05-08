@@ -1,8 +1,8 @@
 // lib/features/user/bloc/user_bloc.dart
 
-import 'package:app_frontend/features/home/bloc/user_event.dart';
-import 'package:app_frontend/features/home/bloc/user_state.dart';
-import 'package:app_frontend/features/home/service/user_service.dart';
+import 'package:app_frontend/features/customer/profile/bloc/user_event.dart';
+import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';
+import 'package:app_frontend/features/customer/profile/service/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

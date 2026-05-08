@@ -2,8 +2,8 @@ import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart
 import 'package:app_frontend/features/bottom_navbar/view/bottom_navbar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app_frontend/features/auth/view/auth_screen.dart';
-import 'package:app_frontend/features/home/bloc/user_bloc.dart';
-import 'package:app_frontend/features/home/service/user_service.dart';
+import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
+import 'package:app_frontend/features/customer/profile/service/user_service.dart';
 import 'package:app_frontend/features/splash/view/splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';

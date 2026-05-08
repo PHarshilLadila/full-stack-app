@@ -2,21 +2,21 @@ import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_event.dart';
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_state.dart';
 import 'package:app_frontend/features/customer/cart/view/cart_screen.dart';
-import 'package:app_frontend/features/customer/categories_screen.dart/view/categories_screen.dart';
-import 'package:app_frontend/features/customer/customer_profile/view/customer_profile_screen.dart';
-import 'package:app_frontend/features/home/view/home_screen.dart';
+import 'package:app_frontend/features/customer/categories_screen/view/categories_screen.dart';
+import 'package:app_frontend/features/customer/home/view/home_screen.dart';
+import 'package:app_frontend/features/customer/profile/view/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class BottomNavBarScreen extends StatelessWidget {
   BottomNavBarScreen({super.key});
 
-  // Screens for each tab
   final List<Widget> _screens = [
     const HomeScreen(),
     const CategoriesScreen(),
     const CartScreen(),
-    const CustomerProfileScreen(),
+    const ProfileScreen(),
   ];
 
   @override
@@ -27,53 +27,63 @@ class BottomNavBarScreen extends StatelessWidget {
           return _screens[state.selectedIndex];
         },
       ),
-      bottomNavigationBar:
-          BlocBuilder<BottomNavigationBloc, BottomNavigationState>(
-            builder: (context, state) {
-              return BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                backgroundColor: Colors.white,
-                selectedItemColor: Colors.amber,
-                unselectedItemColor: Colors.grey,
-                selectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
+      bottomNavigationBar: SizedBox(
+        height: 70,
+        child: BlocBuilder<BottomNavigationBloc, BottomNavigationState>(
+          builder: (context, state) {
+            return BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.white,
+              selectedItemColor: Colors.amber,
+              unselectedItemColor: Colors.grey,
+              iconSize: 28,
+              selectedFontSize: 13,
+              unselectedFontSize: 12,
+
+              selectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.normal,
+                fontSize: 12,
+              ),
+
+              currentIndex: state.selectedIndex,
+              onTap: (index) {
+                context.read<BottomNavigationBloc>().add(
+                  BottomNavigationItemTapped(index),
+                );
+              },
+
+              items: [
+                BottomNavigationBarItem(
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedHome03),
+                  activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedHome03),
+                  label: 'Home',
                 ),
-                unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.normal,
-                  fontSize: 12,
+                BottomNavigationBarItem(
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedGridView),
+                  activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedGridView),
+                  label: 'Categories',
                 ),
-                currentIndex: state.selectedIndex,
-                onTap: (index) {
-                  context.read<BottomNavigationBloc>().add(
-                    BottomNavigationItemTapped(index),
-                  );
-                },
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
-                    label: 'Home',
+                BottomNavigationBarItem(
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01),
+                  activeIcon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedShoppingCart01,
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.category_outlined),
-                    activeIcon: Icon(Icons.category),
-                    label: 'Categories',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.shopping_cart_outlined),
-                    activeIcon: Icon(Icons.shopping_cart),
-                    label: 'Cart',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_outline),
-                    activeIcon: Icon(Icons.person),
-                    label: 'Profile',
-                  ),
-                ],
-              );
-            },
-          ),
+                  label: 'Cart',
+                ),
+                BottomNavigationBarItem(
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedUser),
+                  activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedUser),
+                  label: 'Profile',
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }
