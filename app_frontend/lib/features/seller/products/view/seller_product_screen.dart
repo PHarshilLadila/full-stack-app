@@ -6,6 +6,7 @@ import 'package:app_frontend/features/seller/products/bloc/product_state.dart';
 import 'package:app_frontend/features/seller/products/model/product_model.dart';
 import 'package:app_frontend/features/seller/products/service/product_service.dart';
 import 'package:app_frontend/features/seller/products/view/add_product_screen.dart';
+import 'package:app_frontend/features/seller/products/view/product_details_screen.dart';
 import 'package:app_frontend/utils/common/app_backround.dart';
 import 'package:app_frontend/utils/common/custom_appbar.dart';
 import 'package:flutter/material.dart';
@@ -111,152 +112,144 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     log("product.mainBannerImage => ${product.mainBannerImage}");
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsScreen(productId: product.id),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: Image.network(
-              product.mainBannerImage,
-              height: 110,
-              width: 110,
-              fit: BoxFit.fitWidth,
-
-              errorBuilder: (context, error, stackTrace) {
-                debugPrint("Image Error => $error");
-
-                return Container(
-                  height: 110,
-                  width: 110,
-                  color: Colors.grey.shade200,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.broken_image_outlined,
-                    size: 35,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) {
-                  return child;
-                }
-
-                return Container(
-                  height: 110,
-                  width: 110,
-                  alignment: Alignment.center,
-                  child: const CircularProgressIndicator(),
-                );
-              },
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
-          ),
-
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.productName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.network(
+                product.mainBannerImage,
+                height: 110,
+                width: 110,
+                fit: BoxFit.fitWidth,
+                errorBuilder: (context, error, stackTrace) {
+                  debugPrint("Image Error => $error");
+                  return Container(
+                    height: 110,
+                    width: 110,
+                    color: Colors.grey.shade200,
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.broken_image_outlined,
+                      size: 35,
+                      color: Colors.grey,
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    height: 110,
+                    width: 110,
+                    alignment: Alignment.center,
+                    child: const CircularProgressIndicator(),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.productName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 6),
-
-                Text(
-                  product.shortDescription,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-                ),
-
-                const SizedBox(height: 10),
-
-                Row(
-                  children: [
-                    Text(
-                      "₹${product.discountPrice}",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    Text(
-                      "₹${product.price}",
-                      style: const TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 8),
-
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            product.stockAvailable
-                                ? Colors.green.shade100
-                                : Colors.red.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        product.stockAvailable ? "In Stock" : "Out of Stock",
-                        style: TextStyle(
-                          color:
-                              product.stockAvailable
-                                  ? Colors.green
-                                  : Colors.red,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
+                  const SizedBox(height: 6),
+                  Text(
+                    product.shortDescription,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(
+                        "₹${product.discountPrice}",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
                         ),
                       ),
-                    ),
-
-                    const Spacer(),
-
-                    Text(
-                      "Stock: ${product.stock}",
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 8),
+                      Text(
+                        "₹${product.price}",
+                        style: const TextStyle(
+                          decoration: TextDecoration.lineThrough,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              product.stockAvailable
+                                  ? Colors.green.shade100
+                                  : Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          product.stockAvailable ? "In Stock" : "Out of Stock",
+                          style: TextStyle(
+                            color:
+                                product.stockAvailable
+                                    ? Colors.green
+                                    : Colors.red,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        "Stock: ${product.stock}",
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
