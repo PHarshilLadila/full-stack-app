@@ -8,6 +8,7 @@ import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';
 import 'package:app_frontend/features/customer/profile/service/user_service.dart';
 import 'package:app_frontend/features/customer/profile/view/edit_user_screen.dart';
 import 'package:app_frontend/features/customer/profile/view/full_screen_profile_image.dart';
+import 'package:app_frontend/utils/common/app_backround.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,79 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Container(
-                width: 200,
-                height: 180,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.transparent, Colors.transparent],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(60),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.yellow.withOpacity(0.09),
-                      blurRadius: 80,
-                      spreadRadius: 80,
-                      offset: Offset(0, 0),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                width: 200,
-                height: 180,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.transparent, Colors.transparent],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(100),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.withOpacity(0.07),
-                      blurRadius: 50,
-                      spreadRadius: 40,
-                      offset: Offset(0, 0),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: 200,
-                height: 180,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.transparent, Colors.transparent],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(100),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.pink.withOpacity(0.04),
-                      blurRadius: 80,
-                      spreadRadius: 80,
-                      offset: Offset(0, 0),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            AppBackround(),
             SafeArea(
               child: BlocBuilder<UserBloc, UserState>(
                 builder: (context, state) {
