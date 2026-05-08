@@ -1,6 +1,6 @@
-// lib/features/splash/view/splash_screen.dart
-
 // ignore_for_file: deprecated_member_use
+
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,7 +40,14 @@ class _SplashScreenState extends State<SplashScreen> {
         body: BlocListener<SplashBloc, SplashState>(
           listener: (context, state) {
             if (state is Authenticated) {
-              Navigator.pushReplacementNamed(context, '/home');
+              // Navigate based on role
+              if (state.role == 'seller') {
+                log("Navigating to Seller Home");
+                Navigator.pushReplacementNamed(context, '/seller_home');
+              } else {
+                log("Navigating to Customer Home");
+                Navigator.pushReplacementNamed(context, '/customer_home');
+              }
             } else if (state is Unauthenticated) {
               Navigator.pushReplacementNamed(context, '/auth');
             } else if (state is SplashApiError) {
@@ -51,6 +58,12 @@ class _SplashScreenState extends State<SplashScreen> {
                   duration: const Duration(seconds: 2),
                 ),
               );
+              // After showing error, navigate to auth screen
+              Future.delayed(const Duration(seconds: 2), () {
+                if (mounted) {
+                  Navigator.pushReplacementNamed(context, '/auth');
+                }
+              });
             }
           },
           child: BlocBuilder<SplashBloc, SplashState>(
@@ -163,28 +176,17 @@ class _SplashScreenState extends State<SplashScreen> {
                         const SizedBox(height: 40),
                         if (state is SplashLoading || state is SplashInitial)
                           const CircularProgressIndicator(color: Colors.amber),
-                        // if (state is SplashApiSuccess)
-                        //   Padding(
-                        //     padding: const EdgeInsets.only(top: 20),
-                        //     child: Text(
-                        //       '✓ ${state.message}',
-                        //       style: const TextStyle(
-                        //         color: Colors.green,
-                        //         fontSize: 14,
-                        //       ),
-                        //     ),
-                        //   ),
-                        // if (state is SplashApiError)
-                        //   Padding(
-                        //     padding: const EdgeInsets.only(top: 20),
-                        //     child: Text(
-                        //       '⚠️ ${state.error}',
-                        //       style: const TextStyle(
-                        //         color: Colors.orange,
-                        //         fontSize: 14,
-                        //       ),
-                        //     ),
-                        //   ),
+                        if (state is SplashApiError)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: Text(
+                              '⚠️ ${state.error}',
+                              style: const TextStyle(
+                                color: Colors.orange,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),

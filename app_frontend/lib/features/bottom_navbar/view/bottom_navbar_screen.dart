@@ -16,7 +16,7 @@ class BottomNavBarScreen extends StatelessWidget {
     const HomeScreen(),
     const CategoriesScreen(),
     const CartScreen(),
-    const ProfileScreen(),
+    const CustomerProfileScreen(),
   ];
 
   @override

@@ -1,6 +1,5 @@
-// lib/features/user/service/user_service.dart
-
 import 'dart:convert';
+import 'dart:developer';
 import 'package:app_frontend/core/network/api_client.dart';
 import 'package:app_frontend/features/customer/profile/model/user_model.dart';
 
@@ -9,16 +8,28 @@ class UserService {
 
   Future<UserModel> getUserProfile(String token) async {
     try {
+      log("Fetching user profile with token: $token");
       final response = await apiClient.get("/user/me", token: token);
+
+      log("User Profile Response Status: ${response.statusCode}");
+      log("User Profile Response Body: ${response.body}");
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        return UserModel.fromJson(data['data']);
+        // Handle different response structures
+        if (data['data'] != null) {
+          return UserModel.fromJson(data['data']);
+        } else if (data['user'] != null) {
+          return UserModel.fromJson(data['user']);
+        } else {
+          return UserModel.fromJson(data);
+        }
       } else {
         throw Exception(data['message'] ?? 'Failed to fetch user data');
       }
     } catch (e) {
+      log("Get User Profile Error: $e");
       throw Exception('Network error: ${e.toString()}');
     }
   }
@@ -43,9 +54,11 @@ class UserService {
         body["profileImage"] = profileImage;
       }
 
+      log("Updating user profile with data: $body");
       final response = await apiClient.put("/user/update", body, token: token);
 
       final data = jsonDecode(response.body);
+      log("Update Profile Response: ${response.body}");
 
       if (response.statusCode == 200) {
         return data;
@@ -53,6 +66,40 @@ class UserService {
         throw Exception(data['message'] ?? 'Failed to update user data');
       }
     } catch (e) {
+      log("Update Profile Error: $e");
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Seller specific methods
+  Future<Map<String, dynamic>> getSellerStats(String token) async {
+    try {
+      final response = await apiClient.get("/seller/stats", token: token);
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return data;
+      } else {
+        throw Exception(data['message'] ?? 'Failed to fetch seller stats');
+      }
+    } catch (e) {
+      log("Get Seller Stats Error: $e");
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> getSellerProducts(String token) async {
+    try {
+      final response = await apiClient.get("/seller/products", token: token);
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return data;
+      } else {
+        throw Exception(data['message'] ?? 'Failed to fetch products');
+      }
+    } catch (e) {
+      log("Get Seller Products Error: $e");
       throw Exception('Network error: ${e.toString()}');
     }
   }

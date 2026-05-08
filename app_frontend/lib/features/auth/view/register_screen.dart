@@ -5,6 +5,7 @@ import 'package:app_frontend/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend/features/auth/bloc/auth_state.dart';
 import 'package:app_frontend/features/auth/model/register_model.dart';
 import 'package:app_frontend/utils/common/custom_text_field.dart';
+import 'package:app_frontend/utils/common/role_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,6 +25,7 @@ class _RegisterFormState extends State<RegisterForm> {
   final mobileController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  String selectedRole = 'customer'; // Default role
   bool _agreeToTerms = false;
 
   @override
@@ -52,6 +54,18 @@ class _RegisterFormState extends State<RegisterForm> {
           key: _formKey,
           child: Column(
             children: [
+              // Role Selector
+              RoleSelector(
+                selectedRole: selectedRole,
+                onRoleSelected: (role) {
+                  setState(() {
+                    selectedRole = role;
+                  });
+                },
+              ),
+              
+              const SizedBox(height: 20),
+
               // Full Name
               AppTextField(
                 controller: fullNameController,
@@ -71,7 +85,7 @@ class _RegisterFormState extends State<RegisterForm> {
               AppTextField(
                 controller: usernameController,
                 hintText: "Username",
-                icon: Icons.person,
+                icon: Icons.person_outline,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Username required";
@@ -143,7 +157,7 @@ class _RegisterFormState extends State<RegisterForm> {
               AppTextField(
                 controller: confirmPasswordController,
                 hintText: "Confirm Password",
-                icon: Icons.lock,
+                icon: Icons.lock_outline,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -171,7 +185,7 @@ class _RegisterFormState extends State<RegisterForm> {
                               setState(() => _agreeToTerms = value ?? false),
                       fillColor: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
-                          return Color(0xFFFFD700);
+                          return const Color(0xFFFFD700);
                         }
                         return Colors.transparent;
                       }),
@@ -233,6 +247,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                 password: passwordController.text.trim(),
                                 confirmPassword:
                                     confirmPasswordController.text.trim(),
+                                role: selectedRole, // Pass selected role
                               );
                               context.read<AuthBloc>().add(
                                 RegisterEvent(model),

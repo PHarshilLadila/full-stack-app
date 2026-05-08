@@ -57,19 +57,20 @@ Future<Response> onRequest(RequestContext context) async {
       );
     }
 
-    // Soft delete (isActive = false)
-    final result = await MongoService.products!.updateOne(
-      {'_id': ObjectId.parse(productId.toString())},
-      {
-        '\$set': {'isActive': false, 'updatedAt': DateTime.now()},
-      },
-    );
+    // HARD DELETE - Permanently remove from database
+    final result = await MongoService.products!.remove({
+      '_id': ObjectId.parse(productId.toString()),
+    });
 
-    if (!result.isSuccess) {
+    if (result == null || result['n'] == 0) {
       return Response.json(body: {'error': 'Delete failed'});
     }
 
-    return Response.json(body: {'message': 'Product deleted successfully'});
+    print('✅ Product permanently deleted: $productId');
+
+    return Response.json(
+      body: {'message': 'Product permanently deleted successfully'},
+    );
   } catch (e) {
     print('❌ ERROR: $e');
     return Response.json(
