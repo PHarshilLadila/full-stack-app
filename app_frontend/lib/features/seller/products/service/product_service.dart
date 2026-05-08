@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:app_frontend/core/network/api_client.dart';
 import 'package:app_frontend/features/seller/products/model/product_model.dart';
@@ -55,4 +56,34 @@ class ProductService {
       throw Exception(e.toString());
     }
   }
+  Future<ProductModel> fetchProductDetails(String productId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      log("Fetching product details for ID: $productId");
+      final response = await apiClient.get(
+        '/product/details',
+        queryParams: {'id': productId},
+        token: token,
+      );
+
+      log("Product Details Response Status: ${response.statusCode}");
+      log("Product Details Response Body: ${response.body}");
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        final productData = data['data'];
+        log("Product details fetched successfully");
+        return ProductModel.fromJson(productData);
+      } else {
+        throw Exception(data['message'] ?? 'Failed to fetch product details');
+      }
+    } catch (e) {
+      log("Fetch Product Details Error: $e");
+      throw Exception(e.toString());
+    }
+  }
+
 }
