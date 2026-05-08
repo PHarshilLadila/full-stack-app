@@ -2,6 +2,8 @@
 
 // ignore_for_file: deprecated_member_use
 
+import 'dart:ui';
+
 import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
 import 'package:app_frontend/features/customer/profile/bloc/user_event.dart';
 import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';
@@ -9,6 +11,8 @@ import 'package:app_frontend/features/customer/profile/service/user_service.dart
 import 'package:app_frontend/features/customer/profile/view/edit_user_screen.dart';
 import 'package:app_frontend/features/customer/profile/view/full_screen_profile_image.dart';
 import 'package:app_frontend/utils/common/app_backround.dart';
+import 'package:app_frontend/utils/common/custom_appbar.dart';
+import 'package:app_frontend/utils/common/custom_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -49,14 +53,109 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: _userBloc,
       child: Scaffold(
+        key: _scaffoldKey,
+        extendBodyBehindAppBar: true,
         backgroundColor: Colors.white,
-        drawer: Drawer(child: Center(child: Text("Drawer"))),
+        drawer: SafeArea(
+          child: Drawer(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
+                    ),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
 
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 40),
+
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.person,
+                          size: 40,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        "Harshil",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      ListTile(
+                        leading: const Icon(Icons.home, color: Colors.black),
+                        title: const Text(
+                          "Home",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        onTap: () {},
+                      ),
+
+                      ListTile(
+                        leading: const Icon(Icons.person, color: Colors.black),
+                        title: const Text(
+                          "Profile",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        onTap: () {},
+                      ),
+
+                      ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text(
+                          "Logout",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        onTap: _logout,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        appBar: CustomAppBar(
+          title: "Profile",
+          onMenuTap: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+          onNotificationTap: () {},
+          onFavouriteTap: () {},
+          showMenu: true,
+          showNotification: true,
+          showFavourite: true,
+        ),
         body: Stack(
           children: [
             YellowCorner(),
@@ -66,242 +165,278 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: BlocBuilder<UserBloc, UserState>(
                 builder: (context, state) {
                   if (state is UserLoading) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(color: Color(0xFFFFD700)),
-                          SizedBox(height: 20),
-                          Text(
-                            'Loading profile...',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    );
+                    return CustomLoader(loadingPageName: 'Profile');
                   } else if (state is UserLoaded) {
                     return SingleChildScrollView(
-                      padding: const EdgeInsets.all(20.0),
                       child: Column(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Material(
-                                color:
-                                    Colors
-                                        .transparent, // Important: makes background transparent
-                                shape: const CircleBorder(),
-                                clipBehavior:
-                                    Clip.hardEdge, // Clips the ripple effect to circle
-                                child: InkWell(
+                          // Padding(
+                          //   padding: const EdgeInsets.only(
+                          //     left: 20.0,
+                          //     right: 10,
+                          //     top: 20,
+                          //   ),
+                          //   child: Row(
+                          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //     children: [
+                          //       Material(
+                          //         color:
+                          //             Colors
+                          //                 .transparent, // Important: makes background transparent
+                          //         shape: const CircleBorder(),
+                          //         clipBehavior:
+                          //             Clip.hardEdge, // Clips the ripple effect to circle
+                          //         child: InkWell(
+                          //           onTap: () {
+                          //             Scaffold.of(context).openDrawer();
+                          //           },
+                          //           child: Container(
+                          //             padding: EdgeInsets.all(8),
+                          //             decoration: BoxDecoration(
+                          //               color: Colors.white,
+                          //               shape: BoxShape.circle,
+                          //               border: Border.all(
+                          //                 color: Colors.grey,
+                          //                 width: 0.6,
+                          //               ),
+                          //             ),
+                          //             child: HugeIcon(
+                          //               color: Colors.black,
+                          //               icon: HugeIcons.strokeRoundedMenu02,
+                          //             ),
+                          //           ),
+                          //         ),
+                          //       ),
+                          //       Text(
+                          //         "Profile",
+                          //         style: TextStyle(
+                          //           fontWeight: FontWeight.bold,
+                          //           fontSize: 26,
+                          //           color: Colors.black,
+                          //         ),
+                          //       ),
+                          //       Row(
+                          //         children: [
+                          //           IconButton(
+                          //             visualDensity: VisualDensity.compact,
+                          //             padding: EdgeInsets.zero,
+                          //             constraints: const BoxConstraints(),
+                          //             onPressed: () {},
+                          //             icon: HugeIcon(
+                          //               icon:
+                          //                   HugeIcons
+                          //                       .strokeRoundedNotification01,
+                          //               color: Colors.black,
+                          //             ),
+                          //           ),
+                          //           const SizedBox(width: 8),
+                          //           IconButton(
+                          //             visualDensity: VisualDensity.compact,
+                          //             padding: EdgeInsets.zero,
+                          //             constraints: const BoxConstraints(),
+                          //             onPressed: () {},
+                          //             icon: HugeIcon(
+                          //               icon: HugeIcons.strokeRoundedFavourite,
+                          //               color: Colors.black,
+                          //             ),
+                          //           ),
+                          //         ],
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 40),
+
+                                // Profile Icon
+                                InkWell(
                                   onTap: () {
-                                    Scaffold.of(context).openDrawer();
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.grey,
-                                        width: 0.6,
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => FullScreenProfileImage(
+                                              profileImage:
+                                                  (state.user.profileImage !=
+                                                              null &&
+                                                          state
+                                                              .user
+                                                              .profileImage!
+                                                              .isNotEmpty)
+                                                      ? state.user.profileImage!
+                                                      : "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
+                                            ),
                                       ),
-                                    ),
-                                    child: HugeIcon(
-                                      color: Colors.black,
-                                      icon: HugeIcons.strokeRoundedMenu02,
+                                    );
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(24),
+                                    child: Image.network(
+                                      (state.user.profileImage != null &&
+                                              state
+                                                  .user
+                                                  .profileImage!
+                                                  .isNotEmpty)
+                                          ? state.user.profileImage!
+                                          : "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
+                                      width: 160,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
-                              ),
-                              Text(
-                                "Profile",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 26,
-                                  color: Colors.black,
+                                const SizedBox(height: 24),
+                                // Welcome Text
+                                Text(
+                                  state.user.fullName,
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                              ),
-                              HugeIcon(
-                                color: Colors.black,
-                                icon: HugeIcons.strokeRoundedNotification02,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 40),
-
-                          // Profile Icon
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => FullScreenProfileImage(
-                                        profileImage:
-                                            (state.user.profileImage != null &&
-                                                    state
-                                                        .user
-                                                        .profileImage!
-                                                        .isNotEmpty)
-                                                ? state.user.profileImage!
-                                                : "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
+                                const SizedBox(height: 2),
+                                const Text(
+                                  'You are successfully logged in.',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                // User Details Card
+                                Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      infoRow(
+                                        icon: Icons.person_outline,
+                                        label: 'Full Name',
+                                        value: state.user.fullName,
                                       ),
-                                ),
-                              );
-                            },
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
-                              child: Image.network(
-                                (state.user.profileImage != null &&
-                                        state.user.profileImage!.isNotEmpty)
-                                    ? state.user.profileImage!
-                                    : "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
-                                width: 160,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          // Welcome Text
-                          Text(
-                            state.user.fullName,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'You are successfully logged in.',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 18),
-                          // User Details Card
-                          Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                infoRow(
-                                  icon: Icons.person_outline,
-                                  label: 'Full Name',
-                                  value: state.user.fullName,
-                                ),
-                                SizedBox(height: 8),
-                                infoRow(
-                                  icon: Icons.alternate_email,
-                                  label: 'Username',
-                                  value: state.user.username,
-                                ),
-                                SizedBox(height: 8),
+                                      SizedBox(height: 8),
+                                      infoRow(
+                                        icon: Icons.alternate_email,
+                                        label: 'Username',
+                                        value: state.user.username,
+                                      ),
+                                      SizedBox(height: 8),
 
-                                infoRow(
-                                  icon: Icons.email_outlined,
-                                  label: 'Email',
-                                  value: state.user.email,
-                                ),
-                                SizedBox(height: 8),
+                                      infoRow(
+                                        icon: Icons.email_outlined,
+                                        label: 'Email',
+                                        value: state.user.email,
+                                      ),
+                                      SizedBox(height: 8),
 
-                                infoRow(
-                                  icon: Icons.call_outlined,
-                                  label: 'Mobile',
-                                  value: state.user.mobile,
-                                ),
-                                SizedBox(height: 8),
+                                      infoRow(
+                                        icon: Icons.call_outlined,
+                                        label: 'Mobile',
+                                        value: state.user.mobile,
+                                      ),
+                                      SizedBox(height: 8),
 
-                                infoRow(
-                                  icon: Icons.calendar_today,
-                                  label: 'Member Since',
-                                  value: _formatDate(state.user.createdAt),
-                                ),
-                                SizedBox(height: 8),
+                                      infoRow(
+                                        icon: Icons.calendar_today,
+                                        label: 'Member Since',
+                                        value: _formatDate(
+                                          state.user.createdAt,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
 
-                                SizedBox(
-                                  height: 26,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () async {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => EditUserScreen(
-                                                user: state.user,
+                                      SizedBox(
+                                        height: 26,
+                                        child: ElevatedButton.icon(
+                                          onPressed: () async {
+                                            final result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (context) => EditUserScreen(
+                                                      user: state.user,
+                                                    ),
                                               ),
+                                            );
+                                            if (result == true) {
+                                              // Refresh user data after update
+                                              final prefs =
+                                                  await SharedPreferences.getInstance();
+                                              final token = prefs.getString(
+                                                'auth_token',
+                                              );
+                                              if (token != null) {
+                                                _userBloc.add(
+                                                  FetchUserProfile(token),
+                                                );
+                                              }
+                                            }
+                                          },
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                WidgetStatePropertyAll(
+                                                  Colors.amber,
+                                                ),
+                                            padding: WidgetStatePropertyAll(
+                                              EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 0,
+                                              ),
+                                            ),
+                                          ),
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            color: Colors.black,
+                                          ),
+                                          label: const Text(
+                                            "Edit Details",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                            ),
+                                          ),
                                         ),
-                                      );
-                                      if (result == true) {
-                                        // Refresh user data after update
-                                        final prefs =
-                                            await SharedPreferences.getInstance();
-                                        final token = prefs.getString(
-                                          'auth_token',
-                                        );
-                                        if (token != null) {
-                                          _userBloc.add(
-                                            FetchUserProfile(token),
-                                          );
-                                        }
-                                      }
-                                    },
-                                    style: ButtonStyle(
-                                      backgroundColor: WidgetStatePropertyAll(
-                                        Colors.amber,
                                       ),
-                                      padding: WidgetStatePropertyAll(
-                                        EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 0,
-                                        ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 40),
+                                // Logout Button
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: _logout,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 40,
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.black,
-                                    ),
-                                    label: const Text(
-                                      "Edit Details",
-                                      style: TextStyle(color: Colors.black),
+                                    child: const Text(
+                                      'Logout',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                          // Logout Button
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _logout,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 40,
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: const Text(
-                                'Logout',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
                             ),
                           ),
                         ],

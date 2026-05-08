@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData.light().copyWith(
           textTheme: GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),
           scaffoldBackgroundColor: Colors.white,
+          useMaterial3: false,
         ),
         initialRoute: '/',
         routes: {
