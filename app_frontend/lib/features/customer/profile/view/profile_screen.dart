@@ -2,24 +2,24 @@
 
 // ignore_for_file: deprecated_member_use
 
-import 'package:app_frontend/features/home/bloc/user_bloc.dart';
-import 'package:app_frontend/features/home/bloc/user_event.dart';
-import 'package:app_frontend/features/home/bloc/user_state.dart';
-import 'package:app_frontend/features/home/service/user_service.dart';
-import 'package:app_frontend/features/home/view/edit_user_screen.dart';
-import 'package:app_frontend/features/home/view/full_screen_profile_image.dart';
+import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
+import 'package:app_frontend/features/customer/profile/bloc/user_event.dart';
+import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';
+import 'package:app_frontend/features/customer/profile/service/user_service.dart';
+import 'package:app_frontend/features/customer/profile/view/edit_user_screen.dart';
+import 'package:app_frontend/features/customer/profile/view/full_screen_profile_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   late UserBloc _userBloc;
 
   @override
