@@ -11,6 +11,7 @@ import 'package:app_frontend/features/customer/profile/view/full_screen_profile_
 import 'package:app_frontend/utils/common/app_backround.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -54,9 +55,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       value: _userBloc,
       child: Scaffold(
         backgroundColor: Colors.white,
+        drawer: Drawer(child: Center(child: Text("Drawer"))),
+
         body: Stack(
           children: [
-            AppBackround(),
+            YellowCorner(),
+            BlueCenter(),
+            RedCorner(),
             SafeArea(
               child: BlocBuilder<UserBloc, UserState>(
                 builder: (context, state) {
@@ -91,14 +96,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Clip.hardEdge, // Clips the ripple effect to circle
                                 child: InkWell(
                                   onTap: () {
-                                    _userBloc = UserBloc(
-                                      userService: UserService(),
-                                    );
-                                    _loadUserData();
+                                    Scaffold.of(context).openDrawer();
                                   },
                                   child: Container(
-                                    height: 40,
-                                    width: 40,
+                                    padding: EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       shape: BoxShape.circle,
@@ -107,16 +108,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         width: 0.6,
                                       ),
                                     ),
-                                    child: const Icon(
-                                      Icons.home,
+                                    child: HugeIcon(
                                       color: Colors.black,
+                                      icon: HugeIcons.strokeRoundedMenu02,
                                     ),
                                   ),
                                 ),
                               ),
-                              Icon(
-                                Icons.settings_outlined,
+                              Text(
+                                "Profile",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 26,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              HugeIcon(
                                 color: Colors.black,
+                                icon: HugeIcons.strokeRoundedNotification02,
                               ),
                             ],
                           ),
