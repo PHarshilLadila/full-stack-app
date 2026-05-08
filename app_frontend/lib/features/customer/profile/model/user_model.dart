@@ -6,7 +6,7 @@ class UserModel {
   final String mobile;
   final String createdAt;
   final String? profileImage;
-  final String role; // Add role field
+  final String role;
 
   UserModel({
     required this.id,
@@ -16,7 +16,7 @@ class UserModel {
     required this.mobile,
     required this.createdAt,
     required this.profileImage,
-    required this.role, // Add role parameter
+    required this.role,
   });
   
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -27,8 +27,10 @@ class UserModel {
       email: json['email']?.toString() ?? '',
       mobile: json['mobile']?.toString() ?? '',
       createdAt: json['createdAt']?.toString() ?? '',
-      profileImage: json['profileImage']?.toString() ?? '',
-      role: json['role']?.toString() ?? 'customer', // Get role from response
+      profileImage: json['profileImage']?.toString() != null && json['profileImage'].toString().isNotEmpty 
+          ? json['profileImage'].toString() 
+          : null,
+      role: json['role']?.toString() ?? 'customer',
     );
   }
 }
