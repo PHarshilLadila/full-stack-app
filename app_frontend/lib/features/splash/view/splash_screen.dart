@@ -42,11 +42,15 @@ class _SplashScreenState extends State<SplashScreen> {
             if (state is Authenticated) {
               // Navigate based on role
               if (state.role == 'seller') {
-                log("Navigating to Seller Home");
-                Navigator.pushReplacementNamed(context, '/seller_home');
+                log("Navigating to Seller Dashboard");
+                // Navigate to home which will handle role-based screens
+                Navigator.pushReplacementNamed(context, '/home');
+              } else if (state.role == 'customer') {
+                log("Navigating to Customer Dashboard");
+                Navigator.pushReplacementNamed(context, '/home');
               } else {
-                log("Navigating to Customer Home");
-                Navigator.pushReplacementNamed(context, '/customer_home');
+                // Default to home
+                Navigator.pushReplacementNamed(context, '/home');
               }
             } else if (state is Unauthenticated) {
               Navigator.pushReplacementNamed(context, '/auth');
@@ -58,7 +62,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   duration: const Duration(seconds: 2),
                 ),
               );
-              // After showing error, navigate to auth screen
               Future.delayed(const Duration(seconds: 2), () {
                 if (mounted) {
                   Navigator.pushReplacementNamed(context, '/auth');

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+//  RedCorner(),
+//  BlueCenter(),
+//  YellowCorner(),
+
 class RedCorner extends StatelessWidget {
   const RedCorner({super.key});
 

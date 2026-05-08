@@ -6,6 +6,7 @@ import 'package:app_frontend/features/customer/profile/model/user_model.dart';
 class UserService {
   final ApiClient apiClient = ApiClient();
 
+  // user_service.dart - Update getUserProfile method
   Future<UserModel> getUserProfile(String token) async {
     try {
       log("Fetching user profile with token: $token");
@@ -17,14 +18,19 @@ class UserService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Handle different response structures
+        UserModel user;
+
+        // Your API returns: { success, message, data: {...}, role }
         if (data['data'] != null) {
-          return UserModel.fromJson(data['data']);
+          user = UserModel.fromJson(data['data']);
         } else if (data['user'] != null) {
-          return UserModel.fromJson(data['user']);
+          user = UserModel.fromJson(data['user']);
         } else {
-          return UserModel.fromJson(data);
+          user = UserModel.fromJson(data);
         }
+
+        log("User parsed successfully: ${user.fullName}, Role: ${user.role}");
+        return user;
       } else {
         throw Exception(data['message'] ?? 'Failed to fetch user data');
       }
@@ -76,7 +82,7 @@ class UserService {
     try {
       final response = await apiClient.get("/seller/stats", token: token);
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         return data;
       } else {
@@ -92,7 +98,7 @@ class UserService {
     try {
       final response = await apiClient.get("/seller/products", token: token);
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         return data;
       } else {

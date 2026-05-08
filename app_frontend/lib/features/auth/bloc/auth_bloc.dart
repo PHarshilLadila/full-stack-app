@@ -25,6 +25,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
+    // auth_bloc.dart - LoginEvent handler (already correct, but verify)
     on<LoginEvent>((event, emit) async {
       emit(AuthLoading());
 
@@ -36,15 +37,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', response.token);
-        await prefs.setString('user_role', response.role);
+        await prefs.setString(
+          'user_role',
+          response.role.toLowerCase(),
+        ); // Ensure lowercase
         await prefs.setString('user_id', response.userId);
-        
+
         if (response.user != null) {
           await prefs.setString('user_name', response.user!.fullName);
         }
 
-        // Emit success with role
-        emit(AuthSuccess(response.message, token: response.token, role: response.role));
+        emit(
+          AuthSuccess(
+            response.message,
+            token: response.token,
+            role: response.role,
+          ),
+        );
       } catch (e) {
         log("Login Error: $e");
         debugPrint("Login Error : $e");

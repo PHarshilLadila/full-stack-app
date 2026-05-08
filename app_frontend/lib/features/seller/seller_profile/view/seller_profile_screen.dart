@@ -327,13 +327,16 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                 ),
                                 const SizedBox(height: 18),
                                 // Stats Cards
-                                if (_sellerStats != null) ...[
+                                if (_sellerStats != null &&
+                                    _sellerStats!.isNotEmpty) ...[
                                   Row(
                                     children: [
                                       Expanded(
                                         child: _statCard(
                                           title: 'Total Products',
                                           value:
+                                              _sellerStats!['data']?['totalProducts']
+                                                  ?.toString() ??
                                               _sellerStats!['totalProducts']
                                                   ?.toString() ??
                                               '0',
@@ -345,6 +348,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                         child: _statCard(
                                           title: 'Total Orders',
                                           value:
+                                              _sellerStats!['data']?['totalOrders']
+                                                  ?.toString() ??
                                               _sellerStats!['totalOrders']
                                                   ?.toString() ??
                                               '0',
@@ -360,7 +365,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                         child: _statCard(
                                           title: 'Total Revenue',
                                           value:
-                                              '₹${_sellerStats!['totalRevenue']?.toString() ?? '0'}',
+                                              '₹${_sellerStats!['data']?['totalRevenue']?.toString() ?? _sellerStats!['totalRevenue']?.toString() ?? '0'}',
                                           icon: Icons.currency_rupee,
                                         ),
                                       ),
@@ -369,6 +374,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                         child: _statCard(
                                           title: 'Pending Orders',
                                           value:
+                                              _sellerStats!['data']?['pendingOrders']
+                                                  ?.toString() ??
                                               _sellerStats!['pendingOrders']
                                                   ?.toString() ??
                                               '0',
