@@ -1,6 +1,7 @@
+import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
+import 'package:app_frontend/features/bottom_navbar/view/bottom_navbar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app_frontend/features/auth/view/auth_screen.dart';
-import 'package:app_frontend/features/home/view/home_screen.dart';
 import 'package:app_frontend/features/home/bloc/user_bloc.dart';
 import 'package:app_frontend/features/home/service/user_service.dart';
 import 'package:app_frontend/features/splash/view/splash_screen.dart';
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => UserBloc(userService: UserService())),
+        BlocProvider(create: (context) => BottomNavigationBloc()),
       ],
       child: MaterialApp(
         title: 'Driver Fleet App',
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (context) => const SplashScreen(),
           '/auth': (context) => const AuthScreen(),
-          '/home': (context) => const HomeScreen(),
+          '/home': (context) => BottomNavBarScreen(),
         },
       ),
     );
