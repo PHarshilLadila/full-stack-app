@@ -137,7 +137,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         const SizedBox(height: 16),
                         const Center(
                           child: Text(
-                            'Welcome Back, Driver',
+                            'Welcome to Velmora',
                             style: TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.bold,
@@ -148,7 +148,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         const SizedBox(height: 12),
                         const Center(
                           child: Text(
-                            'Ready to hit the road? Sign in to start accepting rides and earning.',
+                            'Sign in to access your vendor account and manage your store.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
@@ -177,7 +177,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         const SizedBox(height: 16),
                         const Center(
                           child: Text(
-                            'Join the Fleet',
+                            'Register with Velmora',
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -190,7 +190,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 12.0),
                             child: Text(
-                              'Create your driver account and start earning on your own schedule.',
+                              'Create your vendor account and grow your business online.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 16,
@@ -279,7 +279,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
 
                       _isLoginMode
                           ? LoginForm(

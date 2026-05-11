@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../bloc/splash_bloc.dart';
 import '../bloc/splash_event.dart';
 import '../bloc/splash_state.dart';
@@ -156,15 +157,15 @@ class _SplashScreenState extends State<SplashScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.all(24),
-                          child: const Icon(
-                            Icons.electric_rickshaw,
-                            size: 60,
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedStore03,
                             color: Colors.black,
+                            size: 60.0,
                           ),
                         ),
                         const SizedBox(height: 30),
                         const Text(
-                          'Driver Fleet',
+                          'Velmora Vendor',
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
@@ -173,7 +174,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         ),
                         const SizedBox(height: 10),
                         const Text(
-                          'Your Ride, Your Earnings',
+                          'Unlock Limitless Selling', // Your Trusted Shopping Destination
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                         const SizedBox(height: 40),
