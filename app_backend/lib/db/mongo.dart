@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, public_member_api_docs
+// ignore_for_file: avoid_print, public_member_api_docs, inference_failure_on_instance_creation
 
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:my_backend/config/env.dart';
@@ -25,7 +25,7 @@ class MongoService {
     if (_isConnecting) {
       print('⏳ Connection already in progress, waiting...');
       // Wait a bit for connection to complete
-      await Future.delayed(Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 500));
       if (isConnected) return;
       _isConnecting = false; // Reset if still not connected
     }
@@ -47,7 +47,7 @@ class MongoService {
       await _db!
           .open(secure: true)
           .timeout(
-            Duration(seconds: 30),
+            const Duration(seconds: 30),
             onTimeout: () {
               throw Exception('MongoDB connection timeout after 30 seconds');
             },

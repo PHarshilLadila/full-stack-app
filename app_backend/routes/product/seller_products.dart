@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls
+// ignore_for_file: avoid_print, avoid_dynamic_calls, inference_failure_on_collection_literal
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
