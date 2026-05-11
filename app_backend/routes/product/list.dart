@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls
+// ignore_for_file: avoid_print, avoid_dynamic_calls, unused_local_variable, inference_failure_on_collection_literal
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
@@ -41,7 +41,7 @@ Future<Response> onRequest(RequestContext context) async {
   final Map<String, dynamic> filter = {
     'isActive': true,
     'stockAvailable': true,
-    'stock': {'\$gt': 0},
+    'stock': {r'$gt': 0},
   };
 
   // Apply filters
@@ -57,20 +57,20 @@ Future<Response> onRequest(RequestContext context) async {
   if (minPrice != null || maxPrice != null) {
     final priceFilter = <String, dynamic>{};
     if (minPrice != null) {
-      priceFilter['\$gte'] = minPrice;
+      priceFilter[r'$gte'] = minPrice;
     }
     if (maxPrice != null) {
-      priceFilter['\$lte'] = maxPrice;
+      priceFilter[r'$lte'] = maxPrice;
     }
     filter['price'] = priceFilter;
   }
 
   if (tags != null && tags.isNotEmpty) {
-    filter['tags'] = {'\$all': tags};
+    filter['tags'] = {r'$all': tags};
   }
 
   if (search != null && search.isNotEmpty) {
-    filter['\$text'] = {'\$search': search};
+    filter[r'$text'] = {r'$search': search};
   }
 
   // Build sort order
