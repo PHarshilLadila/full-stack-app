@@ -5,6 +5,7 @@ import 'package:app_frontend/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend/features/auth/bloc/auth_state.dart';
 import 'package:app_frontend/features/auth/model/login_model.dart';
 import 'package:app_frontend/utils/common/custom_text_field.dart';
+import 'package:app_frontend/utils/common/role_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,6 +21,7 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  String selectedRole = 'customer';
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,15 @@ class _LoginFormState extends State<LoginForm> {
           key: _formKey,
           child: Column(
             children: [
+              RoleSelector(
+                selectedRole: selectedRole,
+                onRoleSelected: (role) {
+                  setState(() {
+                    selectedRole = role;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
               // Email Field
               AppTextField(
                 controller: emailController,
