@@ -1,19 +1,16 @@
-// services/cloudinary_setup.dart
+// ignore_for_file: public_member_api_docs, avoid_print, lines_longer_than_80_chars
+
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-import '../config/env.dart';
 
 class CloudinarySetup {
-  // Your Cloudinary credentials
   static const String cloudName = 'dyorzq6ir';
   static const String apiKey = '522897178834612';
   static const String apiSecret = '3tUnx4lp-KW8-AFhLtjk2hHTxuw';
 
-  // Upload preset (we'll create this)
-  static const String uploadPreset = 'ecommerce_preset'; // We'll create this
+  static const String uploadPreset = 'ecommerce_preset';
 
-  // Test if Cloudinary is accessible
   static Future<bool> testConnection() async {
     try {
       final url = Uri.parse(
@@ -42,20 +39,16 @@ class CloudinarySetup {
         '📊 Size: ${bytes.length} bytes (${(bytes.length / 1024 / 1024).toStringAsFixed(2)} MB)',
       );
 
-      // Create upload URL
       final uploadUrl = Uri.parse(
         'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
       );
 
-      // Create multipart request
       final request = http.MultipartRequest('POST', uploadUrl);
 
-      // Add required fields
       request.fields['upload_preset'] = uploadPreset;
       request.fields['folder'] = folder;
       request.fields['api_key'] = apiKey;
 
-      // Add the image file
       final multipartFile = http.MultipartFile.fromBytes(
         'file',
         bytes,
@@ -80,8 +73,6 @@ class CloudinarySetup {
       } else {
         print('❌ Upload failed with status: ${response.statusCode}');
         print('📝 Response: ${response.body}');
-
-        // Provide helpful error messages
         if (response.body.contains('upload preset')) {
           print('\n⚠️ Upload preset not found!');
           print('Please create an upload preset named: $uploadPreset');
@@ -95,7 +86,6 @@ class CloudinarySetup {
           print('7. Set Signing Mode to: Unsigned');
           print('8. Click Save\n');
         }
-
         return null;
       }
     } catch (e, stackTrace) {

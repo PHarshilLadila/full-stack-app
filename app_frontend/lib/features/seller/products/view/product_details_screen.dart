@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_frontend/features/seller/products/bloc/product_details_bloc.dart';
@@ -757,16 +759,15 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                             }).toList(),
                       ),
                     ],
-
-                    const SizedBox(height: 100),
                   ],
                 ),
               ),
+              _buildBottomBar(),
+              // const SizedBox(height: 100),
             ],
           ),
         ),
       ],
-      // _buildBottomBar();
     );
   }
 

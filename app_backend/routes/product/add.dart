@@ -1,7 +1,6 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls
+// ignore_for_file: avoid_print, avoid_dynamic_calls, deprecated_member_use, inference_failure_on_collection_literal, omit_local_variable_types, prefer_final_locals, lines_longer_than_80_chars, avoid_redundant_argument_values
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_frog/dart_frog.dart';
@@ -302,7 +301,7 @@ Future<Response> _handleMultipartRequest(
 
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+      body: {'success': false, 'message': 'Server error: $e'},
     );
   }
 }
@@ -325,7 +324,7 @@ Future<String> _uploadToCloudinary(UploadedFile file) async {
     final Uint8List imageBytes = Uint8List.fromList(bytes);
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final originalName = file.name ?? 'image.jpg';
+    final originalName = file.name;
     final extension =
         originalName.contains('.') ? originalName.split('.').last : 'jpg';
     final fileName = '${timestamp}_product.$extension';
