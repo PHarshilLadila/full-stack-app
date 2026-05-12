@@ -75,23 +75,19 @@ class SellerProductView extends StatelessWidget {
                 RedCorner(),
                 BlueCenter(),
                 YellowCorner(),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<ProductBloc>().add(
-                        FetchSellerProductsEvent(),
-                      );
-                    },
-                    child: ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(14),
-                      itemCount: state.products.length,
-                      itemBuilder: (context, index) {
-                        final product = state.products[index];
+                RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<ProductBloc>().add(FetchSellerProductsEvent());
+                  },
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(14),
+                    itemCount: state.products.length,
+                    itemBuilder: (context, index) {
+                      final product = state.products[index];
 
-                        return ProductCard(product: product);
-                      },
-                    ),
+                      return ProductCard(product: product);
+                    },
                   ),
                 ),
               ],
