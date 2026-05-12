@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls, inference_failure_on_collection_literal
+// ignore_for_file: avoid_print, avoid_dynamic_calls, inference_failure_on_collection_literal, avoid_redundant_argument_values, lines_longer_than_80_chars
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
@@ -48,7 +48,7 @@ Future<Response> onRequest(RequestContext context) async {
     final skip = (page - 1) * limit;
 
     /// SERVER URL
-    final baseUrl = 'http://192.168.1.10:8080';
+    const baseUrl = 'http://192.168.1.10:8080';
 
     /// FILTER
     final filter = {'sellerId': userId};

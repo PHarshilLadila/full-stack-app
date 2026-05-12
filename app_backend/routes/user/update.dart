@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
@@ -48,7 +48,7 @@ Future<Response> onRequest(RequestContext context) async {
       // Check if username is already taken by another user
       final existingUser = await MongoService.users!.findOne({
         'username': body['username'].toString(),
-        '_id': {'\$ne': ObjectId.parse(userId)},
+        '_id': {r'$ne': ObjectId.parse(userId)},
       });
       
       if (existingUser != null) {
@@ -63,7 +63,7 @@ Future<Response> onRequest(RequestContext context) async {
       // Check if email is already taken by another user
       final existingUser = await MongoService.users!.findOne({
         'email': body['email'].toString(),
-        '_id': {'\$ne': ObjectId.parse(userId)},
+        '_id': {r'$ne': ObjectId.parse(userId)},
       });
       
       if (existingUser != null) {
@@ -78,7 +78,7 @@ Future<Response> onRequest(RequestContext context) async {
       // Check if mobile is already taken by another user
       final existingUser = await MongoService.users!.findOne({
         'mobile': body['mobile'].toString(),
-        '_id': {'\$ne': ObjectId.parse(userId)},
+        '_id': {r'$ne': ObjectId.parse(userId)},
       });
       
       if (existingUser != null) {
@@ -120,7 +120,7 @@ Future<Response> onRequest(RequestContext context) async {
     // Update user
     final result = await MongoService.users!.updateOne(
       {'_id': ObjectId.parse(userId)},
-      {'\$set': updateData},
+      {r'$set': updateData},
     );
 
     if (!result.isSuccess) {

@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs, avoid_print, lines_longer_than_80_chars
+// ignore_for_file: public_member_api_docs, avoid_print, lines_longer_than_80_chars, avoid_dynamic_calls, prefer_single_quotes
 
 import 'dart:convert';
 import 'dart:typed_data';

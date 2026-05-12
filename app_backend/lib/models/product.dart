@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first, always_put_required_named_parameters_first
+// ignore_for_file: public_member_api_docs, sort_constructors_first, always_put_required_named_parameters_first, lines_longer_than_80_chars
 
 import 'package:mongo_dart/mongo_dart.dart';
 

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:developer';
 
 import 'package:app_frontend/features/seller/products/bloc/product_bloc.dart';
