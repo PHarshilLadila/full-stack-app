@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:app_frontend/utils/common/custom_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_frontend/features/seller/products/bloc/product_details_bloc.dart';
@@ -34,16 +35,7 @@ class ProductDetailsView extends StatelessWidget {
       body: BlocBuilder<ProductDetailsBloc, ProductDetailsState>(
         builder: (context, state) {
           if (state is ProductDetailsLoading) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Color(0xffFDBB12)),
-                  SizedBox(height: 16),
-                  Text('Loading product details...'),
-                ],
-              ),
-            );
+            return const CustomLoader(loadingPageName: 'Product Details');
           }
 
           if (state is ProductDetailsError) {

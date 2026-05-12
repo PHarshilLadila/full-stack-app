@@ -11,6 +11,7 @@ import 'package:app_frontend/features/seller/products/view/add_product_screen.da
 import 'package:app_frontend/features/seller/products/view/product_details_screen.dart';
 import 'package:app_frontend/utils/common/app_backround.dart';
 import 'package:app_frontend/utils/common/custom_appbar.dart';
+import 'package:app_frontend/utils/common/custom_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -62,9 +63,7 @@ class SellerProductView extends StatelessWidget {
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
           if (state is ProductLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.amber),
-            );
+            return CustomLoader(loadingPageName: 'Products');
           }
 
           if (state is ProductError) {
@@ -82,6 +81,8 @@ class SellerProductView extends StatelessWidget {
                 BlueCenter(),
                 YellowCorner(),
                 RefreshIndicator(
+                  color: Colors.amber,
+                  backgroundColor: Colors.white,
                   onRefresh: () async {
                     context.read<ProductBloc>().add(FetchSellerProductsEvent());
                   },
@@ -91,7 +92,6 @@ class SellerProductView extends StatelessWidget {
                     itemCount: state.products.length,
                     itemBuilder: (context, index) {
                       final product = state.products[index];
-
                       return ProductCard(product: product);
                     },
                   ),
@@ -176,7 +176,9 @@ class ProductCard extends StatelessWidget {
                         height: 110,
                         width: 110,
                         alignment: Alignment.center,
-                        child: const CircularProgressIndicator(),
+                        child: const CircularProgressIndicator(
+                          color: Colors.amber,
+                        ),
                       );
                     },
                   ),
