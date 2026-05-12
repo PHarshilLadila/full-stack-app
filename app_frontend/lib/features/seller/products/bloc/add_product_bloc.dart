@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:app_frontend/features/seller/products/bloc/add_product_event.dart';
 import 'package:app_frontend/features/seller/products/bloc/add_product_state.dart';
 import 'package:app_frontend/features/seller/products/service/product_service.dart';
