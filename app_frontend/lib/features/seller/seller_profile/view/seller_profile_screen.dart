@@ -54,7 +54,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           _sellerStats = stats;
         });
       } catch (e) {
-        print("Error loading seller stats: $e");
+        debugPrint("Error loading seller stats: $e");
       }
     }
   }

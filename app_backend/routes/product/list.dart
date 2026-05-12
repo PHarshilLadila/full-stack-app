@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls, unused_local_variable, inference_failure_on_collection_literal
+// ignore_for_file: avoid_print, avoid_dynamic_calls, unused_local_variable, inference_failure_on_collection_literal, lines_longer_than_80_chars, prefer_final_locals, omit_local_variable_types
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';

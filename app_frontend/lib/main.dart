@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
 import 'package:app_frontend/features/bottom_navbar/view/bottom_navbar_screen.dart';
 import 'package:flutter/material.dart';

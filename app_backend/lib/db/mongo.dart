@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, public_member_api_docs, inference_failure_on_instance_creation
+// ignore_for_file: avoid_print, public_member_api_docs, inference_failure_on_instance_creation, avoid_redundant_argument_values, lines_longer_than_80_chars
 
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:my_backend/config/env.dart';
@@ -57,7 +57,7 @@ class MongoService {
       _users = _db!.collection('users');
       _products = _db!.collection('products');
 
-      // Create indexes (use try-catch for each to avoid failure if index exists)
+      // Create indexes (use try-catch for each to avoid failure if index exists),
       try {
         await _products!.createIndex(keys: {'productName': 'text'});
         print('✅ Text index created');

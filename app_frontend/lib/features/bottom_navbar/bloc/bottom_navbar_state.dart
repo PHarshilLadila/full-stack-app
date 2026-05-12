@@ -8,5 +8,5 @@ class BottomNavigationInitial extends BottomNavigationState {
 }
 
 class BottomNavigationUpdated extends BottomNavigationState {
-  BottomNavigationUpdated(int selectedIndex) : super(selectedIndex);
+  BottomNavigationUpdated(super.selectedIndex);
 }
