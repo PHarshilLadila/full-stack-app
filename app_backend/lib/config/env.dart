@@ -7,4 +7,5 @@ class Env {
 
   static String get mongoUrl => env['MONGO_URL'] ?? '';
   static String get jwtSecret => env['JWT_SECRET'] ?? '';
+  static String get cloudinaryUrl => env['CLOUDINARY_URL'] ?? '';
 }
