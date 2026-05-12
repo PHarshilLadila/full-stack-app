@@ -45,7 +45,7 @@ class MongoService {
 
       // Open connection (with timeout using Future.timeout)
       await _db!
-          .open(secure: true)
+          .open(secure: false)
           .timeout(
             const Duration(seconds: 30),
             onTimeout: () {
