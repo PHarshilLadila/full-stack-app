@@ -34,7 +34,11 @@ class SellerProductView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       floatingActionButton: FloatingActionButton(
-        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01),
+        backgroundColor: Colors.amber,
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedAdd01,
+          color: Colors.black,
+        ),
         onPressed: () {
           Navigator.push(
             context,
@@ -102,8 +106,15 @@ class SellerProductView extends StatelessWidget {
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const ProductCard({super.key, required this.product});
+  const ProductCard({
+    super.key,
+    required this.product,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -133,39 +144,71 @@ class ProductCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: Image.network(
-                product.mainBannerImage,
-                height: 110,
-                width: 110,
-                fit: BoxFit.fitWidth,
-                errorBuilder: (context, error, stackTrace) {
-                  debugPrint("Image Error => $error");
-                  return Container(
+            // Product Image
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.network(
+                    product.mainBannerImage,
                     height: 110,
                     width: 110,
-                    color: Colors.grey.shade200,
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.broken_image_outlined,
-                      size: 35,
-                      color: Colors.grey,
+                    fit: BoxFit.fitWidth,
+                    errorBuilder: (context, error, stackTrace) {
+                      debugPrint("Image Error => $error");
+                      return Container(
+                        height: 110,
+                        width: 110,
+                        color: Colors.grey.shade200,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          size: 35,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 110,
+                        width: 110,
+                        alignment: Alignment.center,
+                        child: const CircularProgressIndicator(),
+                      );
+                    },
+                  ),
+                ),
+                // Discount Badge
+                if (product.discountPrice < product.price)
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xffFDBB12), Color(0xffFF9800)],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${((product.price - product.discountPrice) / product.price * 100).toInt()}%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    height: 110,
-                    width: 110,
-                    alignment: Alignment.center,
-                    child: const CircularProgressIndicator(),
-                  );
-                },
-              ),
+                  ),
+              ],
             ),
             const SizedBox(width: 12),
+            // Product Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,18 +222,13 @@ class ProductCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    product.shortDescription,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-                  ),
                   const SizedBox(height: 10),
+
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        "₹${product.discountPrice}",
+                        "₹${product.discountPrice.toStringAsFixed(0)}",
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -198,10 +236,22 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
+                      if (product.discountPrice < product.price)
+                        Text(
+                          "₹${product.price.toStringAsFixed(0)}",
+                          style: const TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      const SizedBox(width: 8),
+
                       Text(
-                        "₹${product.price}",
+                        "⬤ ${product.subCategory}",
                         style: const TextStyle(
-                          decoration: TextDecoration.lineThrough,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                           color: Colors.grey,
                         ),
                       ),
@@ -237,7 +287,92 @@ class ProductCard extends StatelessWidget {
                       const Spacer(),
                       Text(
                         "Stock: ${product.stock}",
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Action Buttons
+                  Row(
+                    children: [
+                      // Edit Button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: onEdit,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.amber.shade200,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedEdit01,
+                                  color: Colors.amber.shade800,
+                                  size: 16,
+                                ),
+
+                                const SizedBox(width: 4),
+                                Text(
+                                  "Edit",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.amber.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Delete Button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: onDelete,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.red.shade200,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedDelete02,
+                                  color: Colors.red.shade600,
+                                  size: 16,
+                                ),
+
+                                const SizedBox(width: 4),
+                                Text(
+                                  "Delete",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
