@@ -127,7 +127,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
         },
       ),
       bottomNavigationBar: SizedBox(
-        height: 70,
+        height: 110, // 70
         child: BlocBuilder<BottomNavigationBloc, BottomNavigationState>(
           builder: (context, state) {
             return BottomNavigationBar(
