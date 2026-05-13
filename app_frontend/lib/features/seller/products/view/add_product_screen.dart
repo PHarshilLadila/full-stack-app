@@ -60,6 +60,10 @@ class _AddProductViewState extends State<AddProductView> {
   final TextEditingController specNameController = TextEditingController();
   final TextEditingController specValueController = TextEditingController();
 
+  // Specification validation errors
+  String? _specNameError;
+  String? _specValueError;
+
   // Image Files
   File? mainBannerImage;
   List<File> multipleImages = [];
@@ -76,6 +80,18 @@ class _AddProductViewState extends State<AddProductView> {
   void initState() {
     super.initState();
     _loadSellerData();
+
+    // Clear errors when typing
+    specNameController.addListener(() {
+      if (_specNameError != null) {
+        setState(() => _specNameError = null);
+      }
+    });
+    specValueController.addListener(() {
+      if (_specValueError != null) {
+        setState(() => _specValueError = null);
+      }
+    });
   }
 
   @override
@@ -128,31 +144,51 @@ class _AddProductViewState extends State<AddProductView> {
     }
   }
 
-  void _addSpecification() {
+  bool _validateSpecificationFields() {
+    bool isValid = true;
     final name = specNameController.text.trim();
     final value = specValueController.text.trim();
 
     if (name.isEmpty) {
-      _showSnackBar('Please enter specification name');
-      return;
+      setState(() => _specNameError = 'Please enter specification name');
+      isValid = false;
+    } else {
+      setState(() => _specNameError = null);
     }
 
     if (value.isEmpty) {
-      _showSnackBar('Please enter specification value');
+      setState(() => _specValueError = 'Please enter specification value');
+      isValid = false;
+    } else {
+      setState(() => _specValueError = null);
+    }
+
+    return isValid;
+  }
+
+  void _addSpecification() {
+    if (!_validateSpecificationFields()) {
       return;
     }
+
+    final name = specNameController.text.trim();
+    final value = specValueController.text.trim();
 
     setState(() {
       specifications.add({'name': name, 'value': value});
       specNameController.clear();
       specValueController.clear();
+      _specNameError = null;
+      _specValueError = null;
     });
+    _showSnackBar('Specification added successfully', isSuccess: true);
   }
 
   void _removeSpecification(int index) {
     setState(() {
       specifications.removeAt(index);
     });
+    _showSnackBar('Specification removed', isSuccess: false);
   }
 
   void _editSpecification(int index) {
@@ -160,9 +196,10 @@ class _AddProductViewState extends State<AddProductView> {
     specNameController.text = spec['name']!;
     specValueController.text = spec['value']!;
 
-    // Remove the old one so we can add edited version
     setState(() {
       specifications.removeAt(index);
+      _specNameError = null;
+      _specValueError = null;
     });
   }
 
@@ -178,13 +215,16 @@ class _AddProductViewState extends State<AddProductView> {
         });
       }
     } catch (e) {
-      _showSnackBar('Error picking image: $e');
+      _showSnackBar('Error picking image: $e', isSuccess: false);
     }
   }
 
   Future<void> _pickAdditionalImage() async {
     if (multipleImages.length >= maxAdditionalImages) {
-      _showSnackBar('Maximum $maxAdditionalImages images allowed');
+      _showSnackBar(
+        'Maximum $maxAdditionalImages images allowed',
+        isSuccess: false,
+      );
       return;
     }
 
@@ -199,7 +239,7 @@ class _AddProductViewState extends State<AddProductView> {
         });
       }
     } catch (e) {
-      _showSnackBar('Error picking image: $e');
+      _showSnackBar('Error picking image: $e', isSuccess: false);
     }
   }
 
@@ -215,22 +255,37 @@ class _AddProductViewState extends State<AddProductView> {
     });
   }
 
-  void _showSnackBar(String message) {
+  void _showSnackBar(String message, {required bool isSuccess}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        backgroundColor: isSuccess ? Colors.green : Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
   void submitProduct() {
+    // Validate main form
     if (!formKey.currentState!.validate()) return;
 
+    // Validate specifications are not empty
+    if (specifications.isEmpty) {
+      _showSnackBar('Please add at least one specification', isSuccess: false);
+      return;
+    }
+
     if (mainBannerImage == null) {
-      _showSnackBar('Please upload a main banner image');
+      _showSnackBar('Please upload a main banner image', isSuccess: false);
       return;
     }
 
     if (multipleImages.isEmpty) {
-      _showSnackBar('Please upload at least one additional image');
+      _showSnackBar(
+        'Please upload at least one additional image',
+        isSuccess: false,
+      );
       return;
     }
 
@@ -314,13 +369,14 @@ class _AddProductViewState extends State<AddProductView> {
     required TextEditingController controller,
     required String label,
     required IconData icon,
+    double bottomPadding = 16,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
     int maxLines = 1,
     bool isRequired = true,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: bottomPadding),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
@@ -469,64 +525,145 @@ class _AddProductViewState extends State<AddProductView> {
           ),
           const SizedBox(height: 12),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Left side - Text fields column
               Expanded(
-                child: TextFormField(
-                  controller: specNameController,
-                  decoration: InputDecoration(
-                    hintText: 'e.g., Brand, Color, Size',
-                    labelText: 'Specification Name',
-                    prefixIcon: Icon(
-                      Icons.label_outline,
-                      size: 18,
-                      color: Colors.amber.shade700,
+                child: Column(
+                  children: [
+                    // Specification Name Field with error
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextFormField(
+                          controller: specNameController,
+                          decoration: InputDecoration(
+                            hintText: 'e.g., Brand, Color, Size',
+                            labelText: 'Specification Name',
+                            prefixIcon: Icon(
+                              Icons.label_outline,
+                              size: 18,
+                              color: Colors.amber.shade700,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xffFDBB12),
+                                width: 2,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.red.shade300,
+                                width: 1.5,
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.red.shade400,
+                                width: 2,
+                              ),
+                            ),
+                            errorText: _specNameError,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    const SizedBox(height: 12),
+                    // Specification Value Field with error
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextFormField(
+                          controller: specValueController,
+                          decoration: InputDecoration(
+                            hintText: 'e.g., Apple, Red, XL',
+                            labelText: 'Specification Value',
+                            prefixIcon: Icon(
+                              Icons.text_fields,
+                              size: 18,
+                              color: Colors.amber.shade700,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xffFDBB12),
+                                width: 2,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.red.shade300,
+                                width: 1.5,
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.red.shade400,
+                                width: 2,
+                              ),
+                            ),
+                            errorText: _specValueError,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: specValueController,
-                  decoration: InputDecoration(
-                    hintText: 'e.g., Apple, Red, XL',
-                    labelText: 'Specification Value',
-                    prefixIcon: Icon(
-                      Icons.text_fields,
-                      size: 18,
-                      color: Colors.amber.shade700,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade700,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: IconButton(
+              const SizedBox(width: 10),
+              // Add Button
+              SizedBox(
+                width: 55,
+                height: 110, // Match the height of both text fields
+                child: ElevatedButton(
                   onPressed: _addSpecification,
-                  icon: const Icon(Icons.add, color: Colors.white, size: 24),
-                  padding: EdgeInsets.zero,
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: const Color(0xffFDBB12),
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: const Icon(Icons.add, color: Colors.white, size: 28),
                 ),
               ),
             ],
@@ -693,13 +830,13 @@ class _AddProductViewState extends State<AddProductView> {
         child: BlocConsumer<AddProductBloc, AddProductState>(
           listener: (context, state) {
             if (state is AddProductSuccess) {
-              _showSnackBar(state.message);
+              _showSnackBar(state.message, isSuccess: true);
               Future.delayed(const Duration(seconds: 1), () {
                 Navigator.pop(context);
               });
             }
             if (state is AddProductError) {
-              _showSnackBar(state.message);
+              _showSnackBar(state.message, isSuccess: false);
             }
           },
           builder: (context, state) {
