@@ -124,17 +124,51 @@ class _HomeScreenState extends State<HomeScreen> {
                   value: _userBloc,
                   child: BlocBuilder<UserBloc, UserState>(
                     builder: (context, state) {
+                      // =========================
+                      // LOADING SHIMMER
+                      // =========================
+
                       if (state is UserLoading) {
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: SizedBox(
-                            height: 40,
-                            child: Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Greeting shimmer
+                                Container(
+                                  height: 14,
+                                  width: 110,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade300,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                // Name shimmer
+                                Container(
+                                  height: 28,
+                                  width: 180,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade300,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         );
                       }
+
+                      // =========================
+                      // USER LOADED
+                      // =========================
 
                       if (state is UserLoaded) {
                         final greeting = _getGreeting();
@@ -156,6 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.grey,
                                   ),
                                 ),
+
                                 Text(
                                   '${state.user.fullName} 👋',
                                   style: const TextStyle(
@@ -168,6 +203,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       }
+
+                      // =========================
+                      // USER ERROR
+                      // =========================
 
                       if (state is UserError) {
                         return Padding(
@@ -187,6 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.grey,
                                   ),
                                 ),
+
                                 const Text(
                                   'Guest User 👋',
                                   style: TextStyle(
@@ -194,7 +234,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+
                                 const SizedBox(height: 4),
+
                                 Text(
                                   'Sign in to access more features',
                                   style: TextStyle(
@@ -207,6 +249,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       }
+
+                      // =========================
+                      // DEFAULT
+                      // =========================
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(
@@ -225,6 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: Colors.grey,
                                 ),
                               ),
+
                               const Text(
                                 'Guest User 👋',
                                 style: TextStyle(
