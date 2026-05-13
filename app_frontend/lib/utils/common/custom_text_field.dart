@@ -9,6 +9,9 @@ class AppTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final bool obscureText;
   final TextInputType keyboardType;
+  final IconButton? sufixIcon;
+  final void Function(String)? onFieldSubmitted;
+  final EdgeInsetsGeometry? contentPadding;
 
   const AppTextField({
     super.key,
@@ -18,6 +21,12 @@ class AppTextField extends StatelessWidget {
     this.validator,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
+    this.sufixIcon,
+    this.onFieldSubmitted,
+    this.contentPadding = const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 14,
+    ),
   });
 
   @override
@@ -26,24 +35,20 @@ class AppTextField extends StatelessWidget {
       controller: controller,
       cursorColor: Colors.amber,
       obscureText: obscureText,
+      onFieldSubmitted: onFieldSubmitted,
       keyboardType: keyboardType,
       style: const TextStyle(color: Colors.black),
-
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.grey),
         filled: true,
         fillColor: Colors.white,
-
         prefixIcon: Padding(
           padding: const EdgeInsets.only(left: 16.0),
           child: Icon(icon, color: Colors.grey),
         ),
-
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 14,
-        ),
+        suffixIcon: sufixIcon,
+        contentPadding: contentPadding,
 
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(100),

@@ -2,6 +2,8 @@
 
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
 import 'package:app_frontend/features/bottom_navbar/view/bottom_navbar_screen.dart';
+import 'package:app_frontend/features/customer/home/bloc/product_bloc.dart';
+import 'package:app_frontend/features/customer/home/service/product_service.dart';
 import 'package:flutter/material.dart';
 import 'package:app_frontend/features/auth/view/auth_screen.dart';
 import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
@@ -23,6 +25,9 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => UserBloc(userService: UserService())),
         BlocProvider(create: (context) => BottomNavigationBloc()),
+        BlocProvider(
+          create: (context) => ProductBloc(productService: ProductService()),
+        ),
       ],
       child: MaterialApp(
         title: 'Driver Fleet App',
