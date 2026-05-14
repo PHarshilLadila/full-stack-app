@@ -24,3 +24,4 @@ class UpdateUserProfile extends UserEvent {
     this.profileImage,
   });
 }
+class LogoutUser extends UserEvent {}

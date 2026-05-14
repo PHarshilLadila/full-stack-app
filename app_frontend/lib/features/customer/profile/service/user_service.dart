@@ -77,6 +77,30 @@ class UserService {
     }
   }
 
+  Future<Map<String, dynamic>> logout(String token) async {
+    try {
+      log("Calling logout API");
+      final response = await apiClient.logout("/auth/logout", token: token);
+
+      log("Logout Response Status: ${response.statusCode}");
+      log("Logout Response Body: ${response.body}");
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Logged out successfully',
+        };
+      } else {
+        throw Exception(data['message'] ?? 'Failed to logout');
+      }
+    } catch (e) {
+      log("Logout Error: $e");
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
   // Seller specific methods
   Future<Map<String, dynamic>> getSellerStats(String token) async {
     try {
