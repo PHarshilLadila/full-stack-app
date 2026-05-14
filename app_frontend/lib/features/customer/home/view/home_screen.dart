@@ -505,18 +505,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(width: 6),
 
-                      if (product.discountPrice > 0)
-                        Expanded(
-                          child: Text(
-                            '₹${product.price.toStringAsFixed(0)}',
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey,
-                              decoration: TextDecoration.lineThrough,
-                            ),
+                      // if (product.discountPrice > 0)
+                      Expanded(
+                        child: Text(
+                          '₹${product.price.toStringAsFixed(0)}',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
                           ),
                         ),
+                      ),
                     ],
                   ),
 

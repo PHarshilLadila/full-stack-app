@@ -4,6 +4,7 @@ import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';
 import 'package:app_frontend/features/customer/profile/service/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final UserService userService;
@@ -23,7 +24,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         emit(UserError(e.toString()));
       }
     });
-    
+
     on<UpdateUserProfile>((event, emit) async {
       log("UpdateUserProfile event received");
       emit(UserUpdating());
@@ -41,11 +42,44 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         // After successful update, fetch the updated profile
         final updatedUser = await userService.getUserProfile(event.token);
         log("Updated user fetched: ${updatedUser.fullName}");
-        emit(UserUpdated(updatedUser, result['message'] ?? 'Profile updated successfully'));
+        emit(
+          UserUpdated(
+            updatedUser,
+            result['message'] ?? 'Profile updated successfully',
+          ),
+        );
       } catch (e) {
         log("Update Details Error: $e");
         debugPrint("Update Details Error : $e");
         emit(UserError(e.toString()));
+      }
+    });
+
+    on<LogoutUser>((event, emit) async {
+      log("LogoutUser event received");
+      emit(UserLoggingOut());
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('auth_token');
+
+        if (token != null && token.isNotEmpty) {
+          // Call logout API
+          final result = await userService.logout(token);
+          log("Logout API response: $result");
+        }
+
+        // Clear all SharedPreferences
+        await prefs.clear();
+
+        log("User logged out successfully");
+        emit(UserLoggedOut());
+      } catch (e) {
+        log("Logout Error in Bloc: $e");
+        // Even if API fails, clear local storage
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        emit(UserLogoutError(e.toString()));
       }
     });
   }

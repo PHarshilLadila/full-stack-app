@@ -25,3 +25,12 @@ class UserUpdated extends UserState {
   final String message;
   UserUpdated(this.user, this.message);
 }
+
+class UserLoggingOut extends UserState {}
+
+class UserLoggedOut extends UserState {}
+
+class UserLogoutError extends UserState {
+  final String error;
+  UserLogoutError(this.error);
+}
