@@ -536,8 +536,8 @@
 
 // ignore_for_file: deprecated_member_use
 
+import 'dart:developer';
 import 'dart:ui';
-
 
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_bloc.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_event.dart';
@@ -952,6 +952,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     if (state is UserLoading) {
                       return const CustomLoader(loadingPageName: 'Profile');
                     } else if (state is UserLoaded) {
+                      log(
+                        "state.user.profileImage! => ${state.user.profileImage ?? ""}",
+                      );
                       return SingleChildScrollView(
                         child: Column(
                           children: [
@@ -1202,7 +1205,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                         ),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
-                                            30,
+                                            12,
                                           ),
                                         ),
                                       ),

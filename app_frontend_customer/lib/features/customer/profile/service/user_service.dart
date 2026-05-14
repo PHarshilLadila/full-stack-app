@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
-
+import 'dart:io';
 import 'package:app_frontend_customer/core/network/api_client.dart';
 import 'package:app_frontend_customer/features/customer/profile/model/user_model.dart';
+import 'package:http/http.dart' as http;
 
 class UserService {
   final ApiClient apiClient = ApiClient();
 
-  // user_service.dart - Update getUserProfile method
   Future<UserModel> getUserProfile(String token) async {
     try {
       log("Fetching user profile with token: $token");
@@ -21,7 +21,6 @@ class UserService {
       if (response.statusCode == 200) {
         UserModel user;
 
-        // Your API returns: { success, message, data: {...}, role }
         if (data['data'] != null) {
           user = UserModel.fromJson(data['data']);
         } else if (data['user'] != null) {
@@ -47,25 +46,43 @@ class UserService {
     required String username,
     required String email,
     required String mobile,
-    String? profileImage,
+    File? imageFile,
   }) async {
     try {
-      final body = {
-        "fullName": fullName,
-        "username": username,
-        "email": email,
-        "mobile": mobile,
-      };
+      final uri = Uri.parse(
+        "https://full-stack-app-4vxu.onrender.com/user/update",
+      );
 
-      if (profileImage != null && profileImage.isNotEmpty) {
-        body["profileImage"] = profileImage;
+      final request = http.MultipartRequest('PUT', uri);
+
+      // Add headers
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Add text fields
+      request.fields['fullName'] = fullName;
+      request.fields['username'] = username;
+      request.fields['email'] = email;
+      request.fields['mobile'] = mobile;
+
+      // Add image file if selected
+      if (imageFile != null) {
+        final imageStream = http.MultipartFile.fromPath(
+          'profileImage',
+          imageFile.path,
+        );
+        request.files.add(await imageStream);
+        log("Adding profile image: ${imageFile.path}");
       }
 
-      log("Updating user profile with data: $body");
-      final response = await apiClient.put("/user/update", body, token: token);
+      log("Sending update request with fields: ${request.fields}");
 
-      final data = jsonDecode(response.body);
-      log("Update Profile Response: ${response.body}");
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      log("Update Profile Response Status: ${response.statusCode}");
+      log("Update Profile Response Body: $responseBody");
+
+      final data = jsonDecode(responseBody);
 
       if (response.statusCode == 200) {
         return data;
@@ -102,7 +119,6 @@ class UserService {
     }
   }
 
-  // Seller specific methods
   Future<Map<String, dynamic>> getSellerStats(String token) async {
     try {
       final response = await apiClient.get("/seller/stats", token: token);

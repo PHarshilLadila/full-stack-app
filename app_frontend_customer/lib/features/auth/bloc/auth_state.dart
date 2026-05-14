@@ -14,5 +14,14 @@ class AuthSuccess extends AuthState {
   final String message;
   final String? token;
   final String? role;
-  AuthSuccess(this.message, {this.token, this.role});
+  final String? userId;
+  final bool isRegistration;
+  
+  AuthSuccess(
+    this.message, {
+    this.token,
+    this.role,
+    this.userId,
+    this.isRegistration = false,
+  });
 }

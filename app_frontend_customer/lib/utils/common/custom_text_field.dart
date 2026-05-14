@@ -1,11 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
-  final IconData icon;
+  final List<List<dynamic>> hugeIcon;
   final String? Function(String?)? validator;
   final bool obscureText;
   final TextInputType keyboardType;
@@ -17,7 +18,7 @@ class AppTextField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.hintText,
-    required this.icon,
+    required this.hugeIcon,
     this.validator,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
@@ -33,7 +34,7 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      cursorColor: Colors.amber,
+      cursorColor: Colors.lightGreenAccent,
       obscureText: obscureText,
       onFieldSubmitted: onFieldSubmitted,
       keyboardType: keyboardType,
@@ -43,15 +44,26 @@ class AppTextField extends StatelessWidget {
         hintStyle: const TextStyle(color: Colors.grey),
         filled: true,
         fillColor: Colors.white,
+
         prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Icon(icon, color: Colors.grey),
+          padding: const EdgeInsets.only(left: 14.0, right: 12),
+          child: HugeIcon(
+            icon: hugeIcon,
+            color: Colors.grey,
+            size: 22.0,
+            strokeWidth: 2,
+          ),
         ),
+
+        // prefixIcon: Padding(
+        //   padding: const EdgeInsets.only(left: 16.0),
+        //   child: Icon(icon, color: Colors.grey),
+        // ),
         suffixIcon: sufixIcon,
         contentPadding: contentPadding,
 
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: Colors.grey.withOpacity(0.6),
             width: 0.5,
@@ -59,7 +71,7 @@ class AppTextField extends StatelessWidget {
         ),
 
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: Colors.grey.withOpacity(0.6),
             width: 0.5,
@@ -67,7 +79,7 @@ class AppTextField extends StatelessWidget {
         ),
 
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: Colors.grey.withOpacity(0.6),
             width: 0.5,

@@ -1,11 +1,12 @@
 // ignore_for_file: deprecated_member_use
- 
+
 import 'package:app_frontend_customer/features/auth/bloc/auth_bloc.dart';
 import 'package:app_frontend_customer/features/auth/service/auth_service.dart';
 import 'package:app_frontend_customer/features/auth/view/login_screen.dart';
 import 'package:app_frontend_customer/features/auth/view/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -121,15 +122,15 @@ class _AuthScreenState extends State<AuthScreen> {
                         Center(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.amber,
-                              borderRadius: BorderRadius.circular(16),
+                              color: Colors.lightGreenAccent,
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Padding(
+                            child: Padding(
                               padding: EdgeInsets.all(18.0),
-                              child: Icon(
-                                Icons.person_2,
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedLogin01,
                                 color: Colors.black,
-                                size: 30,
+                                size: 40.0,
                               ),
                             ),
                           ),
@@ -161,15 +162,15 @@ class _AuthScreenState extends State<AuthScreen> {
                         Center(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.amber,
-                              borderRadius: BorderRadius.circular(16),
+                              color: Colors.lightGreenAccent,
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Padding(
                               padding: EdgeInsets.all(18.0),
-                              child: Icon(
-                                Icons.electric_rickshaw,
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedUserAccount,
                                 color: Colors.black,
-                                size: 30,
+                                size: 40.0,
                               ),
                             ),
                           ),
@@ -208,7 +209,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(100),
+                          borderRadius: BorderRadius.circular(12),
                           color: Colors.grey.withOpacity(0.06),
                         ),
                         child: Stack(
@@ -225,8 +226,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                 width: MediaQuery.of(context).size.width * 0.42,
                                 height: 45,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(100),
+                                  color: Colors.lightGreenAccent,
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                             ),
@@ -237,7 +238,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      borderRadius: BorderRadius.circular(100),
+                                      borderRadius: BorderRadius.circular(12),
                                       onTap: () => toggleMode(true),
                                       child: Container(
                                         height: 45,
@@ -257,7 +258,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      borderRadius: BorderRadius.circular(100),
+                                      borderRadius: BorderRadius.circular(12),
                                       onTap: () => toggleMode(false),
                                       child: Container(
                                         height: 45,

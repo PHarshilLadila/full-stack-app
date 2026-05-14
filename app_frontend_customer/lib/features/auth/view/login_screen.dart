@@ -1,14 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
- 
 import 'package:app_frontend_customer/features/auth/bloc/auth_bloc.dart';
 import 'package:app_frontend_customer/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend_customer/features/auth/bloc/auth_state.dart';
 import 'package:app_frontend_customer/features/auth/model/login_model.dart';
 import 'package:app_frontend_customer/utils/common/custom_text_field.dart';
-import 'package:app_frontend_customer/utils/common/role_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onToggleToRegister;
@@ -22,13 +21,13 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  String selectedRole = 'customer';
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthSuccess) {
+        if (state is AuthSuccess && !state.isRegistration) {
+          // Only navigate for login success, not for registration
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -39,6 +38,17 @@ class _LoginFormState extends State<LoginForm> {
           Future.delayed(const Duration(milliseconds: 500), () {
             Navigator.pushReplacementNamed(context, '/home');
           });
+        } else if (state is AuthSuccess && state.isRegistration) {
+          // Registration success - stay on auth screen, show message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registration successful! Please login.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Clear form fields
+          emailController.clear();
+          passwordController.clear();
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.error), backgroundColor: Colors.red),
@@ -50,27 +60,16 @@ class _LoginFormState extends State<LoginForm> {
           key: _formKey,
           child: Column(
             children: [
-              RoleSelector(
-                selectedRole: selectedRole,
-                onRoleSelected: (role) {
-                  setState(() {
-                    selectedRole = role;
-                  });
-                },
-              ),
               const SizedBox(height: 20),
-              // Email Field
+              // Email/Username/Mobile Field
               AppTextField(
                 controller: emailController,
-                hintText: 'Email Address',
-                icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
+                hintText: 'Email / Username / Mobile',
+                hugeIcon: HugeIcons.strokeRoundedMail01,
+                keyboardType: TextInputType.text,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Email required';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Enter valid email';
+                    return 'Email/Username/Mobile required';
                   }
                   return null;
                 },
@@ -82,7 +81,7 @@ class _LoginFormState extends State<LoginForm> {
               AppTextField(
                 controller: passwordController,
                 hintText: 'Password',
-                icon: Icons.lock,
+                hugeIcon: HugeIcons.strokeRoundedLockPassword,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -107,7 +106,13 @@ class _LoginFormState extends State<LoginForm> {
                   },
                   child: const Text(
                     'Forgot Password?',
-                    style: TextStyle(color: Color(0xFFFFD700)),
+                    style: TextStyle(
+                      color: Colors.black,
+                      decoration: TextDecoration.underline,
+                      decorationStyle: TextDecorationStyle.solid,
+                      decorationColor: Colors.black,
+                      decorationThickness: 2,
+                    ),
                   ),
                 ),
               ),
@@ -131,11 +136,11 @@ class _LoginFormState extends State<LoginForm> {
                             }
                           },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
+                    backgroundColor: Colors.lightGreenAccent,
                     foregroundColor: Colors.black87,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child:
@@ -165,16 +170,16 @@ class _LoginFormState extends State<LoginForm> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    'New to the fleet? ',
+                    'New to Velmora? ',
                     style: TextStyle(color: Colors.grey),
                   ),
                   GestureDetector(
                     onTap: widget.onToggleToRegister,
                     child: const Text(
-                      'Apply to Drive',
+                      'Create Account',
                       style: TextStyle(
-                        color: Color(0xFFFFD700),
-                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),

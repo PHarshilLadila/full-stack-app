@@ -1,4 +1,4 @@
-// lib/features/user/bloc/user_event.dart
+import 'dart:io';
 
 abstract class UserEvent {}
 
@@ -13,15 +13,16 @@ class UpdateUserProfile extends UserEvent {
   final String username;
   final String email;
   final String mobile;
-  final String? profileImage;
-  
+  final File? imageFile;
+
   UpdateUserProfile({
     required this.token,
     required this.fullName,
     required this.username,
     required this.email,
     required this.mobile,
-    this.profileImage,
+    this.imageFile,
   });
 }
+
 class LogoutUser extends UserEvent {}

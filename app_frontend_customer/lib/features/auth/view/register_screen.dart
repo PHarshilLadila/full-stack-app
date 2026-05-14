@@ -1,14 +1,16 @@
 // ignore_for_file: use_build_context_synchronously
 
- 
+import 'dart:io';
+
 import 'package:app_frontend_customer/features/auth/bloc/auth_bloc.dart';
 import 'package:app_frontend_customer/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend_customer/features/auth/bloc/auth_state.dart';
 import 'package:app_frontend_customer/features/auth/model/register_model.dart';
 import 'package:app_frontend_customer/utils/common/custom_text_field.dart';
-import 'package:app_frontend_customer/utils/common/role_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
 
 class RegisterForm extends StatefulWidget {
   final VoidCallback onToggleToLogin;
@@ -26,23 +28,54 @@ class _RegisterFormState extends State<RegisterForm> {
   final mobileController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  String selectedRole = 'customer'; // Default role
   bool _agreeToTerms = false;
+
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthSuccess) {
+        if (state is AuthSuccess && state.isRegistration) {
+          // Registration success - show message and switch to login mode
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text('Registration successful! Please login.'),
               backgroundColor: Colors.green,
             ),
           );
 
-          Future.delayed(const Duration(milliseconds: 500), () {
-            Navigator.pushReplacementNamed(context, '/home');
+          // Clear all form fields
+          fullNameController.clear();
+          usernameController.clear();
+          emailController.clear();
+          mobileController.clear();
+          passwordController.clear();
+          confirmPasswordController.clear();
+          setState(() {
+            _agreeToTerms = false;
+            _profileImage = null;
+          });
+
+          // Switch to login mode
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+              widget.onToggleToLogin();
+            }
           });
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -54,24 +87,41 @@ class _RegisterFormState extends State<RegisterForm> {
         return Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Role Selector
-              RoleSelector(
-                selectedRole: selectedRole,
-                onRoleSelected: (role) {
-                  setState(() {
-                    selectedRole = role;
-                  });
-                },
+              Align(
+                alignment: Alignment.center,
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey.shade300,
+                    backgroundImage:
+                        _profileImage != null
+                            ? FileImage(_profileImage!)
+                            : null,
+                    child:
+                        _profileImage == null
+                            ? const Icon(
+                              Icons.camera_alt,
+                              size: 30,
+                              color: Colors.black54,
+                            )
+                            : null,
+                  ),
+                ),
               ),
-              
+
               const SizedBox(height: 20),
+
+              const Text("Full Name"),
+              const SizedBox(height: 4),
 
               // Full Name
               AppTextField(
                 controller: fullNameController,
                 hintText: "Full Name",
-                icon: Icons.person,
+                hugeIcon: HugeIcons.strokeRoundedUser03,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Full Name required";
@@ -80,47 +130,53 @@ class _RegisterFormState extends State<RegisterForm> {
                 },
               ),
 
-              const SizedBox(height: 16),
-
+              const SizedBox(height: 12),
+              const Text("User Name"),
+              const SizedBox(height: 4),
               // Username
               AppTextField(
                 controller: usernameController,
                 hintText: "Username",
-                icon: Icons.person_outline,
+                hugeIcon: HugeIcons.strokeRoundedUserMinus01,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Username required";
+                  }
+                  if (value.length < 3) {
+                    return "Username must be at least 3 characters";
                   }
                   return null;
                 },
               ),
 
-              const SizedBox(height: 16),
-
+              const SizedBox(height: 12),
+              const Text("Email"),
+              const SizedBox(height: 4),
               // Email
               AppTextField(
                 controller: emailController,
                 hintText: "Email Address",
-                icon: Icons.email,
+                hugeIcon: HugeIcons.strokeRoundedMail01,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Email required';
                   }
-                  if (!value.contains('@')) {
+                  if (!value.contains('@') || !value.contains('.')) {
                     return 'Enter valid email';
                   }
                   return null;
                 },
               ),
 
-              const SizedBox(height: 16),
-
+              const SizedBox(height: 12),
+              const Text("Mobile Number"),
+              const SizedBox(height: 4),
               // Mobile
               AppTextField(
                 controller: mobileController,
                 hintText: "Mobile Number",
-                icon: Icons.phone,
+                hugeIcon: HugeIcons.strokeRoundedAiPhone01,
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -133,13 +189,15 @@ class _RegisterFormState extends State<RegisterForm> {
                 },
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              const Text("Password"),
+              const SizedBox(height: 4),
 
               // Password
               AppTextField(
                 controller: passwordController,
                 hintText: "Password",
-                icon: Icons.lock,
+                hugeIcon: HugeIcons.strokeRoundedCirclePassword,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -152,13 +210,16 @@ class _RegisterFormState extends State<RegisterForm> {
                 },
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              const Text("Confirm Password"),
+              const SizedBox(height: 4),
 
               // Confirm Password
               AppTextField(
                 controller: confirmPasswordController,
                 hintText: "Confirm Password",
-                icon: Icons.lock_outline,
+                hugeIcon: HugeIcons.strokeRoundedPasswordValidation,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -171,7 +232,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 },
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
               // Terms Checkbox
               Row(
@@ -186,7 +247,7 @@ class _RegisterFormState extends State<RegisterForm> {
                               setState(() => _agreeToTerms = value ?? false),
                       fillColor: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
-                          return const Color(0xFFFFD700);
+                          return Colors.lightGreenAccent;
                         }
                         return Colors.transparent;
                       }),
@@ -241,6 +302,7 @@ class _RegisterFormState extends State<RegisterForm> {
                           ? () {
                             if (_formKey.currentState!.validate()) {
                               final model = RegisterModel(
+                                profileImage: _profileImage,
                                 fullName: fullNameController.text.trim(),
                                 username: usernameController.text.trim(),
                                 email: emailController.text.trim(),
@@ -248,7 +310,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                 password: passwordController.text.trim(),
                                 confirmPassword:
                                     confirmPasswordController.text.trim(),
-                                role: selectedRole, // Pass selected role
+                                role: "customer",
                               );
                               context.read<AuthBloc>().add(
                                 RegisterEvent(model),
@@ -257,11 +319,11 @@ class _RegisterFormState extends State<RegisterForm> {
                           }
                           : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
+                    backgroundColor: Colors.lightGreenAccent,
                     foregroundColor: Colors.black87,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     disabledBackgroundColor: Colors.grey.shade600,
                   ),
@@ -300,7 +362,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     child: const Text(
                       'Sign In',
                       style: TextStyle(
-                        color: Color(0xFFFFD700),
+                        color: Colors.black,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
