@@ -4,7 +4,14 @@ import 'package:flutter/material.dart';
 
 class CustomLoader extends StatelessWidget {
   final String loadingPageName;
-  const CustomLoader({super.key, required this.loadingPageName});
+  final bool isExtra;
+  final String extraText;
+  const CustomLoader({
+    super.key,
+    required this.loadingPageName,
+    this.isExtra = false,
+    this.extraText = "",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +30,7 @@ class CustomLoader extends StatelessWidget {
             CircularProgressIndicator(color: Colors.amber),
             SizedBox(height: 16),
             Text(
-              "Loading $loadingPageName...",
+              isExtra == true ? extraText : "Loading $loadingPageName...",
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,

@@ -17,7 +17,7 @@ class RoleSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(12),
         color: Colors.grey.withOpacity(0.06),
       ),
       child: Row(
@@ -28,8 +28,11 @@ class RoleSelector extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: selectedRole == 'customer' ? Colors.amber : Colors.transparent,
-                  borderRadius: BorderRadius.circular(100),
+                  color:
+                      selectedRole == 'customer'
+                          ? Colors.lightGreenAccent
+                          : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -37,14 +40,20 @@ class RoleSelector extends StatelessWidget {
                     Icon(
                       Icons.person_outline,
                       size: 18,
-                      color: selectedRole == 'customer' ? Colors.black : Colors.grey,
+                      color:
+                          selectedRole == 'customer'
+                              ? Colors.black
+                              : Colors.grey,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'Customer',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: selectedRole == 'customer' ? Colors.black : Colors.grey,
+                        color:
+                            selectedRole == 'customer'
+                                ? Colors.black
+                                : Colors.grey,
                       ),
                     ),
                   ],
@@ -58,8 +67,11 @@ class RoleSelector extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: selectedRole == 'seller' ? Colors.amber : Colors.transparent,
-                  borderRadius: BorderRadius.circular(100),
+                  color:
+                      selectedRole == 'seller'
+                          ? Colors.lightGreenAccent
+                          : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -67,14 +79,18 @@ class RoleSelector extends StatelessWidget {
                     Icon(
                       Icons.store_outlined,
                       size: 18,
-                      color: selectedRole == 'seller' ? Colors.black : Colors.grey,
+                      color:
+                          selectedRole == 'seller' ? Colors.black : Colors.grey,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'Seller',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: selectedRole == 'seller' ? Colors.black : Colors.grey,
+                        color:
+                            selectedRole == 'seller'
+                                ? Colors.black
+                                : Colors.grey,
                       ),
                     ),
                   ],

@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Driver Fleet App',
+        title: 'Velmora Vendor',
         debugShowCheckedModeBanner: false,
         theme: ThemeData.light().copyWith(
           textTheme: GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),

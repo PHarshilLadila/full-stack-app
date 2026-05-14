@@ -18,83 +18,61 @@ class BottomNavBarScreen extends StatefulWidget {
 }
 
 class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
-  late String userRole = 'customer';
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserRole();
+    _checkAuthentication();
   }
 
-  Future<void> _loadUserRole() async {
+  Future<void> _checkAuthentication() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userRole = prefs.getString('user_role') ?? 'customer';
-      isLoading = false;
-    });
-  }
+    final token = prefs.getString('auth_token');
 
-  // Get screens based on user role
-  List<Widget> _getScreens(String role) {
-    return [
-      const HomeScreen(),
-      const CategoriesScreen(),
-      const CartScreen(),
-      const CustomerProfileScreen(),
-    ];
-  }
-
-  // Get bottom nav items based on role
-  List<BottomNavigationBarItem> _getNavItems(String role) {
-    if (role == 'seller') {
-      return [
-        const BottomNavigationBarItem(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedDashboardBrowsing),
-          activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedDashboardBrowsing),
-          label: 'Dashboard',
-        ),
-        BottomNavigationBarItem(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedPackage),
-          activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedPackage),
-          label: 'Products',
-        ),
-        const BottomNavigationBarItem(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedFile01),
-          activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedFile01),
-          label: 'Orders', // Changed for seller
-        ),
-        const BottomNavigationBarItem(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedUser),
-          activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedUser),
-          label: 'Profile', // Changed for seller
-        ),
-      ];
+    if (token == null || token.isEmpty) {
+      // Not authenticated, redirect to login
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/auth');
+      }
     } else {
-      return [
-        const BottomNavigationBarItem(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedHome03),
-          activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedHome03),
-          label: 'Home',
-        ),
-        const BottomNavigationBarItem(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedGridView),
-          activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedGridView),
-          label: 'Categories',
-        ),
-        const BottomNavigationBarItem(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01),
-          activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01),
-          label: 'Cart',
-        ),
-        const BottomNavigationBarItem(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedUser),
-          activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedUser),
-          label: 'Profile',
-        ),
-      ];
+      setState(() {
+        isLoading = false;
+      });
     }
   }
+
+  // Customer screens only
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const CategoriesScreen(),
+    const CartScreen(),
+    const CustomerProfileScreen(),
+  ];
+
+  // Customer bottom nav items
+  final List<BottomNavigationBarItem> _navItems = [
+    const BottomNavigationBarItem(
+      icon: HugeIcon(icon: HugeIcons.strokeRoundedHome03),
+      activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedHome03),
+      label: 'Home',
+    ),
+    const BottomNavigationBarItem(
+      icon: HugeIcon(icon: HugeIcons.strokeRoundedGridView),
+      activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedGridView),
+      label: 'Categories',
+    ),
+    const BottomNavigationBarItem(
+      icon: HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01),
+      activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01),
+      label: 'Cart',
+    ),
+    const BottomNavigationBarItem(
+      icon: HugeIcon(icon: HugeIcons.strokeRoundedUser),
+      activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedUser),
+      label: 'Profile',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -104,17 +82,14 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
       );
     }
 
-    final screens = _getScreens(userRole);
-    final navItems = _getNavItems(userRole);
-
     return Scaffold(
       body: BlocBuilder<BottomNavigationBloc, BottomNavigationState>(
         builder: (context, state) {
-          return screens[state.selectedIndex];
+          return _screens[state.selectedIndex];
         },
       ),
       bottomNavigationBar: SizedBox(
-        height: 110, // 70
+        height: 110,
         child: BlocBuilder<BottomNavigationBloc, BottomNavigationState>(
           builder: (context, state) {
             return BottomNavigationBar(
@@ -139,7 +114,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
                   BottomNavigationItemTapped(index),
                 );
               },
-              items: navItems,
+              items: _navItems,
             );
           },
         ),

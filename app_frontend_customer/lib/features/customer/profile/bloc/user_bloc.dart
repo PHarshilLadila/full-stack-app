@@ -35,11 +35,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           username: event.username,
           email: event.email,
           mobile: event.mobile,
-          profileImage: event.profileImage,
+          imageFile: event.imageFile,
         );
 
         log("Update successful, fetching updated profile");
-        // After successful update, fetch the updated profile
         final updatedUser = await userService.getUserProfile(event.token);
         log("Updated user fetched: ${updatedUser.fullName}");
         emit(
@@ -64,19 +63,15 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         final token = prefs.getString('auth_token');
 
         if (token != null && token.isNotEmpty) {
-          // Call logout API
           final result = await userService.logout(token);
           log("Logout API response: $result");
         }
 
-        // Clear all SharedPreferences
         await prefs.clear();
-
         log("User logged out successfully");
         emit(UserLoggedOut());
       } catch (e) {
         log("Logout Error in Bloc: $e");
-        // Even if API fails, clear local storage
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
         emit(UserLogoutError(e.toString()));

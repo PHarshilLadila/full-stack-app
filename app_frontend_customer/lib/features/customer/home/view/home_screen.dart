@@ -2,7 +2,6 @@
 
 import 'dart:developer';
 
- 
 import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_event.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_state.dart';
@@ -17,6 +16,7 @@ import 'package:app_frontend_customer/utils/common/custom_loader.dart';
 import 'package:app_frontend_customer/utils/common/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -324,13 +324,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: SizedBox(
         height: 48,
         child: AppTextField(
           controller: _searchController,
           hintText: "Search products...",
-          icon: Icons.search,
+          hugeIcon: HugeIcons.strokeRoundedAppleFinder,
           contentPadding: const EdgeInsets.only(top: 12),
           onFieldSubmitted: (value) {
             if (value.trim().isNotEmpty) {

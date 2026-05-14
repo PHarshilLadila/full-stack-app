@@ -1,5 +1,3 @@
-// lib/features/home/view/edit_user_screen.dart
-
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
 
 import 'dart:io';
@@ -7,9 +5,11 @@ import 'package:app_frontend_customer/features/customer/profile/bloc/user_bloc.d
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_event.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_state.dart';
 import 'package:app_frontend_customer/features/customer/profile/model/user_model.dart';
+import 'package:app_frontend_customer/utils/common/custom_loader.dart';
 import 'package:app_frontend_customer/utils/common/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,9 +27,8 @@ class _EditUserScreenState extends State<EditUserScreen> {
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
   late TextEditingController _mobileController;
-  late TextEditingController _profileImageController;
 
-  String? _selectedImagePath;
+  File? _selectedImageFile;
   bool _isLoading = false;
 
   @override
@@ -39,9 +38,6 @@ class _EditUserScreenState extends State<EditUserScreen> {
     _usernameController = TextEditingController(text: widget.user.username);
     _emailController = TextEditingController(text: widget.user.email);
     _mobileController = TextEditingController(text: widget.user.mobile);
-    _profileImageController = TextEditingController(
-      text: widget.user.profileImage ?? '',
-    );
   }
 
   Future<void> _pickImage() async {
@@ -50,18 +46,8 @@ class _EditUserScreenState extends State<EditUserScreen> {
 
     if (pickedFile != null) {
       setState(() {
-        _selectedImagePath = pickedFile.path;
+        _selectedImageFile = File(pickedFile.path);
       });
-
-      // Here you would upload the image to a server and get the URL
-      // For now, we'll just use the local path or you can implement image upload
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Image selected! You would need to upload this to a server first.',
-          ),
-        ),
-      );
     }
   }
 
@@ -71,13 +57,6 @@ class _EditUserScreenState extends State<EditUserScreen> {
       final token = prefs.getString('auth_token');
 
       if (token != null) {
-        // If you have image upload functionality, upload image first and get URL
-        // For now, we'll use the existing profile image or a new URL from text field
-        final profileImageUrl =
-            _profileImageController.text.isNotEmpty
-                ? _profileImageController.text
-                : widget.user.profileImage;
-
         context.read<UserBloc>().add(
           UpdateUserProfile(
             token: token,
@@ -85,14 +64,9 @@ class _EditUserScreenState extends State<EditUserScreen> {
             username: _usernameController.text,
             email: _emailController.text,
             mobile: _mobileController.text,
-            profileImage: profileImageUrl,
+            imageFile: _selectedImageFile,
           ),
         );
-
-        // Show success and go back
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Updating profile...')));
       }
     }
   }
@@ -105,7 +79,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(state.message)));
-          Navigator.pop(context, true); // Return true to indicate update
+          Navigator.pop(context, true);
         } else if (state is UserError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -131,24 +105,13 @@ class _EditUserScreenState extends State<EditUserScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
-          // actions: [
-          //   TextButton(
-          //     onPressed: _isLoading ? null : _updateProfile,
-          //     child: Text(
-          //       'Save',
-          //       style: TextStyle(
-          //         color: _isLoading ? Colors.grey : Colors.amber,
-          //         fontWeight: FontWeight.bold,
-          //         fontSize: 16,
-          //       ),
-          //     ),
-          //   ),
-          // ],
         ),
         body:
             _isLoading
-                ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFFFFD700)),
+                ? CustomLoader(
+                  loadingPageName: '',
+                  isExtra: true,
+                  extraText: "Updating Profile...",
                 )
                 : Stack(
                   children: [
@@ -242,26 +205,26 @@ class _EditUserScreenState extends State<EditUserScreen> {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.amber,
-                                        width: 2,
+                                        color: Colors.grey,
+                                        width: 1,
                                       ),
                                       image: DecorationImage(
                                         image:
-                                            _selectedImagePath != null
-                                                ? FileImage(
-                                                  File(_selectedImagePath!),
-                                                )
-                                                : (_profileImageController
-                                                            .text
+                                            _selectedImageFile != null
+                                                ? FileImage(_selectedImageFile!)
+                                                : (widget.user.profileImage !=
+                                                            null &&
+                                                        widget
+                                                            .user
+                                                            .profileImage!
                                                             .isNotEmpty
-                                                        ? NetworkImage(
-                                                          _profileImageController
-                                                              .text,
-                                                        )
-                                                        : const NetworkImage(
+                                                    ? NetworkImage(
+                                                      widget.user.profileImage!,
+                                                    )
+                                                    : const NetworkImage(
                                                           "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
-                                                        ))
-                                                    as ImageProvider,
+                                                        )
+                                                        as ImageProvider),
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -272,7 +235,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
                                     child: Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: const BoxDecoration(
-                                        color: Colors.amber,
+                                        color: Colors.lightGreenAccent,
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
@@ -299,7 +262,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
                             AppTextField(
                               controller: _fullNameController,
                               hintText: 'Full Name',
-                              icon: Icons.person_outline,
+                              hugeIcon: HugeIcons.strokeRoundedUser02,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter full name';
@@ -313,7 +276,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
                             AppTextField(
                               controller: _usernameController,
                               hintText: 'Username',
-                              icon: Icons.alternate_email,
+                              hugeIcon: HugeIcons.strokeRoundedUser03,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter username';
@@ -327,7 +290,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
                             AppTextField(
                               controller: _emailController,
                               hintText: 'Email',
-                              icon: Icons.email_outlined,
+                              hugeIcon: HugeIcons.strokeRoundedMail01,
                               keyboardType: TextInputType.emailAddress,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -345,7 +308,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
                             AppTextField(
                               controller: _mobileController,
                               hintText: 'Mobile Number',
-                              icon: Icons.call_outlined,
+                              hugeIcon: HugeIcons.strokeRoundedAiPhone01,
                               keyboardType: TextInputType.phone,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -357,32 +320,18 @@ class _EditUserScreenState extends State<EditUserScreen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 16),
-
-                            // Profile Image URL Field (Optional)
-                            AppTextField(
-                              controller: _profileImageController,
-                              hintText: 'Profile Image URL (Optional)',
-                              icon: Icons.link,
-                              keyboardType: TextInputType.url,
-                              validator: (value) {
-                                return null; // Optional field
-                              },
-                            ),
                             const SizedBox(height: 24),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: _isLoading ? null : _updateProfile,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.amber,
+                                  backgroundColor: Colors.lightGreenAccent,
                                   foregroundColor: Colors.black,
                                   disabledBackgroundColor: Colors.grey,
                                   disabledForegroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      30,
-                                    ), // Full radius border
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 24,
@@ -398,8 +347,6 @@ class _EditUserScreenState extends State<EditUserScreen> {
                                 ),
                               ),
                             ),
-
-                            // Preview Card (Same as Home Screen)
                           ],
                         ),
                       ),
@@ -416,7 +363,6 @@ class _EditUserScreenState extends State<EditUserScreen> {
     _usernameController.dispose();
     _emailController.dispose();
     _mobileController.dispose();
-    _profileImageController.dispose();
     super.dispose();
   }
 }

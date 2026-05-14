@@ -1,6 +1,5 @@
 import 'dart:developer';
 
- 
 import 'package:app_frontend_customer/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend_customer/features/auth/bloc/auth_state.dart';
 import 'package:app_frontend_customer/features/auth/service/auth_service.dart';
@@ -18,7 +17,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final message = await service.register(event.registerModel);
         log("Register Success: $message");
-        emit(AuthSuccess(message));
+        
+        // After successful registration, just show success and stay on auth screen
+        // User will manually login
+        emit(AuthSuccess(message, isRegistration: true));
       } catch (e) {
         log("Register Error: $e");
         debugPrint("Register Error : $e");
@@ -26,7 +28,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
-    // auth_bloc.dart - LoginEvent handler (already correct, but verify)
     on<LoginEvent>((event, emit) async {
       emit(AuthLoading());
 
@@ -37,15 +38,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         log("Login Success - UserId: ${response.userId}");
 
         final prefs = await SharedPreferences.getInstance();
+        
+        // Save all user data locally
         await prefs.setString('auth_token', response.token);
-        await prefs.setString(
-          'user_role',
-          response.role.toLowerCase(),
-        ); // Ensure lowercase
+        await prefs.setString('user_role', response.role.toLowerCase());
         await prefs.setString('user_id', response.userId);
 
         if (response.user != null) {
           await prefs.setString('user_name', response.user!.fullName);
+          await prefs.setString('user_email', response.user!.email);
+          await prefs.setString('user_mobile', response.user!.mobile);
+          await prefs.setString('user_username', response.user!.username);
         }
 
         emit(
@@ -53,6 +56,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             response.message,
             token: response.token,
             role: response.role,
+            userId: response.userId,
+            isRegistration: false,
           ),
         );
       } catch (e) {
