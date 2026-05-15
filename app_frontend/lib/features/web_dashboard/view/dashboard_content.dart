@@ -3,11 +3,17 @@ import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dar
 import 'package:flutter/material.dart';
 
 class DashboardContent extends StatelessWidget {
-    final String userName;
+  final String userName;
   final String userEmail;
   final String? userProfileImage;
   final Map<String, dynamic>? sellerStats;
-  const DashboardContent({super.key, required this.userName, required this.userEmail, this.userProfileImage, this.sellerStats});
+  const DashboardContent({
+    super.key,
+    required this.userName,
+    required this.userEmail,
+    this.userProfileImage,
+    this.sellerStats,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +21,8 @@ class DashboardContent extends StatelessWidget {
       child: Column(
         children: [
           // _buildTopAppBar(),
-          const CommonAppBar(
-            title: 'Welcome back, Seller! 🚀',
+          CommonAppBar(
+            title: 'Welcome back, $userName! 🚀',
             subtitle: 'Here\'s what\'s happening with your store today.',
           ),
           Padding(
