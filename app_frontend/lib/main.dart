@@ -4,6 +4,7 @@ import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart
 import 'package:app_frontend/features/bottom_navbar/view/bottom_navbar_screen.dart';
 import 'package:app_frontend/features/customer/home/bloc/product_bloc.dart';
 import 'package:app_frontend/features/customer/home/service/product_service.dart';
+import 'package:app_frontend/features/web_dashboard/web_auth/view/web_auth_screen.dart';
 import 'package:app_frontend/features/web_dashboard/web_dashboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const SplashScreen(),
-          '/auth': (context) => const AuthScreen(),
+          '/auth': (context) => isSkiaWeb ? WebAuthScreen() : AuthScreen(),
           '/home':
               (context) =>
                   isSkiaWeb ? WebDashboardScreen() : BottomNavBarScreen(),
