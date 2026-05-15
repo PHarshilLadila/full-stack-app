@@ -54,7 +54,9 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
               content: Text(state.message),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
           Future.delayed(const Duration(milliseconds: 500), () {
@@ -66,7 +68,9 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
               content: Text(state.error),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
         }
@@ -103,7 +107,10 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [const Color(0xFF7C3AED).withOpacity(0.08), const Color(0xFFA855F7).withOpacity(0.04)],
+          colors: [
+            const Color(0xFF7C3AED).withOpacity(0.08),
+            const Color(0xFFA855F7).withOpacity(0.04),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -118,7 +125,11 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
               color: const Color(0xFF7C3AED).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.storefront_rounded, color: Color(0xFF7C3AED), size: 20),
+            child: const Icon(
+              Icons.storefront_rounded,
+              color: Color(0xFF7C3AED),
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           const Expanded(
@@ -127,7 +138,11 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
               children: [
                 Text(
                   'Seller Account Registration',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF7C3AED)),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF7C3AED),
+                  ),
                 ),
                 SizedBox(height: 2),
                 Text(
@@ -253,8 +268,12 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
       icon: Icons.lock_outline,
       obscureText: !_isPasswordVisible,
       suffixIcon: IconButton(
-        icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility, size: 20),
-        onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+        icon: Icon(
+          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+          size: 20,
+        ),
+        onPressed:
+            () => setState(() => _isPasswordVisible = !_isPasswordVisible),
       ),
       validator: (v) {
         if (v == null || v.isEmpty) return "Password is required";
@@ -272,8 +291,14 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
       icon: Icons.lock_outline,
       obscureText: !_isConfirmPasswordVisible,
       suffixIcon: IconButton(
-        icon: Icon(_isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility, size: 20),
-        onPressed: () => setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+        icon: Icon(
+          _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+          size: 20,
+        ),
+        onPressed:
+            () => setState(
+              () => _isConfirmPasswordVisible = !_isConfirmPasswordVisible,
+            ),
       ),
       validator: (v) {
         if (v == null || v.isEmpty) return "Please confirm your password";
@@ -299,7 +324,11 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[700]),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[700],
+          ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -319,7 +348,10 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
               prefixIcon: Icon(icon, color: const Color(0xFF9CA3AF), size: 20),
               suffixIcon: suffixIcon,
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
             validator: validator,
           ),
@@ -335,9 +367,12 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
           scale: 0.9,
           child: Checkbox(
             value: _agreeToTerms,
-            onChanged: (value) => setState(() => _agreeToTerms = value ?? false),
+            onChanged:
+                (value) => setState(() => _agreeToTerms = value ?? false),
             activeColor: const Color(0xFF7C3AED),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
           ),
         ),
         Expanded(
@@ -350,12 +385,18 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
                   const TextSpan(text: 'I agree to the '),
                   TextSpan(
                     text: 'Terms of Service',
-                    style: const TextStyle(color: Color(0xFF7C3AED), fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Color(0xFF7C3AED),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   const TextSpan(text: ' and '),
                   TextSpan(
                     text: 'Privacy Policy',
-                    style: const TextStyle(color: Color(0xFF7C3AED), fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Color(0xFF7C3AED),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -370,33 +411,47 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: isLoading || !_agreeToTerms
-            ? null
-            : () {
-                if (_formKey.currentState!.validate()) {
-                  final registerModel = RegisterModel(
-                    fullName: _fullNameController.text.trim(),
-                    username: _usernameController.text.trim(),
-                    email: _emailController.text.trim(),
-                    mobile: _mobileController.text.trim(),
-                    password: _passwordController.text.trim(),
-                    confirmPassword: _confirmPasswordController.text.trim(),
-                    role: "seller",
-                  );
-                  context.read<AuthBloc>().add(RegisterEvent(registerModel));
-                }
-              },
+        onPressed:
+            isLoading || !_agreeToTerms
+                ? null
+                : () {
+                  if (_formKey.currentState!.validate()) {
+                    final registerModel = RegisterModel(
+                      fullName: _fullNameController.text.trim(),
+                      username: _usernameController.text.trim(),
+                      email: _emailController.text.trim(),
+                      mobile: _mobileController.text.trim(),
+                      password: _passwordController.text.trim(),
+                      confirmPassword: _confirmPasswordController.text.trim(),
+                      role: "seller",
+                    );
+                    context.read<AuthBloc>().add(RegisterEvent(registerModel));
+                  }
+                },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF7C3AED),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(60)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: 0,
           disabledBackgroundColor: const Color(0xFFC4B5FD),
         ),
-        child: isLoading
-            ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : const Text('Create Seller Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        child:
+            isLoading
+                ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+                : const Text(
+                  'Create Seller Account',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
       ),
     );
   }
@@ -405,12 +460,18 @@ class _WebRegisterFormState extends State<WebRegisterForm> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text("Already have an account? ", style: TextStyle(color: Colors.grey[600])),
+        Text(
+          "Already have an account? ",
+          style: TextStyle(color: Colors.grey[600]),
+        ),
         GestureDetector(
           onTap: widget.onToggleToLogin,
           child: const Text(
             'Sign in',
-            style: TextStyle(color: Color(0xFF7C3AED), fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: Color(0xFF7C3AED),
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

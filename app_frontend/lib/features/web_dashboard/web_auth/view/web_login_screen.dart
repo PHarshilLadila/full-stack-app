@@ -220,7 +220,7 @@ class _WebLoginFormState extends State<WebLoginForm> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(60),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 0,
                     disabledBackgroundColor: const Color(0xFFC4B5FD),
