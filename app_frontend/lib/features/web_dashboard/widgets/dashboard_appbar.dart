@@ -13,11 +13,7 @@ class CommonAppBar extends StatefulWidget {
   final String title;
   final String subtitle;
 
-  const CommonAppBar({
-    super.key,
-    required this.title,
-    required this.subtitle,
-  });
+  const CommonAppBar({super.key, required this.title, required this.subtitle});
 
   @override
   State<CommonAppBar> createState() => _CommonAppBarState();
@@ -25,8 +21,8 @@ class CommonAppBar extends StatefulWidget {
 
 class _CommonAppBarState extends State<CommonAppBar> {
   late UserBloc _userBloc;
-  Map<String, dynamic>? _sellerStats;
-  
+  Map<String, dynamic>? sellerStats;
+
   // Current display values
   String _currentTitle = '';
   String _currentSubtitle = '';
@@ -45,7 +41,8 @@ class _CommonAppBarState extends State<CommonAppBar> {
   void didUpdateWidget(covariant CommonAppBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Update title and subtitle when widget changes (screen changes)
-    if (oldWidget.title != widget.title || oldWidget.subtitle != widget.subtitle) {
+    if (oldWidget.title != widget.title ||
+        oldWidget.subtitle != widget.subtitle) {
       setState(() {
         _currentTitle = widget.title;
         _currentSubtitle = widget.subtitle;
@@ -70,7 +67,7 @@ class _CommonAppBarState extends State<CommonAppBar> {
       try {
         final stats = await UserService().getSellerStats(token);
         setState(() {
-          _sellerStats = stats;
+          sellerStats = stats;
         });
       } catch (e) {
         debugPrint("Error loading seller stats: $e");
@@ -619,13 +616,7 @@ class _CommonAppBarState extends State<CommonAppBar> {
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('auth_token');
-                await prefs.remove('user_role');
-                await prefs.remove('user_id');
-                if (context.mounted) {
-                  Navigator.pushReplacementNamed(context, '/auth');
-                }
+                _logout();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFEF4444),

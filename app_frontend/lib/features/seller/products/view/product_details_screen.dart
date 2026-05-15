@@ -115,10 +115,10 @@ class _ProductDetailsContent extends StatefulWidget {
 
 class _ProductDetailsContentState extends State<_ProductDetailsContent> {
   late final PageController _pageController;
-  int _selectedImageIndex = 0;
-  int _quantity = 1;
-  bool _isFavorite = false;
-  bool _isAddedToCart = false;
+  int selectedImageIndex = 0;
+  int quantity = 1;
+  bool isFavorite = false;
+  bool isAddedToCart = false;
 
   @override
   void initState() {
@@ -197,21 +197,21 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                         padding: EdgeInsets.zero,
                         alignment: Alignment.center,
                         icon: Icon(
-                          _isFavorite
+                          isFavorite
                               ? CupertinoIcons.heart_fill
                               : CupertinoIcons.heart,
-                          color: _isFavorite ? Colors.red : Colors.black,
+                          color: isFavorite ? Colors.red : Colors.black,
                           size: 20,
                         ),
                         onPressed: () {
                           setState(() {
-                            _isFavorite = !_isFavorite;
+                            isFavorite = !isFavorite;
                           });
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                _isFavorite
+                                isFavorite
                                     ? 'Added to favorites'
                                     : 'Removed from favorites',
                               ),
@@ -232,7 +232,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                             controller: _pageController,
                             onPageChanged: (index) {
                               setState(() {
-                                _selectedImageIndex = index;
+                                selectedImageIndex = index;
                               });
                             },
                             itemCount: allImages.length,
@@ -286,7 +286,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              '${_selectedImageIndex + 1}/${allImages.length}',
+                              '${selectedImageIndex + 1}/${allImages.length}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -310,7 +310,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                                   return GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        _selectedImageIndex = index;
+                                        selectedImageIndex = index;
                                         // Animate to the selected image in PageView
                                         _pageController.animateToPage(
                                           index,
@@ -329,7 +329,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color:
-                                              _selectedImageIndex == index
+                                              selectedImageIndex == index
                                                   ? const Color(0xffFDBB12)
                                                   : Colors.white,
                                           width: 2,
@@ -1004,18 +1004,18 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
               child: GestureDetector(
                 onTap: () {
                   setState(() {
-                    _isAddedToCart = !_isAddedToCart;
+                    isAddedToCart = !isAddedToCart;
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        _isAddedToCart
-                            ? 'Added to cart • Quantity: $_quantity'
+                        isAddedToCart
+                            ? 'Added to cart • Quantity: $quantity'
                             : 'Removed from cart',
                       ),
                       duration: const Duration(seconds: 1),
                       backgroundColor:
-                          _isAddedToCart ? Colors.green : Colors.red,
+                          isAddedToCart ? Colors.green : Colors.red,
                     ),
                   );
                 },
@@ -1023,12 +1023,12 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                   height: 52,
                   decoration: BoxDecoration(
                     color:
-                        _isAddedToCart
+                        isAddedToCart
                             ? Colors.green.shade50
                             : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: _isAddedToCart ? Colors.green : Colors.transparent,
+                      color: isAddedToCart ? Colors.green : Colors.transparent,
                       width: 1,
                     ),
                   ),
@@ -1038,18 +1038,18 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedShoppingCart01,
                         color:
-                            _isAddedToCart
+                            isAddedToCart
                                 ? Colors.green
                                 : Colors.grey.shade600,
                         size: 22,
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _isAddedToCart ? 'Added' : 'Cart',
+                        isAddedToCart ? 'Added' : 'Cart',
                         style: TextStyle(
                           fontSize: 12,
                           color:
-                              _isAddedToCart
+                              isAddedToCart
                                   ? Colors.green
                                   : Colors.grey.shade600,
                           fontWeight: FontWeight.w500,
@@ -1072,7 +1072,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                'Proceeding to checkout with $_quantity item(s)',
+                                'Proceeding to checkout with $quantity item(s)',
                               ),
                               duration: const Duration(seconds: 1),
                             ),
