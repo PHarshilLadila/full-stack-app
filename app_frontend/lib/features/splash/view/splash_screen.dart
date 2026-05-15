@@ -2,6 +2,7 @@
 
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -91,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.yellow.withOpacity(0.09),
+                            color: kIsWeb ?  Colors.deepPurple.withOpacity(0.09) :  Colors.yellow.withOpacity(0.09),
                             blurRadius: 80,
                             spreadRadius: 80,
                             offset: Offset(0, 0),
@@ -153,13 +154,13 @@ class _SplashScreenState extends State<SplashScreen> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.amber,
+                            color: kIsWeb? Colors.deepPurple : Colors.amber,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.all(24),
                           child: HugeIcon(
                             icon: HugeIcons.strokeRoundedStore03,
-                            color: Colors.black,
+                            color:kIsWeb?  Colors.white: Colors.black,
                             size: 60.0,
                           ),
                         ),
