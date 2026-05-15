@@ -1,5 +1,4 @@
-import 'package:app_frontend/features/web_dashboard/web_dashboard.dart';
-import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
+ import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
 import 'package:flutter/material.dart';
 
 class OrdersContent extends StatelessWidget {

@@ -61,50 +61,6 @@ class _WebAuthScreenState extends State<WebAuthScreen> {
       ),
       child: Row(
         children: [
-          // LEFT SIDE - Branding Section
-          // Container(
-          //   decoration: const BoxDecoration(
-          //     gradient: LinearGradient(
-          //       colors: [Color(0xFF7C3AED), Color(0xFFA855F7)],
-          //       begin: Alignment.topLeft,
-          //       end: Alignment.bottomRight,
-          //     ),
-          //     borderRadius: BorderRadius.only(
-          //       topLeft: Radius.circular(32),
-          //       bottomLeft: Radius.circular(32),
-          //     ),
-          //   ),
-          //   child: const Center(
-          //     child: Padding(
-          //       padding: EdgeInsets.all(32.0),
-          //       child: Column(
-          //         mainAxisSize: MainAxisSize.min,
-          //         children: [
-          //           Icon(
-          //             Icons.storefront_rounded,
-          //             size: 64,
-          //             color: Colors.white,
-          //           ),
-          //           SizedBox(height: 24),
-          //           Text(
-          //             "Velmora",
-          //             style: TextStyle(
-          //               fontSize: 36,
-          //               fontWeight: FontWeight.bold,
-          //               color: Colors.white,
-          //             ),
-          //           ),
-          //           SizedBox(height: 12),
-          //           Text(
-          //             "Seller Dashboard",
-          //             style: TextStyle(fontSize: 18, color: Colors.white70),
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // RIGHT SIDE - Form Section
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(r.containerPadding),
