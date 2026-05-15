@@ -1,3 +1,5 @@
+
+ // ignore_for_file: deprecated_member_use
  
 import 'package:app_frontend_customer/utils/common/app_backround.dart';
 import 'package:app_frontend_customer/utils/common/custom_appbar.dart';

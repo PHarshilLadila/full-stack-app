@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
+
 import 'dart:developer';
 
 import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';

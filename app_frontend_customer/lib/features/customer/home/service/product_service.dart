@@ -1,4 +1,3 @@
-// lib/features/product/service/product_service.dart
 import 'dart:convert';
 import 'dart:developer'; 
 import 'package:app_frontend_customer/core/network/api_client.dart';
@@ -9,8 +8,8 @@ class ProductService {
   final ApiClient apiClient = ApiClient();
 
   Future<String?> _getToken() async {
-    final SharedPreferences _storage = await SharedPreferences.getInstance();
-    return _storage.getString('auth_token');
+    final SharedPreferences storage = await SharedPreferences.getInstance();
+    return storage.getString('auth_token');
   }
 
   Future<ProductResponse> getProducts({

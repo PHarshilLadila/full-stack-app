@@ -169,7 +169,7 @@
 //   }
 // }
 
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, deprecated_member_use
 
 import 'dart:convert';
 import 'dart:typed_data';
@@ -252,21 +252,13 @@ Future<Response> _handleMultipartUpdate(
     print('📋 Fields: ${formData.fields.keys}');
     print('📋 Files: ${formData.files.keys}');
 
-    final updateData = <String, dynamic>{};
-
-    // ==========================================
-    // FULL NAME
-    // ==========================================
+    final updateData = <String, dynamic>{}; 
 
     final fullName = formData['fullName']?.trim();
 
     if (fullName != null && fullName.isNotEmpty) {
       updateData['fullName'] = fullName;
-    }
-
-    // ==========================================
-    // USERNAME
-    // ==========================================
+    } 
 
     final username = formData['username']?.trim();
 
@@ -284,11 +276,7 @@ Future<Response> _handleMultipartUpdate(
       }
 
       updateData['username'] = username;
-    }
-
-    // ==========================================
-    // EMAIL
-    // ==========================================
+    } 
 
     final email = formData['email']?.trim();
 
@@ -306,11 +294,7 @@ Future<Response> _handleMultipartUpdate(
       }
 
       updateData['email'] = email;
-    }
-
-    // ==========================================
-    // MOBILE
-    // ==========================================
+    } 
 
     final mobile = formData['mobile']?.trim();
 
@@ -328,11 +312,7 @@ Future<Response> _handleMultipartUpdate(
       }
 
       updateData['mobile'] = mobile;
-    }
-
-    // ==========================================
-    // ROLE
-    // ==========================================
+    } 
 
     final role = formData['role']?.trim();
 
@@ -347,11 +327,7 @@ Future<Response> _handleMultipartUpdate(
           body: {'success': false, 'error': 'Invalid role'},
         );
       }
-    }
-
-    // ==========================================
-    // PROFILE IMAGE
-    // ==========================================
+    } 
 
     final profileImageFile = formData.files['profileImage'];
 
@@ -368,28 +344,16 @@ Future<Response> _handleMultipartUpdate(
       }
 
       updateData['profileImage'] = imageUrl;
-    }
-
-    // ==========================================
-    // EMPTY CHECK
-    // ==========================================
+    } 
 
     if (updateData.isEmpty) {
       return Response.json(
         statusCode: 400,
         body: {'success': false, 'error': 'No data to update'},
       );
-    }
-
-    // ==========================================
-    // UPDATED AT
-    // ==========================================
+    } 
 
     updateData['updatedAt'] = DateTime.now();
-
-    // ==========================================
-    // UPDATE USER
-    // ==========================================
 
     final result = await MongoService.users!.updateOne(
       {'_id': ObjectId.parse(userId)},
@@ -402,10 +366,6 @@ Future<Response> _handleMultipartUpdate(
         body: {'success': false, 'error': 'Update failed'},
       );
     }
-
-    // ==========================================
-    // GET UPDATED USER
-    // ==========================================
 
     final updatedUser = await MongoService.users!.findOne({
       '_id': ObjectId.parse(userId),
@@ -456,10 +416,6 @@ Future<Response> _handleMultipartUpdate(
     );
   }
 }
-
-// =======================================================
-// JSON UPDATE
-// =======================================================
 
 Future<Response> _handleJsonUpdate(
   RequestContext context,
@@ -580,10 +536,6 @@ Future<Response> _handleJsonUpdate(
     },
   );
 }
-
-// =======================================================
-// CLOUDINARY IMAGE UPLOAD
-// =======================================================
 
 Future<String> _uploadToCloudinary(UploadedFile file) async {
   try {

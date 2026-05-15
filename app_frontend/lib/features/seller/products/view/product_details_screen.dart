@@ -982,138 +982,138 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
     );
   }
 
-  Widget _buildBottomBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            // Cart Button
-            Expanded(
-              flex: 1,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isAddedToCart = !isAddedToCart;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isAddedToCart
-                            ? 'Added to cart • Quantity: $quantity'
-                            : 'Removed from cart',
-                      ),
-                      duration: const Duration(seconds: 1),
-                      backgroundColor:
-                          isAddedToCart ? Colors.green : Colors.red,
-                    ),
-                  );
-                },
-                child: Container(
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color:
-                        isAddedToCart
-                            ? Colors.green.shade50
-                            : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isAddedToCart ? Colors.green : Colors.transparent,
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedShoppingCart01,
-                        color:
-                            isAddedToCart
-                                ? Colors.green
-                                : Colors.grey.shade600,
-                        size: 22,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isAddedToCart ? 'Added' : 'Cart',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color:
-                              isAddedToCart
-                                  ? Colors.green
-                                  : Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
+  // Widget _buildBottomBar() {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withOpacity(0.08),
+  //           blurRadius: 20,
+  //           offset: const Offset(0, -4),
+  //         ),
+  //       ],
+  //     ),
+  //     child: SafeArea(
+  //       child: Row(
+  //         children: [
+  //           // Cart Button
+  //           Expanded(
+  //             flex: 1,
+  //             child: GestureDetector(
+  //               onTap: () {
+  //                 setState(() {
+  //                   isAddedToCart = !isAddedToCart;
+  //                 });
+  //                 ScaffoldMessenger.of(context).showSnackBar(
+  //                   SnackBar(
+  //                     content: Text(
+  //                       isAddedToCart
+  //                           ? 'Added to cart • Quantity: $quantity'
+  //                           : 'Removed from cart',
+  //                     ),
+  //                     duration: const Duration(seconds: 1),
+  //                     backgroundColor:
+  //                         isAddedToCart ? Colors.green : Colors.red,
+  //                   ),
+  //                 );
+  //               },
+  //               child: Container(
+  //                 height: 52,
+  //                 decoration: BoxDecoration(
+  //                   color:
+  //                       isAddedToCart
+  //                           ? Colors.green.shade50
+  //                           : Colors.grey.shade100,
+  //                   borderRadius: BorderRadius.circular(16),
+  //                   border: Border.all(
+  //                     color: isAddedToCart ? Colors.green : Colors.transparent,
+  //                     width: 1,
+  //                   ),
+  //                 ),
+  //                 child: Column(
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                     HugeIcon(
+  //                       icon: HugeIcons.strokeRoundedShoppingCart01,
+  //                       color:
+  //                           isAddedToCart
+  //                               ? Colors.green
+  //                               : Colors.grey.shade600,
+  //                       size: 22,
+  //                     ),
+  //                     const SizedBox(height: 2),
+  //                     Text(
+  //                       isAddedToCart ? 'Added' : 'Cart',
+  //                       style: TextStyle(
+  //                         fontSize: 12,
+  //                         color:
+  //                             isAddedToCart
+  //                                 ? Colors.green
+  //                                 : Colors.grey.shade600,
+  //                         fontWeight: FontWeight.w500,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //           const SizedBox(width: 12),
 
-            // Buy Now Button
-            Expanded(
-              flex: 2,
-              child: ElevatedButton(
-                onPressed:
-                    widget.product.stockAvailable
-                        ? () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Proceeding to checkout with $quantity item(s)',
-                              ),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
-                        }
-                        : null,
-                style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  backgroundColor: const Color(0xffFDBB12),
-                  foregroundColor: Colors.black,
-                  disabledBackgroundColor: Colors.grey.shade300,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedFlash,
-                      size: 20,
-                      color: Colors.black,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      widget.product.stockAvailable
-                          ? 'Buy Now'
-                          : 'Out of Stock',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //           // Buy Now Button
+  //           Expanded(
+  //             flex: 2,
+  //             child: ElevatedButton(
+  //               onPressed:
+  //                   widget.product.stockAvailable
+  //                       ? () {
+  //                         ScaffoldMessenger.of(context).showSnackBar(
+  //                           SnackBar(
+  //                             content: Text(
+  //                               'Proceeding to checkout with $quantity item(s)',
+  //                             ),
+  //                             duration: const Duration(seconds: 1),
+  //                           ),
+  //                         );
+  //                       }
+  //                       : null,
+  //               style: ElevatedButton.styleFrom(
+  //                 elevation: 0,
+  //                 backgroundColor: const Color(0xffFDBB12),
+  //                 foregroundColor: Colors.black,
+  //                 disabledBackgroundColor: Colors.grey.shade300,
+  //                 padding: const EdgeInsets.symmetric(vertical: 14),
+  //                 shape: RoundedRectangleBorder(
+  //                   borderRadius: BorderRadius.circular(16),
+  //                 ),
+  //               ),
+  //               child: Row(
+  //                 mainAxisAlignment: MainAxisAlignment.center,
+  //                 children: [
+  //                   HugeIcon(
+  //                     icon: HugeIcons.strokeRoundedFlash,
+  //                     size: 20,
+  //                     color: Colors.black,
+  //                   ),
+  //                   const SizedBox(width: 8),
+  //                   Text(
+  //                     widget.product.stockAvailable
+  //                         ? 'Buy Now'
+  //                         : 'Out of Stock',
+  //                     style: const TextStyle(
+  //                       fontWeight: FontWeight.bold,
+  //                       fontSize: 16,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }

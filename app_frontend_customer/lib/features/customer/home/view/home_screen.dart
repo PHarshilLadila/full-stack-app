@@ -1,5 +1,8 @@
 // lib/features/customer/home/screen/home_screen.dart
 
+// ignore_for_file: deprecated_member_use
+
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.dart';
@@ -35,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String authToken = "";
   Set<String> favoriteProductIds = {};
+  String greeting = "";
 
   Future<void> getUserToken() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -63,6 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<ProductBloc>().add(const FetchProducts());
 
     getUserToken();
+    _updateGreeting();
+
+    Timer.periodic(const Duration(minutes: 1), (timer) {
+      _updateGreeting();
+    });
   }
 
   @override
@@ -86,16 +95,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _getGreeting() {
+  void _updateGreeting() {
     final hour = DateTime.now().hour;
 
-    if (hour < 12) {
-      return 'Good Morning';
-    } else if (hour < 17) {
-      return 'Good Afternoon';
-    } else {
-      return 'Good Evening';
-    }
+    setState(() {
+      if (hour < 12) {
+        greeting = 'Good Morning';
+      } else if (hour < 17) {
+        greeting = 'Good Afternoon';
+      } else {
+        greeting = 'Good Evening';
+      }
+    });
   }
 
   @override
@@ -125,10 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   value: _userBloc,
                   child: BlocBuilder<UserBloc, UserState>(
                     builder: (context, state) {
-                      // =========================
-                      // LOADING SHIMMER
-                      // =========================
-
                       if (state is UserLoading) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(
@@ -172,8 +179,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       // =========================
 
                       if (state is UserLoaded) {
-                        final greeting = _getGreeting();
-
                         return Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -266,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${_getGreeting()},',
+                                '$greeting,',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
@@ -354,10 +359,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // =========================
-  // PRODUCT LIST
-  // =========================
-
   Widget _buildProductList(List<Product> products) {
     if (products.isEmpty) {
       return const Center(child: Text('No products found'));
@@ -379,10 +380,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // =========================
-  // PRODUCT CARD
-  // =========================
 
   Widget _buildProductCard(Product product) {
     final bool isFavorite = favoriteProductIds.contains(product.id);
@@ -634,10 +631,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // =========================
-  // ERROR WIDGET
-  // =========================
 
   Widget _buildErrorWidget(String message) {
     return Center(

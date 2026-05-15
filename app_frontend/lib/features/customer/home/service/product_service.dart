@@ -9,8 +9,8 @@ class ProductService {
   final ApiClient apiClient = ApiClient();
 
   Future<String?> _getToken() async {
-    final SharedPreferences _storage = await SharedPreferences.getInstance();
-    return _storage.getString('auth_token');
+    final SharedPreferences storage = await SharedPreferences.getInstance();
+    return storage.getString('auth_token');
   }
 
   Future<ProductResponse> getProducts({

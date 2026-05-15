@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
 import 'package:app_frontend/features/customer/profile/bloc/user_event.dart';
 import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';

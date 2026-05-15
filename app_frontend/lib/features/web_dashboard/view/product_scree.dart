@@ -1,4 +1,6 @@
- import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
+// ignore_for_file: deprecated_member_use
+
+import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
 import 'package:flutter/material.dart';
 
 class ProductsContent extends StatelessWidget {
@@ -21,7 +23,6 @@ class ProductsContent extends StatelessWidget {
           const CommonAppBar(
             title: 'Products',
             subtitle: 'Manage your product inventory',
-           
           ),
           Padding(
             padding: const EdgeInsets.all(24),
@@ -38,58 +39,58 @@ class ProductsContent extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(String title, String subtitle) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Add Product'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C3AED),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildAppBar(String title, String subtitle) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withOpacity(0.03),
+  //           blurRadius: 10,
+  //           offset: const Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         Expanded(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 title,
+  //                 style: const TextStyle(
+  //                   fontSize: 20,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: Color(0xFF1E293B),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 4),
+  //               Text(
+  //                 subtitle,
+  //                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         ElevatedButton.icon(
+  //           onPressed: () {},
+  //           icon: const Icon(Icons.add, size: 18),
+  //           label: const Text('Add Product'),
+  //           style: ElevatedButton.styleFrom(
+  //             backgroundColor: const Color(0xFF7C3AED),
+  //             foregroundColor: Colors.white,
+  //             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+  //             shape: RoundedRectangleBorder(
+  //               borderRadius: BorderRadius.circular(12),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildProductStats() {
     final stats = [
