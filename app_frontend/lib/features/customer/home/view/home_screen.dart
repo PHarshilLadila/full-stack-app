@@ -1,5 +1,7 @@
 // lib/features/customer/home/screen/home_screen.dart
 
+// ignore_for_file: deprecated_member_use
+
 import 'dart:developer';
 
 import 'package:app_frontend/features/customer/home/bloc/product_bloc.dart';

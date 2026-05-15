@@ -76,7 +76,7 @@
 //   );
 // }
 
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, omit_local_variable_types, deprecated_member_use
 // routes/auth/register.dart
 
 import 'dart:convert';
@@ -95,16 +95,10 @@ Future<Response> onRequest(RequestContext context) async {
 
     final contentType = context.request.headers['content-type'] ?? '';
 
-    // ================================
-    // MULTIPART FORM DATA REQUEST
-    // ================================
     if (contentType.contains('multipart/form-data')) {
       return _handleMultipartRegister(context);
     }
 
-    // ================================
-    // JSON REQUEST (OPTIONAL SUPPORT)
-    // ================================
     return _handleJsonRegister(context);
   } catch (e, stackTrace) {
     print('❌ REGISTER ERROR: $e');
@@ -117,10 +111,6 @@ Future<Response> onRequest(RequestContext context) async {
   }
 }
 
-// =======================================================
-// MULTIPART REGISTER
-// =======================================================
-
 Future<Response> _handleMultipartRegister(RequestContext context) async {
   try {
     final formData = await context.request.formData();
@@ -128,10 +118,6 @@ Future<Response> _handleMultipartRegister(RequestContext context) async {
     print('📋 FORM DATA RECEIVED');
     print('📋 Fields: ${formData.fields.keys}');
     print('📋 Files: ${formData.files.keys}');
-
-    // ==========================================
-    // TEXT FIELDS
-    // ==========================================
 
     final fullName = formData['fullName']?.trim() ?? '';
     final username = formData['username']?.trim() ?? '';
@@ -141,10 +127,6 @@ Future<Response> _handleMultipartRegister(RequestContext context) async {
     final confirmPassword = formData['confirmPassword']?.trim() ?? '';
 
     final role = formData['role']?.toString().trim() ?? 'customer';
-
-    // ==========================================
-    // VALIDATIONS
-    // ==========================================
 
     if (MongoService.users == null) {
       return Response.json(
@@ -205,10 +187,6 @@ Future<Response> _handleMultipartRegister(RequestContext context) async {
       );
     }
 
-    // ==========================================
-    // CHECK EXISTING USER
-    // ==========================================
-
     final existingUser = await MongoService.users!.findOne({
       r'$or': [
         {'email': email},
@@ -223,10 +201,6 @@ Future<Response> _handleMultipartRegister(RequestContext context) async {
         body: {'success': false, 'message': 'User already exists'},
       );
     }
-
-    // ==========================================
-    // PROFILE IMAGE UPLOAD
-    // ==========================================
 
     String profileImage = '';
 
@@ -244,16 +218,7 @@ Future<Response> _handleMultipartRegister(RequestContext context) async {
         );
       }
     }
-
-    // ==========================================
-    // HASH PASSWORD
-    // ==========================================
-
     final hashedPassword = AuthService.hashPassword(password);
-
-    // ==========================================
-    // SAVE USER
-    // ==========================================
 
     final userData = {
       'fullName': fullName,
@@ -307,10 +272,6 @@ Future<Response> _handleMultipartRegister(RequestContext context) async {
     );
   }
 }
-
-// =======================================================
-// JSON REGISTER (OPTIONAL)
-// =======================================================
 
 Future<Response> _handleJsonRegister(RequestContext context) async {
   final body = jsonDecode(await context.request.body()) as Map<String, dynamic>;
@@ -392,10 +353,6 @@ Future<Response> _handleJsonRegister(RequestContext context) async {
     body: {'success': true, 'message': 'Registered successfully'},
   );
 }
-
-// =======================================================
-// CLOUDINARY IMAGE UPLOAD
-// =======================================================
 
 Future<String> _uploadToCloudinary(UploadedFile file) async {
   try {

@@ -1,3 +1,5 @@
+ // ignore_for_file: deprecated_member_use
+
  import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
 import 'package:flutter/material.dart';
 
@@ -38,59 +40,59 @@ class OrdersContent extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Orders',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Track and manage all customer orders',
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.filter_list, size: 18, color: Color(0xFF64748B)),
-                SizedBox(width: 8),
-                Text('Filter', style: TextStyle(color: Color(0xFF475569))),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildAppBar() {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withOpacity(0.03),
+  //           blurRadius: 10,
+  //           offset: const Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         Expanded(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               const Text(
+  //                 'Orders',
+  //                 style: TextStyle(
+  //                   fontSize: 20,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: Color(0xFF1E293B),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 4),
+  //               Text(
+  //                 'Track and manage all customer orders',
+  //                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         Container(
+  //           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  //           decoration: BoxDecoration(
+  //             color: const Color(0xFFF8FAFC),
+  //             borderRadius: BorderRadius.circular(12),
+  //           ),
+  //           child: const Row(
+  //             children: [
+  //               Icon(Icons.filter_list, size: 18, color: Color(0xFF64748B)),
+  //               SizedBox(width: 8),
+  //               Text('Filter', style: TextStyle(color: Color(0xFF475569))),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildOrderStats() {
     final stats = [

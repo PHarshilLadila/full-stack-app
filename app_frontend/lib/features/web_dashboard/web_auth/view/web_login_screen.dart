@@ -1,4 +1,6 @@
 // lib/features/auth/web_login_screen.dart
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_frontend/features/auth/bloc/auth_bloc.dart';
@@ -101,10 +103,12 @@ class _WebLoginFormState extends State<WebLoginForm> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty)
+                    if (value == null || value.isEmpty) {
                       return 'Email is required';
-                    if (!value.contains('@') || !value.contains('.'))
+                    }
+                    if (!value.contains('@') || !value.contains('.')) {
                       return 'Enter a valid email';
+                    }
                     return null;
                   },
                 ),
@@ -158,8 +162,9 @@ class _WebLoginFormState extends State<WebLoginForm> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty)
+                    if (value == null || value.isEmpty) {
                       return 'Password is required';
+                    }
                     return null;
                   },
                 ),
