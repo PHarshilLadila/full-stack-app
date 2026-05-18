@@ -1,17 +1,7 @@
-import 'package:app_frontend/features/seller/products/bloc/product_bloc.dart';
-import 'package:app_frontend/features/seller/products/bloc/product_event.dart';
-import 'package:app_frontend/features/seller/products/bloc/product_state.dart';
-import 'package:app_frontend/features/seller/products/service/product_service.dart';
+// ignore_for_file: deprecated_member_use
+
 import 'package:app_frontend/features/seller/products/model/product_model.dart';
-import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'dart:html' as html;
-import 'package:material_table_view/material_table_view.dart';
-import 'package:material_table_view/table_view_typedefs.dart';
 
 class ProductDetailsView extends StatelessWidget {
   final ProductModel product;
@@ -21,7 +11,7 @@ class ProductDetailsView extends StatelessWidget {
   final String Function(double) formatPrice;
   final String Function(String) formatDate;
 
-  const ProductDetailsView({
+  const ProductDetailsView({super.key, 
     required this.product,
     required this.onBack,
     required this.getProductStatus,
@@ -42,26 +32,26 @@ class ProductDetailsView extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            _buildBackButton(),
+            buildBackButton(),
             const SizedBox(height: 24),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeaderSection(status, statusColor, isSmallScreen),
+                buildHeaderSection(status, statusColor, isSmallScreen),
                 const SizedBox(height: 24),
-                _buildPricingInventorySection(isSmallScreen),
+                buildPricingInventorySection(isSmallScreen),
                 const SizedBox(height: 24),
-                _buildDescriptionSection(isSmallScreen),
+                buildDescriptionSection(isSmallScreen),
                 const SizedBox(height: 24),
-                if (product.tags.isNotEmpty) _buildTagsSection(isSmallScreen),
+                if (product.tags.isNotEmpty) buildTagsSection(isSmallScreen),
                 const SizedBox(height: 24),
                 if (product.multipleImages.isNotEmpty)
-                  _buildImagesSection(isSmallScreen),
+                  buildImagesSection(isSmallScreen),
                 const SizedBox(height: 24),
                 if (product.specifications.isNotEmpty)
-                  _buildSpecificationsSection(isSmallScreen),
+                  buildSpecificationsSection(isSmallScreen),
                 const SizedBox(height: 24),
-                _buildAdditionalInfoSection(isSmallScreen),
+                buildAdditionalInfoSection(isSmallScreen),
               ],
             ),
           ],
@@ -70,7 +60,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildBackButton() {
+  Widget buildBackButton() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -97,7 +87,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderSection(
+  Widget buildHeaderSection(
     String status,
     Color statusColor,
     bool isSmallScreen,
@@ -314,8 +304,7 @@ class ProductDetailsView extends StatelessWidget {
                               ),
                               const SizedBox(width: 12),
                               ElevatedButton.icon(
-                                onPressed:
-                                () {},
+                                onPressed: () {},
                                 icon: const Icon(Icons.delete, size: 18),
                                 label: const Text("Delete"),
                                 style: ElevatedButton.styleFrom(
@@ -333,8 +322,7 @@ class ProductDetailsView extends StatelessWidget {
                               ),
                               const SizedBox(width: 12),
                               ElevatedButton.icon(
-                                onPressed:
-                                   () {},
+                                onPressed: () {},
                                 icon: const Icon(Icons.edit, size: 18),
                                 label: const Text("Edit"),
                                 style: ElevatedButton.styleFrom(
@@ -361,7 +349,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildPricingInventorySection(bool isSmallScreen) {
+  Widget buildPricingInventorySection(bool isSmallScreen) {
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
       decoration: BoxDecoration(
@@ -390,19 +378,19 @@ class ProductDetailsView extends StatelessWidget {
           isSmallScreen
               ? Column(
                 children: [
-                  _buildInfoCard(
+                  buildInfoCard(
                     'Price',
                     '₹${formatPrice(product.price)}',
                     Icons.currency_rupee,
                   ),
                   const SizedBox(height: 12),
-                  _buildInfoCard(
+                  buildInfoCard(
                     'Discounted Price',
                     '₹${formatPrice(product.discountPrice)}',
                     Icons.local_offer_outlined,
                   ),
                   const SizedBox(height: 12),
-                  _buildInfoCard(
+                  buildInfoCard(
                     'Stock',
                     '${product.stock} units',
                     Icons.inventory_2_outlined,
@@ -412,7 +400,7 @@ class ProductDetailsView extends StatelessWidget {
               : Row(
                 children: [
                   Expanded(
-                    child: _buildInfoCard(
+                    child: buildInfoCard(
                       'Price',
                       '₹${formatPrice(product.price)}',
                       Icons.currency_rupee,
@@ -420,7 +408,7 @@ class ProductDetailsView extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildInfoCard(
+                    child: buildInfoCard(
                       'Discounted Price',
                       '₹${formatPrice(product.discountPrice)}',
                       Icons.local_offer_outlined,
@@ -428,7 +416,7 @@ class ProductDetailsView extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildInfoCard(
+                    child: buildInfoCard(
                       'Stock',
                       '${product.stock} units',
                       Icons.inventory_2_outlined,
@@ -441,7 +429,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildDescriptionSection(bool isSmallScreen) {
+  Widget buildDescriptionSection(bool isSmallScreen) {
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
       decoration: BoxDecoration(
@@ -519,7 +507,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildTagsSection(bool isSmallScreen) {
+  Widget buildTagsSection(bool isSmallScreen) {
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
       decoration: BoxDecoration(
@@ -576,7 +564,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildImagesSection(bool isSmallScreen) {
+  Widget buildImagesSection(bool isSmallScreen) {
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
       decoration: BoxDecoration(
@@ -641,7 +629,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildSpecificationsSection(bool isSmallScreen) {
+  Widget buildSpecificationsSection(bool isSmallScreen) {
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
       decoration: BoxDecoration(
@@ -733,7 +721,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildAdditionalInfoSection(bool isSmallScreen) {
+  Widget buildAdditionalInfoSection(bool isSmallScreen) {
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
       decoration: BoxDecoration(
@@ -759,28 +747,28 @@ class ProductDetailsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildAdditionalInfoRow(
+          buildAdditionalInfoRow(
             'Product ID',
             product.id,
             Icons.qr_code,
             isSmallScreen,
           ),
           const SizedBox(height: 12),
-          _buildAdditionalInfoRow(
+          buildAdditionalInfoRow(
             'Rating',
             '${product.rating} ⭐ (${product.totalReviews} reviews)',
             Icons.star_outline,
             isSmallScreen,
           ),
           const SizedBox(height: 12),
-          _buildAdditionalInfoRow(
+          buildAdditionalInfoRow(
             'Created Date',
             formatDate(product.createdAt),
             Icons.calendar_today_outlined,
             isSmallScreen,
           ),
           const SizedBox(height: 12),
-          _buildAdditionalInfoRow(
+          buildAdditionalInfoRow(
             'Status',
             product.isActive ? 'Active' : 'Inactive',
             Icons.toggle_on_outlined,
@@ -791,7 +779,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(String title, String value, IconData icon) {
+  Widget buildInfoCard(String title, String value, IconData icon) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -822,7 +810,7 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildAdditionalInfoRow(
+  Widget buildAdditionalInfoRow(
     String label,
     String value,
     IconData icon,

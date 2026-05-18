@@ -1,133 +1,140 @@
 
-import 'package:app_frontend/features/seller/products/bloc/product_bloc.dart';
-import 'package:app_frontend/features/seller/products/bloc/product_event.dart';
-import 'package:app_frontend/features/seller/products/bloc/product_state.dart';
+// ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
+ 
 import 'package:app_frontend/features/seller/products/service/product_service.dart';
-import 'package:app_frontend/features/seller/products/model/product_model.dart';
-import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
+ 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'dart:io';
+ 
+ 
 import 'package:image_picker/image_picker.dart';
 import 'dart:html' as html;
-import 'package:material_table_view/material_table_view.dart';
-import 'package:material_table_view/table_view_typedefs.dart';
+ 
 
-
-class EditProductFormWidget extends StatefulWidget {
-  final ProductModel product;
+class AddProductFormWidget extends StatefulWidget {
   final VoidCallback onSuccess;
-  const EditProductFormWidget({
-    required this.product,
-    required this.onSuccess,
-  });
+  const AddProductFormWidget({super.key, required this.onSuccess});
 
   @override
-  State<EditProductFormWidget> createState() => _EditProductFormWidgetState();
+  State<AddProductFormWidget> createState() => AddProductFormWidgetState();
 }
 
-class _EditProductFormWidgetState extends State<EditProductFormWidget> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _productNameController;
-  late TextEditingController _priceController;
-  late TextEditingController _discountPriceController;
-  late TextEditingController _stockController;
-  late TextEditingController _categoryController;
-  late TextEditingController _subCategoryController;
-  late TextEditingController _shortDescriptionController;
-  late TextEditingController _detailedDescriptionController;
-  late TextEditingController _tagsController;
+class AddProductFormWidgetState extends State<AddProductFormWidget> {
+  final formKey = GlobalKey<FormState>();
+  late TextEditingController productNameController;
+  late TextEditingController priceController;
+  late TextEditingController discountPriceController;
+  late TextEditingController stockController;
+  late TextEditingController categoryController;
+  late TextEditingController subCategoryController;
+  late TextEditingController shortDescriptionController;
+  late TextEditingController detailedDescriptionController;
+  late TextEditingController tagsController;
 
   List<MapEntry<String, String>> _specifications = [];
 
-  File? _mainBannerImage;
-  List<File> _newMultipleImages = [];
-  List<String> _existingMultipleImages = [];
+  List<int>? mainBannerImageBytes;
+  String? mainBannerImageName;
+  String? mainBannerImageUrl;
 
-  List<int>? _newMainBannerImageBytes;
-  String? _newMainBannerImageName;
-  List<List<int>> _newMultipleImagesBytes = [];
-  List<String> _newMultipleImagesNames = [];
+  List<List<int>> multipleImagesBytes = [];
+  List<String> multipleImageNames = [];
+  List<String> multipleImageUrls = [];
 
-  final ImagePicker _picker = ImagePicker();
-  bool _isLoading = false;
+  final ImagePicker picker = ImagePicker();
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _productNameController = TextEditingController(text: widget.product.productName);
-    _priceController = TextEditingController(text: widget.product.price.toString());
-    _discountPriceController = TextEditingController(text: widget.product.discountPrice.toString());
-    _stockController = TextEditingController(text: widget.product.stock.toString());
-    _categoryController = TextEditingController(text: widget.product.category);
-    _subCategoryController = TextEditingController(text: widget.product.subCategory);
-    _shortDescriptionController = TextEditingController(text: widget.product.shortDescription);
-    _detailedDescriptionController = TextEditingController(text: widget.product.detailedDescription);
-    _tagsController = TextEditingController(text: widget.product.tags.join(', '));
-    _specifications = widget.product.specifications.entries.map((entry) => MapEntry(entry.key, entry.value.toString())).toList();
-    _existingMultipleImages = List.from(widget.product.multipleImages);
+    productNameController = TextEditingController();
+    priceController = TextEditingController();
+    discountPriceController = TextEditingController();
+    stockController = TextEditingController();
+    categoryController = TextEditingController();
+    subCategoryController = TextEditingController();
+    shortDescriptionController = TextEditingController();
+    detailedDescriptionController = TextEditingController();
+    tagsController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _productNameController.dispose();
-    _priceController.dispose();
-    _discountPriceController.dispose();
-    _stockController.dispose();
-    _categoryController.dispose();
-    _subCategoryController.dispose();
-    _shortDescriptionController.dispose();
-    _detailedDescriptionController.dispose();
-    _tagsController.dispose();
+    if (mainBannerImageUrl != null) html.Url.revokeObjectUrl(mainBannerImageUrl!);
+    for (var url in multipleImageUrls) {
+      html.Url.revokeObjectUrl(url);
+    }
+    productNameController.dispose();
+    priceController.dispose();
+    discountPriceController.dispose();
+    stockController.dispose();
+    categoryController.dispose();
+    subCategoryController.dispose();
+    shortDescriptionController.dispose();
+    detailedDescriptionController.dispose();
+    tagsController.dispose();
     super.dispose();
   }
 
-  void _addSpecification() => setState(() => _specifications.add(const MapEntry('', '')));
-  void _updateSpecification(int index, String key, String value) => setState(() => _specifications[index] = MapEntry(key, value));
-  void _removeSpecification(int index) => setState(() => _specifications.removeAt(index));
+  void addSpecification() => setState(() => _specifications.add(const MapEntry('', '')));
+  void updateSpecification(int index, String key, String value) => setState(() => _specifications[index] = MapEntry(key, value));
+  void removeSpecification(int index) => setState(() => _specifications.removeAt(index));
 
-  Future<void> _pickMainBannerImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> pickMainBannerImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
+      final blob = html.Blob([bytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
       setState(() {
-        _newMainBannerImageBytes = bytes;
-        _newMainBannerImageName = pickedFile.name;
-        _mainBannerImage = File(pickedFile.path);
+        mainBannerImageBytes = bytes;
+        mainBannerImageName = pickedFile.name;
+        mainBannerImageUrl = url;
       });
     }
   }
 
-  Future<void> _pickMultipleImages() async {
-    final pickedFiles = await _picker.pickMultiImage();
+  Future<void> pickMultipleImages() async {
+    final pickedFiles = await picker.pickMultiImage();
     if (pickedFiles.isNotEmpty) {
+      final List<String> urls = [];
       final List<List<int>> bytesList = [];
       final List<String> names = [];
-      final List<File> files = [];
       for (var file in pickedFiles) {
         final bytes = await file.readAsBytes();
+        final blob = html.Blob([bytes]);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        urls.add(url);
         bytesList.add(bytes);
         names.add(file.name);
-        files.add(File(file.path));
       }
       setState(() {
-        _newMultipleImagesBytes.addAll(bytesList);
-        _newMultipleImagesNames.addAll(names);
-        _newMultipleImages.addAll(files);
+        multipleImageUrls.addAll(urls);
+        multipleImagesBytes.addAll(bytesList);
+        multipleImageNames.addAll(names);
       });
     }
   }
 
-  void _removeExistingImage(int index) => setState(() => _existingMultipleImages.removeAt(index));
-  void _removeNewImage(int index) => setState(() => _newMultipleImages.removeAt(index));
+  void removeMultipleImage(int index) {
+    html.Url.revokeObjectUrl(multipleImageUrls[index]);
+    setState(() {
+      multipleImageUrls.removeAt(index);
+      multipleImagesBytes.removeAt(index);
+      multipleImageNames.removeAt(index);
+    });
+  }
 
-  Future<void> _submitProduct() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
+  Future<void> submitProduct() async {
+    if (!formKey.currentState!.validate()) return;
+    if (mainBannerImageBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a main banner image')));
+      return;
+    }
+
+    setState(() => isLoading = true);
 
     try {
-      final tags = _tagsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      final tags = tagsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
       final Map<String, dynamic> specifications = {};
       for (var spec in _specifications) {
         if (spec.key.trim().isNotEmpty && spec.value.trim().isNotEmpty) {
@@ -136,37 +143,35 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
       }
 
       final body = {
-        'productId': widget.product.id,
-        'productName': _productNameController.text,
-        'price': double.parse(_priceController.text),
-        'discountPrice': double.parse(_discountPriceController.text),
-        'stock': int.parse(_stockController.text),
-        'stockAvailable': int.parse(_stockController.text) > 0,
-        'category': _categoryController.text,
-        'subCategory': _subCategoryController.text,
+        'productName': productNameController.text,
+        'price': double.parse(priceController.text),
+        'discountPrice': double.parse(discountPriceController.text),
+        'stock': int.parse(stockController.text),
+        'stockAvailable': int.parse(stockController.text) > 0,
+        'category': categoryController.text,
+        'subCategory': subCategoryController.text,
         'tags': tags,
-        'shortDescription': _shortDescriptionController.text,
-        'detailedDescription': _detailedDescriptionController.text,
+        'shortDescription': shortDescriptionController.text,
+        'detailedDescription': detailedDescriptionController.text,
         'specifications': specifications,
       };
 
       final productService = ProductService();
+      await productService.addProductWithImageBytes(
+        body: body,
+        mainBannerImageBytes: mainBannerImageBytes!,
+        mainBannerImageName: mainBannerImageName!,
+        multipleImagesBytes: multipleImagesBytes,
+        multipleImagesNames: multipleImageNames,
+      );
 
-      if (_newMainBannerImageBytes != null || _newMultipleImagesBytes.isNotEmpty) {
-        await productService.updateProductWithImageBytes(
-          body: body,
-          mainBannerImageBytes: _newMainBannerImageBytes,
-          mainBannerImageName: _newMainBannerImageName,
-          newMultipleImagesBytes: _newMultipleImagesBytes.isNotEmpty ? _newMultipleImagesBytes : null,
-          newMultipleImagesNames: _newMultipleImagesNames.isNotEmpty ? _newMultipleImagesNames : null,
-          existingMultipleImages: _existingMultipleImages,
-        );
-      } else {
-        await productService.updateProduct(body: body);
+      if (mainBannerImageUrl != null) html.Url.revokeObjectUrl(mainBannerImageUrl!);
+      for (var url in multipleImageUrls) {
+        html.Url.revokeObjectUrl(url);
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Product updated successfully'), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Product added successfully'), backgroundColor: Colors.green));
         widget.onSuccess();
       }
     } catch (e) {
@@ -174,7 +179,7 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red));
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -192,18 +197,18 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
           BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2)),
         ],
       ),
-      child: _isLoading
+      child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Form(
-              key: _formKey,
+              key: formKey,
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Main Banner Image', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+                    const Text('Main Banner Image *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                     const SizedBox(height: 8),
                     GestureDetector(
-                      onTap: _pickMainBannerImage,
+                      onTap: pickMainBannerImage,
                       child: Container(
                         height: 150,
                         width: double.infinity,
@@ -212,45 +217,37 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.grey.shade300),
                         ),
-                        child: _mainBannerImage != null
-                            ? ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(_mainBannerImage!, fit: BoxFit.cover, width: double.infinity))
-                            : ClipRRect(
+                        child: mainBannerImageUrl != null
+                            ? ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  widget.product.mainBannerImage,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    color: const Color(0xFFF8FAFC),
-                                    child: const Icon(Icons.broken_image, color: Colors.grey, size: 40),
-                                  ),
-                                ),
+                                child: Image.network(mainBannerImageUrl!, fit: BoxFit.cover, width: double.infinity),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.cloud_upload, size: 40, color: Colors.grey.shade400),
+                                  const SizedBox(height: 8),
+                                  Text('Tap to upload main banner image', style: TextStyle(color: Colors.grey.shade600)),
+                                ],
                               ),
                       ),
                     ),
-                    if (_mainBannerImage == null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text('Tap to change image', style: TextStyle(fontSize: 12, color: const Color(0xFF7C3AED))),
-                      ),
                     const SizedBox(height: 24),
                     const Text('Additional Images', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
-                      onPressed: _pickMultipleImages,
+                      onPressed: pickMultipleImages,
                       icon: const Icon(Icons.add_photo_alternate),
-                      label: const Text('Add More Images'),
+                      label: const Text('Add Images'),
                       style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
                     ),
                     const SizedBox(height: 12),
-                    if (_existingMultipleImages.isNotEmpty) ...[
-                      const Text('Existing Images', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF64748B))),
-                      const SizedBox(height: 8),
+                    if (multipleImageUrls.isNotEmpty)
                       SizedBox(
                         height: 100,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: _existingMultipleImages.length,
+                          itemCount: multipleImageUrls.length,
                           itemBuilder: (context, index) => Container(
                             width: 100,
                             margin: const EdgeInsets.only(right: 8),
@@ -259,19 +256,13 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    _existingMultipleImages[index],
-                                    fit: BoxFit.cover,
-                                    width: 100,
-                                    height: 100,
-                                    errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFFF8FAFC), child: const Icon(Icons.broken_image, color: Colors.grey, size: 30)),
-                                  ),
+                                  child: Image.network(multipleImageUrls[index], fit: BoxFit.cover, width: 100, height: 100),
                                 ),
                                 Positioned(
                                   top: 4,
                                   right: 4,
                                   child: GestureDetector(
-                                    onTap: () => _removeExistingImage(index),
+                                    onTap: () => removeMultipleImage(index),
                                     child: Container(
                                       decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), shape: BoxShape.circle),
                                       child: const Icon(Icons.close, size: 16, color: Colors.white),
@@ -283,44 +274,14 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (_newMultipleImages.isNotEmpty) ...[
-                      const Text('New Images', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF64748B))),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 100,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _newMultipleImages.length,
-                          itemBuilder: (context, index) => Container(
-                            width: 100,
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
-                            child: Stack(
-                              children: [
-                                ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(_newMultipleImages[index], fit: BoxFit.cover, width: 100, height: 100)),
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: GestureDetector(
-                                    onTap: () => _removeNewImage(index),
-                                    child: Container(
-                                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), shape: BoxShape.circle),
-                                      child: const Icon(Icons.close, size: 16, color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 24),
                     TextFormField(
-                      controller: _productNameController,
-                      decoration: const InputDecoration(labelText: 'Product Name *', prefixIcon: Icon(Icons.shopping_bag_outlined), border: OutlineInputBorder()),
+                      controller: productNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Product Name *',
+                        prefixIcon: Icon(Icons.shopping_bag_outlined),
+                        border: OutlineInputBorder(),
+                      ),
                       validator: (value) => value?.isEmpty ?? true ? 'Please enter product name' : null,
                     ),
                     const SizedBox(height: 16),
@@ -328,7 +289,7 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                       children: [
                         Expanded(
                           child: TextFormField(
-                            controller: _priceController,
+                            controller: priceController,
                             decoration: const InputDecoration(labelText: 'Original Price (₹) *', prefixIcon: Icon(Icons.currency_rupee), border: OutlineInputBorder()),
                             keyboardType: TextInputType.number,
                             validator: (value) => value?.isEmpty ?? true ? 'Please enter price' : null,
@@ -337,7 +298,7 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: TextFormField(
-                            controller: _discountPriceController,
+                            controller: discountPriceController,
                             decoration: const InputDecoration(labelText: 'Discounted Price (₹) *', prefixIcon: Icon(Icons.local_offer_outlined), border: OutlineInputBorder()),
                             keyboardType: TextInputType.number,
                             validator: (value) => value?.isEmpty ?? true ? 'Please enter discounted price' : null,
@@ -350,7 +311,7 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                       children: [
                         Expanded(
                           child: TextFormField(
-                            controller: _stockController,
+                            controller: stockController,
                             decoration: const InputDecoration(labelText: 'Stock Quantity *', prefixIcon: Icon(Icons.inventory_2_outlined), border: OutlineInputBorder()),
                             keyboardType: TextInputType.number,
                             validator: (value) => value?.isEmpty ?? true ? 'Please enter stock quantity' : null,
@@ -359,7 +320,7 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: TextFormField(
-                            controller: _categoryController,
+                            controller: categoryController,
                             decoration: const InputDecoration(labelText: 'Category *', prefixIcon: Icon(Icons.category_outlined), border: OutlineInputBorder()),
                             validator: (value) => value?.isEmpty ?? true ? 'Please enter category' : null,
                           ),
@@ -371,14 +332,14 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                       children: [
                         Expanded(
                           child: TextFormField(
-                            controller: _subCategoryController,
+                            controller: subCategoryController,
                             decoration: const InputDecoration(labelText: 'Sub Category', prefixIcon: Icon(Icons.subdirectory_arrow_right), border: OutlineInputBorder()),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: TextFormField(
-                            controller: _tagsController,
+                            controller: tagsController,
                             decoration: const InputDecoration(
                               labelText: 'Tags (comma separated)',
                               prefixIcon: Icon(Icons.local_offer_outlined),
@@ -391,13 +352,13 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      controller: _shortDescriptionController,
+                      controller: shortDescriptionController,
                       decoration: const InputDecoration(labelText: 'Short Description', prefixIcon: Icon(Icons.description_outlined), border: OutlineInputBorder()),
                       maxLines: 2,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      controller: _detailedDescriptionController,
+                      controller: detailedDescriptionController,
                       decoration: const InputDecoration(labelText: 'Detailed Description', prefixIcon: Icon(Icons.article_outlined), border: OutlineInputBorder()),
                       maxLines: 4,
                     ),
@@ -417,7 +378,7 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                             children: [
                               const Text('Product Specifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                               TextButton.icon(
-                                onPressed: _addSpecification,
+                                onPressed: addSpecification,
                                 icon: const Icon(Icons.add, size: 18),
                                 label: const Text('Add Specification'),
                                 style: TextButton.styleFrom(foregroundColor: const Color(0xFF7C3AED)),
@@ -458,7 +419,7 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                                           border: OutlineInputBorder(),
                                           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                         ),
-                                        onChanged: (value) => _updateSpecification(index, value, spec.value),
+                                        onChanged: (value) => updateSpecification(index, value, spec.value),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -471,11 +432,11 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                                           border: OutlineInputBorder(),
                                           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                         ),
-                                        onChanged: (value) => _updateSpecification(index, spec.key, value),
+                                        onChanged: (value) => updateSpecification(index, spec.key, value),
                                       ),
                                     ),
                                     IconButton(
-                                      onPressed: () => _removeSpecification(index),
+                                      onPressed: () => removeSpecification(index),
                                       icon: const Icon(Icons.delete_outline, color: Colors.red),
                                       tooltip: 'Remove',
                                     ),
@@ -499,14 +460,14 @@ class _EditProductFormWidgetState extends State<EditProductFormWidget> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _submitProduct,
+                            onPressed: submitProduct,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF7C3AED),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text('Save Changes'),
+                            child: const Text('Add Product'),
                           ),
                         ),
                       ],

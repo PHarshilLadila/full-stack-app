@@ -1,4 +1,4 @@
- import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
+ import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/dashboard_appbar.dart';
 import 'package:app_frontend/utils/common/widgets/app_placeholder.dart';
 import 'package:flutter/material.dart';
 

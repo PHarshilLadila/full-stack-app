@@ -1,15 +1,7 @@
 import 'package:app_frontend/features/seller/products/bloc/product_bloc.dart';
-import 'package:app_frontend/features/seller/products/bloc/product_event.dart';
-import 'package:app_frontend/features/seller/products/bloc/product_state.dart';
-import 'package:app_frontend/features/seller/products/service/product_service.dart';
 import 'package:app_frontend/features/seller/products/model/product_model.dart';
-import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'dart:html' as html;
 import 'package:material_table_view/material_table_view.dart';
 import 'package:material_table_view/table_view_typedefs.dart';
 
@@ -36,7 +28,7 @@ class ProductListView extends StatelessWidget {
   final Color Function(String) getStatusColor;
   final String Function(double) formatPrice;
 
-  const ProductListView({
+  const ProductListView({super.key, 
     required this.searchQuery,
     required this.selectedCategory,
     required this.selectedStatus,
@@ -73,27 +65,33 @@ class ProductListView extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildFilterButton('All', 'All'),
-                    _buildFilterButton('Active', 'Active'),
-                    _buildFilterButton('Draft', 'Draft'),
-                    _buildFilterButton('Out of Stock', 'Out of Stock'),
-                    _buildFilterButton('Low Stock', 'Low Stock'),
+                    buildFilterButton('All', 'All'),
+                    buildFilterButton('Active', 'Active'),
+                    buildFilterButton('Draft', 'Draft'),
+                    buildFilterButton('Out of Stock', 'Out of Stock'),
+                    buildFilterButton('Low Stock', 'Low Stock'),
                   ],
                 ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ElevatedButton(
-                      onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Export feature coming soon')),
-                      ),
+                      onPressed:
+                          () => ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Export feature coming soon'),
+                            ),
+                          ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFF3E8FF),
                         foregroundColor: Colors.deepPurple,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(color: Colors.deepPurple, width: 0.8),
+                          side: const BorderSide(
+                            color: Colors.deepPurple,
+                            width: 0.8,
+                          ),
                         ),
                       ),
                       child: const Text("Export"),
@@ -106,8 +104,13 @@ class ProductListView extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF7C3AED),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ],
@@ -115,27 +118,29 @@ class ProductListView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            _buildSearchAndFilters(context),
+            buildSearchAndFilters(context),
             const SizedBox(height: 24),
-            _buildProductList(context),
+            buildProductList(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterButton(String label, String filterValue) {
+  Widget buildFilterButton(String label, String filterValue) {
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: TextButton(
         onPressed: () => onFilterChanged(filterValue),
         style: TextButton.styleFrom(
-          backgroundColor: selectedFilter == filterValue
-              ? const Color(0xFF7C3AED).withOpacity(0.1)
-              : Colors.transparent,
-          foregroundColor: selectedFilter == filterValue
-              ? const Color(0xFF7C3AED)
-              : const Color(0xFF64748B),
+          backgroundColor:
+              selectedFilter == filterValue
+                  ? const Color(0xFF7C3AED).withOpacity(0.1)
+                  : Colors.transparent,
+          foregroundColor:
+              selectedFilter == filterValue
+                  ? const Color(0xFF7C3AED)
+                  : const Color(0xFF64748B),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: Text(label),
@@ -143,7 +148,7 @@ class ProductListView extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchAndFilters(BuildContext context) {
+  Widget buildSearchAndFilters(BuildContext context) {
     List<String> categoryList = categories.toList();
 
     return Container(
@@ -173,9 +178,15 @@ class ProductListView extends StatelessWidget {
                 onChanged: onSearchChanged,
                 decoration: InputDecoration(
                   hintText: 'Search products...',
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: Color(0xFF94A3B8),
+                  ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
             ),
@@ -194,10 +205,15 @@ class ProductListView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
               style: const TextStyle(color: Colors.black, fontSize: 14),
-              items: categoryList.map((String category) => DropdownMenuItem<String>(
-                value: category,
-                child: Text(category),
-              )).toList(),
+              items:
+                  categoryList
+                      .map(
+                        (String category) => DropdownMenuItem<String>(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
+                      .toList(),
               onChanged: onCategoryChanged,
             ),
           ),
@@ -215,10 +231,15 @@ class ProductListView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               icon: const Icon(Icons.sort, color: Colors.black, size: 20),
               style: const TextStyle(color: Colors.black, fontSize: 14),
-              items: sortOptions.map((String option) => DropdownMenuItem<String>(
-                value: option,
-                child: Text(option),
-              )).toList(),
+              items:
+                  sortOptions
+                      .map(
+                        (String option) => DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(option),
+                        ),
+                      )
+                      .toList(),
               onChanged: onSortByChanged,
             ),
           ),
@@ -227,7 +248,7 @@ class ProductListView extends StatelessWidget {
     );
   }
 
-  Widget _buildProductList(BuildContext context) {
+  Widget buildProductList(BuildContext context) {
     if (filteredProducts.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(60),
@@ -241,7 +262,11 @@ class ProductListView extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'No products found',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -257,7 +282,8 @@ class ProductListView extends StatelessWidget {
     final isSmallScreen = screenSize.width < 800;
     final availableWidth = screenSize.width - 48;
     final columnFlex = [35, 9, 9, 9, 9, 10];
-    final columnWidths = columnFlex.map((flex) => (availableWidth * flex / 100)).toList();
+    final columnWidths =
+        columnFlex.map((flex) => (availableWidth * flex / 100)).toList();
     final rowHeight = 80.0;
     final headerHeight = 80.0;
     final tableHeight = (filteredProducts.length * rowHeight) + headerHeight;
@@ -295,8 +321,14 @@ class ProductListView extends StatelessWidget {
             style: TableViewStyle(
               dividers: TableViewDividersStyle(
                 horizontal: TableViewHorizontalDividersStyle(
-                  header: TableViewHorizontalDividerStyle(color: Colors.grey.shade300, thickness: 0.5),
-                  footer: TableViewHorizontalDividerStyle(color: Colors.grey.shade300, thickness: 0.5),
+                  header: TableViewHorizontalDividerStyle(
+                    color: Colors.grey.shade300,
+                    thickness: 0.5,
+                  ),
+                  footer: TableViewHorizontalDividerStyle(
+                    color: Colors.grey.shade300,
+                    thickness: 0.5,
+                  ),
                 ),
               ),
             ),
@@ -309,7 +341,10 @@ class ProductListView extends StatelessWidget {
                 switch (column) {
                   case 0:
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Row(
                         children: [
                           Container(
@@ -324,10 +359,15 @@ class ProductListView extends StatelessWidget {
                               child: Image.network(
                                 product.mainBannerImage,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  color: const Color(0xFFF8FAFC),
-                                  child: Icon(Icons.broken_image, color: Colors.grey, size: isSmallScreen ? 20 : 30),
-                                ),
+                                errorBuilder:
+                                    (context, error, stackTrace) => Container(
+                                      color: const Color(0xFFF8FAFC),
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.grey,
+                                        size: isSmallScreen ? 20 : 30,
+                                      ),
+                                    ),
                               ),
                             ),
                           ),
@@ -350,7 +390,10 @@ class ProductListView extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   'ID: ${product.id}',
-                                  style: TextStyle(fontSize: isSmallScreen ? 9 : 11, color: Colors.grey.shade500),
+                                  style: TextStyle(
+                                    fontSize: isSmallScreen ? 9 : 11,
+                                    color: Colors.grey.shade500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -360,7 +403,10 @@ class ProductListView extends StatelessWidget {
                     );
                   case 1:
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                       child: Text(
                         product.category,
                         style: TextStyle(
@@ -372,7 +418,10 @@ class ProductListView extends StatelessWidget {
                     );
                   case 2:
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                       child: Text(
                         product.isActive ? "Active" : "Inactive",
                         style: TextStyle(
@@ -384,7 +433,10 @@ class ProductListView extends StatelessWidget {
                     );
                   case 3:
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,7 +446,10 @@ class ProductListView extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: isSmallScreen ? 11 : 12,
-                              color: product.stock == 0 ? Colors.red : const Color(0xFF64748B),
+                              color:
+                                  product.stock == 0
+                                      ? Colors.red
+                                      : const Color(0xFF64748B),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -409,7 +464,11 @@ class ProductListView extends StatelessWidget {
                             ),
                             child: Text(
                               status,
-                              style: TextStyle(fontSize: isSmallScreen ? 10 : 12, color: statusColor, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 10 : 12,
+                                color: statusColor,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -417,7 +476,10 @@ class ProductListView extends StatelessWidget {
                     );
                   case 4:
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +513,11 @@ class ProductListView extends StatelessWidget {
                           iconSize: isSmallScreen ? 18 : 20,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedView, color: Color(0xFF64748B), size: 20.0),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedView,
+                            color: Color(0xFF64748B),
+                            size: 20.0,
+                          ),
                         ),
                         SizedBox(width: isSmallScreen ? 4 : 12),
                         IconButton(
@@ -460,7 +526,11 @@ class ProductListView extends StatelessWidget {
                           iconSize: isSmallScreen ? 18 : 20,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedEdit02, color: Color(0xFF7C3AED), size: 20.0),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedEdit02,
+                            color: Color(0xFF7C3AED),
+                            size: 20.0,
+                          ),
                         ),
                         SizedBox(width: isSmallScreen ? 4 : 12),
                         IconButton(
@@ -469,7 +539,11 @@ class ProductListView extends StatelessWidget {
                           iconSize: isSmallScreen ? 18 : 20,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedDelete02, color: Color(0xFF64748B), size: 20.0),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedDelete02,
+                            color: Color(0xFF64748B),
+                            size: 20.0,
+                          ),
                         ),
                       ],
                     );
@@ -479,19 +553,35 @@ class ProductListView extends StatelessWidget {
               });
             },
             headerBuilder: (context, contentBuilder) {
-              final headers = ['Product', 'Category', 'Status', 'Inventory', 'Price', 'Actions'];
+              final headers = [
+                'Product',
+                'Category',
+                'Status',
+                'Inventory',
+                'Price',
+                'Actions',
+              ];
               return contentBuilder(context, (context, column) {
                 return Container(
                   width: columnWidths[column],
                   decoration: const BoxDecoration(
                     color: Color(0xFFF8FAFC),
-                    border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5)),
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey, width: 0.5),
+                    ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Text(
                       headers[column],
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF64748B)),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Color(0xFF64748B),
+                      ),
                     ),
                   ),
                 );
