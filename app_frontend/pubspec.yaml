@@ -42,6 +42,7 @@ dependencies:
   equatable: ^2.0.8
   hugeicons: ^1.1.6
   shimmer: ^3.0.0
+  material_table_view:  
 
 dev_dependencies:
   flutter_test:
