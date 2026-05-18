@@ -1,25 +1,16 @@
 
-import 'package:app_frontend/features/seller/products/bloc/product_bloc.dart';
-import 'package:app_frontend/features/seller/products/bloc/product_event.dart';
-import 'package:app_frontend/features/seller/products/bloc/product_state.dart';
-import 'package:app_frontend/features/seller/products/service/product_service.dart';
+ // ignore_for_file: deprecated_member_use
+ 
 import 'package:app_frontend/features/seller/products/model/product_model.dart';
-import 'package:app_frontend/features/web_dashboard/widgets/dashboard_appbar.dart';
-import 'package:app_frontend/features/web_dashboard/widgets/edit_product_form_widget.dart';
+ 
+import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/edit_product_form_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'dart:html' as html;
-import 'package:material_table_view/material_table_view.dart';
-import 'package:material_table_view/table_view_typedefs.dart';
-
+  
 class EditProductView extends StatelessWidget {
   final ProductModel product;
   final VoidCallback onBack;
 
-  const EditProductView({
+  const EditProductView({super.key, 
     required this.product,
     required this.onBack,
   });
@@ -31,7 +22,7 @@ class EditProductView extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            _buildBackButton(),
+            buildBackButton(),
             const SizedBox(height: 24),
             EditProductFormWidget(product: product, onSuccess: onBack),
           ],
@@ -40,7 +31,7 @@ class EditProductView extends StatelessWidget {
     );
   }
 
-  Widget _buildBackButton() {
+  Widget buildBackButton() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
