@@ -11,7 +11,7 @@ import 'package:app_frontend/features/web_dashboard/view/help_support_content.da
 import 'package:app_frontend/features/web_dashboard/view/marketing_content.dart';
 import 'package:app_frontend/features/web_dashboard/view/orders_content.dart';
 import 'package:app_frontend/features/web_dashboard/view/payouts_content.dart';
-import 'package:app_frontend/features/web_dashboard/view/product_scree.dart';
+import 'package:app_frontend/features/web_dashboard/view/product_screen.dart';
 import 'package:app_frontend/features/web_dashboard/view/returns_refunds_content.dart';
 import 'package:app_frontend/features/web_dashboard/view/store_settings_content.dart';
 import 'package:flutter/material.dart';
