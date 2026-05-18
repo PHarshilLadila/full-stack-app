@@ -6,14 +6,19 @@ import 'package:flutter/material.dart';
 class ProductDetailsView extends StatelessWidget {
   final ProductModel product;
   final VoidCallback onBack;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
   final String Function(ProductModel) getProductStatus;
   final Color Function(String) getStatusColor;
   final String Function(double) formatPrice;
   final String Function(String) formatDate;
 
-  const ProductDetailsView({super.key, 
+  const ProductDetailsView({
+    super.key,
     required this.product,
     required this.onBack,
+    required this.onEdit,
+    required this.onDelete,
     required this.getProductStatus,
     required this.getStatusColor,
     required this.formatPrice,
@@ -27,32 +32,30 @@ class ProductDetailsView extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 800;
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            buildBackButton(),
-            const SizedBox(height: 24),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildHeaderSection(status, statusColor, isSmallScreen),
-                const SizedBox(height: 24),
-                buildPricingInventorySection(isSmallScreen),
-                const SizedBox(height: 24),
-                buildDescriptionSection(isSmallScreen),
-                const SizedBox(height: 24),
-                if (product.tags.isNotEmpty) buildTagsSection(isSmallScreen),
-                const SizedBox(height: 24),
-                if (product.multipleImages.isNotEmpty)
-                  buildImagesSection(isSmallScreen),
-                const SizedBox(height: 24),
-                if (product.specifications.isNotEmpty)
-                  buildSpecificationsSection(isSmallScreen),
-                const SizedBox(height: 24),
-                buildAdditionalInfoSection(isSmallScreen),
-              ],
+            _buildHeader(context),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProductTitleSection(status, statusColor),
+                  const SizedBox(height: 24),
+                  _buildPricingSection(),
+                  const SizedBox(height: 24),
+                  _buildInventorySection(),
+                  const SizedBox(height: 24),
+                  _buildProductInfoSection(),
+                  const SizedBox(height: 24),
+                  _buildOrganizationSection(),
+                  const SizedBox(height: 24),
+                  _buildReviewsSection(),
+                ],
+              ),
             ),
           ],
         ),
@@ -60,12 +63,11 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
-  Widget buildBackButton() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -76,27 +78,50 @@ class ProductDetailsView extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back)),
-          const SizedBox(width: 8),
+          IconButton(
+            onPressed: onBack,
+            icon: const Icon(Icons.arrow_back),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 16),
           const Text(
-            'Back to Products',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            'Product Details',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const Spacer(),
+          TextButton.icon(
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('Edit'),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF7C3AED),
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton.icon(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline, size: 18),
+            label: const Text('Delete'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget buildHeaderSection(
-    String status,
-    Color statusColor,
-    bool isSmallScreen,
-  ) {
+  Widget _buildProductTitleSection(String status, Color statusColor) {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -105,256 +130,109 @@ class ProductDetailsView extends StatelessWidget {
           ),
         ],
       ),
-      child:
-          isSmallScreen
-              ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          product.mainBannerImage,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) => Container(
-                                color: const Color(0xFFF8FAFC),
-                                child: const Icon(
-                                  Icons.broken_image,
-                                  color: Colors.grey,
-                                  size: 40,
-                                ),
-                              ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              product.mainBannerImage,
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 100,
+                height: 100,
+                color: const Color(0xFFF8FAFC),
+                child: const Icon(Icons.broken_image, color: Colors.grey, size: 40),
+              ),
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        product.productName,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
                         ),
                       ),
                     ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        product.isActive ? "Active" : "Inactive",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: statusColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.category_outlined, size: 14, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text(
+                      product.category,
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(Icons.subdirectory_arrow_right, size: 14, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text(
+                      product.subCategory,
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            product.productName,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1E293B),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              product.isActive == true ? "Active" : "Inactive",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: statusColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          status,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: statusColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 8,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.category_outlined,
-                                size: 16,
-                                color: Color(0xFF7C3AED),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                product.category,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.subdirectory_arrow_right,
-                                size: 16,
-                                color: Color(0xFF7C3AED),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                product.subCategory,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      Icon(Icons.circle, size: 8, color: statusColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        status,
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: statusColor),
                       ),
                     ],
                   ),
-                ],
-              )
-              : Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  product.productName,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: statusColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    product.isActive == true
-                                        ? "Active"
-                                        : "Inactive",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: statusColor,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.share, size: 18),
-                                label: const Text("Share"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.delete, size: 18),
-                                label: const Text("Delete"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide(
-                                      color: Colors.orange.withOpacity(0.5),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.edit, size: 18),
-                                label: const Text("Edit"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurple,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide(
-                                      color: Colors.white.withOpacity(0.5),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget buildPricingInventorySection(bool isSmallScreen) {
+  Widget _buildPricingSection() {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -367,74 +245,72 @@ class ProductDetailsView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Pricing & Inventory',
+            'Pricing',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF1E293B),
             ),
           ),
           const SizedBox(height: 16),
-          isSmallScreen
-              ? Column(
-                children: [
-                  buildInfoCard(
-                    'Price',
-                    '₹${formatPrice(product.price)}',
-                    Icons.currency_rupee,
-                  ),
-                  const SizedBox(height: 12),
-                  buildInfoCard(
-                    'Discounted Price',
-                    '₹${formatPrice(product.discountPrice)}',
-                    Icons.local_offer_outlined,
-                  ),
-                  const SizedBox(height: 12),
-                  buildInfoCard(
-                    'Stock',
-                    '${product.stock} units',
-                    Icons.inventory_2_outlined,
-                  ),
-                ],
-              )
-              : Row(
-                children: [
-                  Expanded(
-                    child: buildInfoCard(
-                      'Price',
-                      '₹${formatPrice(product.price)}',
-                      Icons.currency_rupee,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: buildInfoCard(
-                      'Discounted Price',
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Selling Price', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    const SizedBox(height: 4),
+                    Text(
                       '₹${formatPrice(product.discountPrice)}',
-                      Icons.local_offer_outlined,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: buildInfoCard(
-                      'Stock',
-                      '${product.stock} units',
-                      Icons.inventory_2_outlined,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Original Price', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    const SizedBox(height: 4),
+                    Text(
+                      '₹${formatPrice(product.price)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade500,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Discount', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    const SizedBox(height: 4),
+                    Text(
+                      _calculateDiscount(),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF10B981)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget buildDescriptionSection(bool isSmallScreen) {
+  Widget _buildInventorySection() {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -447,427 +323,305 @@ class ProductDetailsView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Description',
+            'Inventory',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Available Stock', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${product.stock} Units',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('SKU', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    const SizedBox(height: 4),
+                    Text(
+                      "SKU",
+                      // product.sku.isNotEmpty ? product.sku : 'N/A',
+                      style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Barcode', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Product Barcode",
+                      // product.barcode.isNotEmpty ? product.barcode : 'N/A',
+                      style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductInfoSection() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Product Information',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF1E293B),
             ),
           ),
           const SizedBox(height: 16),
           const Text(
             'Short Description',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-            ),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              product.shortDescription.isEmpty
-                  ? 'No description provided'
-                  : product.shortDescription,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF475569)),
-            ),
+          Text(
+            product.shortDescription.isEmpty ? 'No description provided' : product.shortDescription,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF475569), height: 1.5),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           const Text(
-            'Detailed Description',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              product.detailedDescription.isEmpty
-                  ? 'No description provided'
-                  : product.detailedDescription,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF475569)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildTagsSection(bool isSmallScreen) {
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Tags',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children:
-                product.tags
-                    .map(
-                      (tag) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF7C3AED).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          tag,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF7C3AED),
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildImagesSection(bool isSmallScreen) {
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Additional Images',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 120,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: product.multipleImages.length,
-              itemBuilder:
-                  (context, index) => Container(
-                    width: 120,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        product.multipleImages[index],
-                        fit: BoxFit.cover,
-                        width: 120,
-                        height: 120,
-                        errorBuilder:
-                            (context, error, stackTrace) => Container(
-                              color: const Color(0xFFF8FAFC),
-                              child: const Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
-                                size: 40,
-                              ),
-                            ),
-                      ),
-                    ),
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildSpecificationsSection(bool isSmallScreen) {
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Product Specifications',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: product.specifications.length,
-            separatorBuilder: (context, index) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final entry = product.specifications.entries.elementAt(index);
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child:
-                    isSmallScreen
-                        ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              entry.key,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              entry.value.toString(),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
-                        )
-                        : Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 160,
-                              child: Text(
-                                entry.key,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Text(
-                                entry.value.toString(),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildAdditionalInfoSection(bool isSmallScreen) {
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Additional Information',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          buildAdditionalInfoRow(
-            'Product ID',
-            product.id,
-            Icons.qr_code,
-            isSmallScreen,
+            'Specifications',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 12),
-          buildAdditionalInfoRow(
-            'Rating',
-            '${product.rating} ⭐ (${product.totalReviews} reviews)',
-            Icons.star_outline,
-            isSmallScreen,
-          ),
-          const SizedBox(height: 12),
-          buildAdditionalInfoRow(
-            'Created Date',
-            formatDate(product.createdAt),
-            Icons.calendar_today_outlined,
-            isSmallScreen,
-          ),
-          const SizedBox(height: 12),
-          buildAdditionalInfoRow(
-            'Status',
-            product.isActive ? 'Active' : 'Inactive',
-            Icons.toggle_on_outlined,
-            isSmallScreen,
-          ),
+          if (product.specifications.isNotEmpty)
+            _buildSpecificationsTable()
+          else
+            Text(
+              'No specifications available',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
         ],
       ),
     );
   }
 
-  Widget buildInfoCard(String title, String value, IconData icon) {
+  Widget _buildSpecificationsTable() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        border: Border.all(color: Colors.grey.shade200),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
+        children: product.specifications.entries.map((entry) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.shade200),
+              ),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 120,
+                  child: Text(
+                    entry.key,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    entry.value.toString(),
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildOrganizationSection() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: const Color(0xFF7C3AED)),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
+          const Text(
+            'Organization',
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Color(0xFF1E293B),
             ),
           ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Seller', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    const SizedBox(height: 4),
+                    Text(
+                      product.sellerName ?? 'Velmora Official',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Tags', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: product.tags.map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3E8FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          tag,
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF7C3AED)),
+                        ),
+                      )).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget buildAdditionalInfoRow(
-    String label,
-    String value,
-    IconData icon,
-    bool isSmallScreen,
-  ) {
-    if (isSmallScreen) {
-      return Column(
+  Widget _buildReviewsSection() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, size: 18, color: const Color(0xFF7C3AED)),
-              const SizedBox(width: 12),
-              Text(
-                label,
-                style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+              const Text(
+                'Reviews',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              TextButton(
+                onPressed: () {},
+                child: const Text('View All Reviews'),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.only(left: 30),
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF1E293B),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.rating.toStringAsFixed(1),
+                    style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: List.generate(5, (index) {
+                      return Icon(
+                        index < product.rating.floor() ? Icons.star : Icons.star_border,
+                        size: 18,
+                        color: const Color(0xFFF59E0B),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Based on ${product.totalReviews} reviews',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  ),
+                ],
               ),
-            ),
+            ],
           ),
         ],
-      );
-    }
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: const Color(0xFF7C3AED)),
-        const SizedBox(width: 12),
-        SizedBox(
-          width: 120,
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
+  }
+
+  String _calculateDiscount() {
+    if (product.price > product.discountPrice) {
+      final discount = ((product.price - product.discountPrice) / product.price * 100);
+      return '${discount.toStringAsFixed(0)}% OFF';
+    }
+    return 'No Discount';
   }
 }

@@ -1,4 +1,3 @@
-
 import 'package:app_frontend/features/seller/products/bloc/product_bloc.dart';
 import 'package:app_frontend/features/seller/products/bloc/product_event.dart';
 import 'package:app_frontend/features/seller/products/bloc/product_state.dart';
@@ -11,9 +10,9 @@ import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/prod
 import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/product_listview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
- 
 
 enum CurrentView { productList, productDetails, addProduct, editProduct }
+
 class ProductsContent extends StatefulWidget {
   final String userName;
   final String userEmail;
@@ -92,8 +91,7 @@ class _ProductsContentState extends State<ProductsContent> {
               );
 
           final matchesCategory =
-              selectedCategory == 'All' ||
-              product.category == selectedCategory;
+              selectedCategory == 'All' || product.category == selectedCategory;
 
           final status = getProductStatus(product);
           final matchesStatus =
@@ -338,7 +336,8 @@ class _ProductsContentState extends State<ProductsContent> {
           filteredProducts: filteredProducts,
           productBloc: productBloc,
           onSearchChanged: (value) => setState(() => searchQuery = value),
-          onCategoryChanged: (value) => setState(() => selectedCategory = value!),
+          onCategoryChanged:
+              (value) => setState(() => selectedCategory = value!),
           onSortByChanged: (value) => setState(() => selectedSortBy = value!),
           onFilterChanged: (value) => setState(() => selectedFilter = value),
           onAddProduct: showAddProduct,
@@ -354,6 +353,8 @@ class _ProductsContentState extends State<ProductsContent> {
         return ProductDetailsView(
           product: selectedProduct!,
           onBack: showProductList,
+          onEdit: () => showEditProduct(selectedProduct!),
+          onDelete: () => deleteProduct(selectedProduct!),
           getProductStatus: getProductStatus,
           getStatusColor: getStatusColor,
           formatPrice: formatPrice,
