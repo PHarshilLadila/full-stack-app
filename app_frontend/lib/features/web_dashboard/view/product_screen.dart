@@ -359,6 +359,9 @@ class _ProductsContentState extends State<ProductsContent> {
           getStatusColor: getStatusColor,
           formatPrice: formatPrice,
           formatDate: formatDate,
+          userEmail: widget.userEmail,
+          userName: widget.userName,
+          userProfileImage: widget.userProfileImage,
         );
       case CurrentView.addProduct:
         return AddProductView(onBack: showProductList);
