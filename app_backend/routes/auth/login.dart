@@ -44,7 +44,8 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final objectId = user['_id'] as ObjectId;
-  final userRole = user['role']?.toString() ?? 'customer'; // Default to customer
+  final userRole =
+      user['role']?.toString() ?? 'customer'; // Default to customer
 
   final token = AuthService.generateToken(objectId.oid, userRole);
 

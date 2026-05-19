@@ -8,23 +8,18 @@ import 'package:my_backend/db/mongo.dart';
 Future<Response> onRequest(RequestContext context) async {
   print('🔥 /product/details API HIT');
 
-  final productId =
-      context.request.uri.queryParameters['id'];
+  final productId = context.request.uri.queryParameters['id'];
 
   if (productId == null || productId.isEmpty) {
     return Response.json(
       statusCode: 400,
-      body: {
-        'success': false,
-        'message': 'Product ID required',
-      },
+      body: {'success': false, 'message': 'Product ID required'},
     );
   }
 
   try {
     /// FIND PRODUCT
-    final product =
-        await MongoService.products!.findOne({
+    final product = await MongoService.products!.findOne({
       '_id': ObjectId.parse(productId),
       'isActive': true,
     });
@@ -32,76 +27,61 @@ Future<Response> onRequest(RequestContext context) async {
     if (product == null) {
       return Response.json(
         statusCode: 404,
-        body: {
-          'success': false,
-          'message': 'Product not found',
-        },
+        body: {'success': false, 'message': 'Product not found'},
       );
     }
 
     /// CONVERT MAP
-    final transformed =
-        Map<String, dynamic>.from(product);
+    final transformed = Map<String, dynamic>.from(product);
 
     /// OBJECT ID
-    transformed['_id'] =
-        (product['_id'] as ObjectId).oid;
+    transformed['_id'] = (product['_id'] as ObjectId).oid;
 
     /// DATE CONVERT
     if (product['createdAt'] is DateTime) {
       transformed['createdAt'] =
-          (product['createdAt'] as DateTime)
-              .toIso8601String();
+          (product['createdAt'] as DateTime).toIso8601String();
     }
 
     if (product['updatedAt'] is DateTime) {
       transformed['updatedAt'] =
-          (product['updatedAt'] as DateTime)
-              .toIso8601String();
+          (product['updatedAt'] as DateTime).toIso8601String();
     }
 
     /// SERVER BASE URL
     ///
     /// CHANGE THIS
-    const baseUrl =
-        'http://192.168.1.10:8080';
+    const baseUrl = 'http://192.168.1.10:8080';
 
     /// MAIN BANNER IMAGE
     if (transformed['mainBannerImage'] != null) {
-      final image =
-          transformed['mainBannerImage']
-              .toString();
+      final image = transformed['mainBannerImage'].toString();
 
       /// IF LOCAL STORAGE IMAGE
       if (image.startsWith('/uploads')) {
-        transformed['mainBannerImage'] =
-            '$baseUrl$image';
+        transformed['mainBannerImage'] = '$baseUrl$image';
       }
     }
 
     /// MULTIPLE IMAGES
     if (transformed['multipleImages'] != null &&
         transformed['multipleImages'] is List) {
-      final images =
-          List<String>.from(
-        transformed['multipleImages'] as List,
-      );
+      final images = List<String>.from(transformed['multipleImages'] as List);
 
       transformed['multipleImages'] =
           images.map((image) {
-        if (image.startsWith('/uploads')) {
-          return '$baseUrl$image';
-        }
+            if (image.startsWith('/uploads')) {
+              return '$baseUrl$image';
+            }
 
-        return image;
-      }).toList();
+            return image;
+          }).toList();
     } else {
       transformed['multipleImages'] = [];
     }
 
     /// TAGS
-    if (transformed['tags'] == null ||
-        transformed['tags'] is! List) {
+    if (transformed['tags'] == null || transformed['tags'] is! List) {
       transformed['tags'] = [];
     }
 
@@ -115,8 +95,7 @@ Future<Response> onRequest(RequestContext context) async {
       statusCode: 200,
       body: {
         'success': true,
-        'message':
-            'Product details fetched successfully',
+        'message': 'Product details fetched successfully',
         'data': transformed,
       },
     );
@@ -127,8 +106,7 @@ Future<Response> onRequest(RequestContext context) async {
       statusCode: 500,
       body: {
         'success': false,
-        'message':
-            'Failed to fetch product details',
+        'message': 'Failed to fetch product details',
         'error': e.toString(),
       },
     );

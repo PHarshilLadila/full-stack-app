@@ -7,12 +7,22 @@ class MongoService {
   static Db? _db;
   static DbCollection? _users;
   static DbCollection? _products;
+  static DbCollection? _reviews;
+  static DbCollection? _addresses;
+  static DbCollection? _carts;
+  static DbCollection? _favorites;
+  static DbCollection? _orders;
 
   static bool _isConnecting = false;
   static bool isConnected = false;
 
   static DbCollection? get users => _users;
   static DbCollection? get products => _products;
+  static DbCollection? get reviews => _reviews;
+  static DbCollection? get addresses => _addresses;
+  static DbCollection? get carts => _carts;
+  static DbCollection? get favorites => _favorites;
+  static DbCollection? get orders => _orders;
 
   static Future<void> connect() async {
     // If already connected and db exists, return
@@ -56,6 +66,11 @@ class MongoService {
       // Initialize collections
       _users = _db!.collection('users');
       _products = _db!.collection('products');
+      _reviews = _db!.collection('reviews');
+      _addresses = _db!.collection('addresses');
+      _carts = _db!.collection('carts');
+      _favorites = _db!.collection('favorites');
+      _orders = _db!.collection('orders');
 
       // Create indexes (use try-catch for each to avoid failure if index exists),
       try {
@@ -73,6 +88,35 @@ class MongoService {
         print('✅ Regular indexes created');
       } catch (indexError) {
         print('⚠️ Index creation warning: $indexError');
+      }
+
+      try {
+        await _reviews!.createIndex(keys: {'productId': 1});
+        await _reviews!.createIndex(keys: {'userId': 1});
+        await _reviews!.createIndex(keys: {'rating': 1});
+        await _reviews!.createIndex(keys: {'createdAt': -1});
+        print('✅ Review indexes created');
+      } catch (indexError) {
+        print('⚠️ Review index creation warning: $indexError');
+      }
+      try {
+        await _addresses!.createIndex(keys: {'userId': 1});
+        await _addresses!.createIndex(keys: {'isDefault': 1});
+
+        await _carts!.createIndex(keys: {'userId': 1});
+
+        await _favorites!.createIndex(keys: {'userId': 1});
+        await _favorites!.createIndex(keys: {'productId': 1});
+        await _favorites!.createIndex(keys: {'userId': 1, 'productId': 1});
+
+        await _orders!.createIndex(keys: {'orderId': 1});
+        await _orders!.createIndex(keys: {'userId': 1});
+        await _orders!.createIndex(keys: {'sellerId': 1});
+        await _orders!.createIndex(keys: {'orderStatus': 1});
+        await _orders!.createIndex(keys: {'createdAt': -1});
+        print('✅ Additional indexes created');
+      } catch (indexError) {
+        print('⚠️ Additional index creation warning: $indexError');
       }
 
       isConnected = true;
