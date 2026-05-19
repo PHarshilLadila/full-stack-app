@@ -67,6 +67,8 @@ Future<Response> onRequest(RequestContext context) async {
     final limit = int.tryParse(queryParams['limit'] ?? '20') ?? 20;
     final skip = (page - 1) * limit;
 
+    // Ensure MongoDB connection
+
     // Get all products of this seller
     final sellerProducts =
         await MongoService.products!.find({'sellerId': userId}).toList();
@@ -81,6 +83,7 @@ Future<Response> onRequest(RequestContext context) async {
             'totalReviews': 0,
             'averageRating': 0,
             'reviews': [],
+            'ratingDistribution': {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0},
             'pagination': {
               'currentPage': page,
               'totalPages': 0,
@@ -153,7 +156,7 @@ Future<Response> onRequest(RequestContext context) async {
             ? double.parse((totalRating / totalCount).toStringAsFixed(1))
             : 0.0;
 
-    // Get rating distribution for seller
+    // Get rating distribution for seller - FIXED: Convert to Map<String, int>
     final ratingDistribution = await _getSellerRatingDistribution(productIds);
 
     return Response.json(
@@ -170,19 +173,20 @@ Future<Response> onRequest(RequestContext context) async {
           'totalProducts': sellerProducts.length,
           'totalReviews': totalCount,
           'averageRating': averageRating,
-          'ratingDistribution': ratingDistribution,
+          'ratingDistribution': ratingDistribution, // Now it's Map<String, int>
           'reviews': transformedReviews,
           'pagination': {
             'currentPage': page,
-            'totalPages': (totalCount / limit).ceil(),
+            'totalPages': totalCount > 0 ? (totalCount / limit).ceil() : 0,
             'totalItems': totalCount,
             'itemsPerPage': limit,
           },
         },
       },
     );
-  } catch (e) {
+  } catch (e, stackTrace) {
     print('❌ ERROR: $e');
+    print('Stack trace: $stackTrace');
     return Response.json(
       statusCode: 500,
       body: {'success': false, 'message': 'Failed to fetch seller reviews: $e'},
@@ -191,10 +195,12 @@ Future<Response> onRequest(RequestContext context) async {
 }
 
 /// Get rating distribution for seller's products
-Future<Map<int, int>> _getSellerRatingDistribution(
+/// FIXED: Returns Map<String, int> instead of Map<int, int>
+Future<Map<String, int>> _getSellerRatingDistribution(
   List<String> productIds,
 ) async {
-  final distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+  // Use String keys for JSON compatibility
+  final distribution = <String, int>{'1': 0, '2': 0, '3': 0, '4': 0, '5': 0};
 
   try {
     for (int i = 1; i <= 5; i++) {
@@ -202,7 +208,7 @@ Future<Map<int, int>> _getSellerRatingDistribution(
         'productId': {'\$in': productIds},
         'rating': i,
       });
-      distribution[i] = count;
+      distribution[i.toString()] = count;
     }
   } catch (e) {
     print('Error getting seller rating distribution: $e');
