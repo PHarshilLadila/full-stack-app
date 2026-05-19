@@ -89,17 +89,28 @@ Future<Response> onRequest(RequestContext context) async {
     }
 
     // Verify seller has permission (if seller, check if order contains their product)
+    // Add this inside the seller verification block
     if (userRole == 'seller') {
       final items = order['items'] as List? ?? [];
       bool hasSellerProduct = false;
 
+      print('🔍 Debug - Seller ID from token: $userId');
+      print('🔍 Debug - Total items in order: ${items.length}');
+
       for (final item in items) {
         final itemSellerId = item['sellerId']?.toString();
+        print(
+          '🔍 Debug - Item: ${item['productName']}, SellerId: $itemSellerId',
+        );
+
         if (itemSellerId == userId) {
           hasSellerProduct = true;
+          print('✅ Match found for product: ${item['productName']}');
           break;
         }
       }
+
+      print('🔍 Debug - Has seller product: $hasSellerProduct');
 
       if (!hasSellerProduct) {
         return Response.json(
@@ -107,6 +118,11 @@ Future<Response> onRequest(RequestContext context) async {
           body: {
             'success': false,
             'message': 'Unauthorized to update this order',
+            'debug': {
+              'yourSellerId': userId,
+              'sellersInOrder':
+                  items.map((i) => i['sellerId']?.toString()).toList(),
+            },
           },
         );
       }
