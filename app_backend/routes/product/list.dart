@@ -27,7 +27,7 @@ Future<Response> onRequest(RequestContext context) async {
   final page = int.tryParse(queryParams['page'] ?? '1') ?? 1;
   final limit = int.tryParse(queryParams['limit'] ?? '20') ?? 20;
   final skip = (page - 1) * limit;
-  
+
   final category = queryParams['category'];
   final subCategory = queryParams['subCategory'];
   final search = queryParams['search'];
@@ -89,36 +89,34 @@ Future<Response> onRequest(RequestContext context) async {
     final totalCount = await MongoService.products!.count(filter);
 
     // Get products using proper mongo_dart syntax
-    final products = await MongoService.products!
-        .find(filter)
-        .toList();
+    final products = await MongoService.products!.find(filter).toList();
 
     // Apply sorting, skipping, and limiting manually (or use aggregation)
     var sortedProducts = products;
-    
+
     // Sort manually
     if (sortBy == 'price') {
       sortedProducts.sort((a, b) {
         final aValue = a[sortBy] as num;
         final bValue = b[sortBy] as num;
-        return sortOrder == 'asc' 
-            ? aValue.compareTo(bValue) 
+        return sortOrder == 'asc'
+            ? aValue.compareTo(bValue)
             : bValue.compareTo(aValue);
       });
     } else if (sortBy == 'createdAt') {
       sortedProducts.sort((a, b) {
         final aValue = a[sortBy] as DateTime;
         final bValue = b[sortBy] as DateTime;
-        return sortOrder == 'asc' 
-            ? aValue.compareTo(bValue) 
+        return sortOrder == 'asc'
+            ? aValue.compareTo(bValue)
             : bValue.compareTo(aValue);
       });
     } else if (sortBy == 'rating') {
       sortedProducts.sort((a, b) {
         final aValue = a[sortBy] as num;
         final bValue = b[sortBy] as num;
-        return sortOrder == 'asc' 
-            ? aValue.compareTo(bValue) 
+        return sortOrder == 'asc'
+            ? aValue.compareTo(bValue)
             : bValue.compareTo(aValue);
       });
     }
@@ -127,30 +125,35 @@ Future<Response> onRequest(RequestContext context) async {
     final paginatedProducts = sortedProducts.skip(skip).take(limit).toList();
 
     // Transform ObjectId to string
-    final transformedProducts = paginatedProducts.map((product) {
-      final transformed = Map<String, dynamic>.from(product);
-      transformed['_id'] = (product['_id'] as ObjectId).oid;
-      
-      if (product['createdAt'] is DateTime) {
-        transformed['createdAt'] = (product['createdAt'] as DateTime).toIso8601String();
-      }
-      if (product['updatedAt'] is DateTime) {
-        transformed['updatedAt'] = (product['updatedAt'] as DateTime).toIso8601String();
-      }
-      
-      // Ensure arrays are properly formatted
-      if (transformed['multipleImages'] == null || transformed['multipleImages'] is! List) {
-        transformed['multipleImages'] = [];
-      }
-      if (transformed['tags'] == null || transformed['tags'] is! List) {
-        transformed['tags'] = [];
-      }
-      if (transformed['specifications'] == null || transformed['specifications'] is! Map) {
-        transformed['specifications'] = {};
-      }
-      
-      return transformed;
-    }).toList();
+    final transformedProducts =
+        paginatedProducts.map((product) {
+          final transformed = Map<String, dynamic>.from(product);
+          transformed['_id'] = (product['_id'] as ObjectId).oid;
+
+          if (product['createdAt'] is DateTime) {
+            transformed['createdAt'] =
+                (product['createdAt'] as DateTime).toIso8601String();
+          }
+          if (product['updatedAt'] is DateTime) {
+            transformed['updatedAt'] =
+                (product['updatedAt'] as DateTime).toIso8601String();
+          }
+
+          // Ensure arrays are properly formatted
+          if (transformed['multipleImages'] == null ||
+              transformed['multipleImages'] is! List) {
+            transformed['multipleImages'] = [];
+          }
+          if (transformed['tags'] == null || transformed['tags'] is! List) {
+            transformed['tags'] = [];
+          }
+          if (transformed['specifications'] == null ||
+              transformed['specifications'] is! Map) {
+            transformed['specifications'] = {};
+          }
+
+          return transformed;
+        }).toList();
 
     print('✅ Products fetched: ${transformedProducts.length}');
 

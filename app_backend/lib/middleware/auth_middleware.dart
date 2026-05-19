@@ -10,7 +10,8 @@ Handler middleware(Handler handler) {
 
     // Allow public routes
     if (request.uri.path.contains('/auth/login') ||
-        request.uri.path.contains('/auth/register')|| request.uri.path.contains('/product/list') ||
+        request.uri.path.contains('/auth/register') ||
+        request.uri.path.contains('/product/list') ||
         request.uri.path.contains('/product/details')) {
       return handler(context);
     }
