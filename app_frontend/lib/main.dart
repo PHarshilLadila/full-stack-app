@@ -36,7 +36,10 @@ class MyApp extends StatelessWidget {
         title: 'Velmora Vendor',
         debugShowCheckedModeBanner: false,
         theme: ThemeData.light().copyWith(
-          textTheme: GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),
+          textTheme:
+              kIsWeb
+                  ? GoogleFonts.interTextTheme(ThemeData.light().textTheme)
+                  : GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),
           scaffoldBackgroundColor: Colors.white,
           useMaterial3: false,
         ),

@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AppTextField extends StatelessWidget {
@@ -12,6 +13,7 @@ class AppTextField extends StatelessWidget {
   final IconButton? sufixIcon;
   final void Function(String)? onFieldSubmitted;
   final EdgeInsetsGeometry? contentPadding;
+  final double borderRadius;
 
   const AppTextField({
     super.key,
@@ -27,31 +29,37 @@ class AppTextField extends StatelessWidget {
       horizontal: 12,
       vertical: 14,
     ),
+    this.borderRadius = kIsWeb ? 12 : 100,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      cursorColor: Colors.amber,
+      cursorColor: kIsWeb ? Colors.deepPurple : Colors.amber,
       obscureText: obscureText,
       onFieldSubmitted: onFieldSubmitted,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.black),
+
+      style: TextStyle(
+        color: Colors.black,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+      ),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.grey),
         filled: true,
         fillColor: Colors.white,
         prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Icon(icon, color: Colors.grey),
+          padding: const EdgeInsets.only(left: 16.0, right: 5),
+          child: Icon(icon, color: Colors.grey, size: 20),
         ),
         suffixIcon: sufixIcon,
         contentPadding: contentPadding,
 
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(borderRadius),
           borderSide: BorderSide(
             color: Colors.grey.withOpacity(0.6),
             width: 0.5,
@@ -59,7 +67,7 @@ class AppTextField extends StatelessWidget {
         ),
 
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(borderRadius),
           borderSide: BorderSide(
             color: Colors.grey.withOpacity(0.6),
             width: 0.5,
@@ -67,7 +75,7 @@ class AppTextField extends StatelessWidget {
         ),
 
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(borderRadius),
           borderSide: BorderSide(
             color: Colors.grey.withOpacity(0.6),
             width: 0.5,
