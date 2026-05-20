@@ -40,15 +40,15 @@ class ProductDetailsView extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 800;
     final isTablet = screenSize.width >= 800 && screenSize.width < 1200;
-    final isLargeScreen = screenSize.width >= 1200;
+    // final isLargeScreen = screenSize.width >= 1200;
 
     // Responsive padding and spacing
     final mainPadding = isSmallScreen ? 16.0 : 24.0;
     final contentSpacing = isSmallScreen ? 16.0 : 24.0;
-    final containerPadding = isSmallScreen ? 16.0 : 24.0;
+    // final containerPadding = isSmallScreen ? 16.0 : 24.0;
     final fontSizeHeading = isSmallScreen ? 18.0 : 22.0;
     final fontSizeSubheading = isSmallScreen ? 14.0 : 16.0;
-    final fontSizeBody = isSmallScreen ? 12.0 : 14.0;
+    // final fontSizeBody = isSmallScreen ? 12.0 : 14.0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
