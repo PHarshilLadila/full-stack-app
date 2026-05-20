@@ -14,6 +14,7 @@ class AppTextField extends StatelessWidget {
   final void Function(String)? onFieldSubmitted;
   final EdgeInsetsGeometry? contentPadding;
   final double borderRadius;
+  final Widget? prefixIcon;
 
   const AppTextField({
     super.key,
@@ -30,6 +31,7 @@ class AppTextField extends StatelessWidget {
       vertical: 14,
     ),
     this.borderRadius = kIsWeb ? 12 : 100,
+    this.prefixIcon,
   });
 
   @override
@@ -51,10 +53,11 @@ class AppTextField extends StatelessWidget {
         hintStyle: const TextStyle(color: Colors.grey),
         filled: true,
         fillColor: Colors.white,
-        prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 16.0, right: 5),
-          child: Icon(icon, color: Colors.grey, size: 20),
-        ),
+        prefixIcon: prefixIcon,
+        // Padding(
+        //   padding: const EdgeInsets.only(left: 16.0, right: 5),
+        //   child: Icon(icon, color: Colors.grey, size: 20),
+        // ),
         suffixIcon: sufixIcon,
         contentPadding: contentPadding,
 

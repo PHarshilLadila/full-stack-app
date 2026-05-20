@@ -80,49 +80,93 @@ class ProductDetailsView extends StatelessWidget {
                           _buildReviewsSection(isSmallScreen),
                         ],
                       )
-                      : Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      : Column(
                         children: [
-                          Expanded(
-                            flex: isTablet ? 5 : 4,
-                            child: Column(
-                              children: [
-                                ProductImagePreview(product: product),
-                                SizedBox(height: contentSpacing),
-                                _buildProductInfoSection(isSmallScreen),
-                                SizedBox(height: contentSpacing),
-                                _buildReviewsSection(isSmallScreen),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: isTablet ? 5 : 4,
+                                child: Column(
+                                  children: [
+                                    ProductImagePreview(product: product),
+                                    SizedBox(height: contentSpacing),
+                                    _buildProductInfoSection(isSmallScreen),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: isTablet ? 16 : 24),
+                              Expanded(
+                                flex: isTablet ? 5 : 4,
+                                child: Column(
+                                  children: [
+                                    _buildPricingCard(
+                                      isSmallScreen,
+                                      fontSizeHeading,
+                                      fontSizeSubheading,
+                                    ),
+                                    SizedBox(height: contentSpacing),
+                                    _buildInventoryCard(
+                                      isSmallScreen,
+                                      fontSizeHeading,
+                                      fontSizeSubheading,
+                                    ),
+                                    SizedBox(height: contentSpacing),
+                                    _buildAnalyticsCard(
+                                      isSmallScreen,
+                                      fontSizeHeading,
+                                      fontSizeSubheading,
+                                    ),
+                                    SizedBox(height: contentSpacing),
+                                    _buildOrganizationCard(
+                                      isSmallScreen,
+                                      fontSizeHeading,
+                                      fontSizeSubheading,
+                                    ),
+                                    SizedBox(height: contentSpacing),
+                                    _buildReviewsSection(isSmallScreen),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          Container(
+                            padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
                               ],
                             ),
-                          ),
-                          SizedBox(width: isTablet ? 16 : 24),
-                          Expanded(
-                            flex: isTablet ? 5 : 4,
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildPricingCard(
-                                  isSmallScreen,
-                                  fontSizeHeading,
-                                  fontSizeSubheading,
+                                Text(
+                                  'Specifications',
+                                  style: TextStyle(
+                                    fontSize: isSmallScreen ? 13 : 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF64748B),
+                                  ),
                                 ),
-                                SizedBox(height: contentSpacing),
-                                _buildInventoryCard(
-                                  isSmallScreen,
-                                  fontSizeHeading,
-                                  fontSizeSubheading,
-                                ),
-                                SizedBox(height: contentSpacing),
-                                _buildAnalyticsCard(
-                                  isSmallScreen,
-                                  fontSizeHeading,
-                                  fontSizeSubheading,
-                                ),
-                                SizedBox(height: contentSpacing),
-                                _buildOrganizationCard(
-                                  isSmallScreen,
-                                  fontSizeHeading,
-                                  fontSizeSubheading,
-                                ),
+                                const SizedBox(height: 12),
+                                if (product.specifications.isNotEmpty)
+                                  _buildSpecificationsTable(isSmallScreen)
+                                else
+                                  Text(
+                                    'No specifications available',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 13 : 14,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -424,6 +468,8 @@ class ProductDetailsView extends StatelessWidget {
         _buildAnalyticsCard(isSmallScreen, headingSize, subheadingSize),
         const SizedBox(height: 16),
         _buildOrganizationCard(isSmallScreen, headingSize, subheadingSize),
+        SizedBox(height: 16),
+        _buildReviewsSection(isSmallScreen),
       ],
     );
   }
@@ -874,25 +920,6 @@ class ProductDetailsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Text(
-            'Specifications',
-            style: TextStyle(
-              fontSize: isSmallScreen ? 13 : 14,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (product.specifications.isNotEmpty)
-            _buildSpecificationsTable(isSmallScreen)
-          else
-            Text(
-              'No specifications available',
-              style: TextStyle(
-                fontSize: isSmallScreen ? 13 : 14,
-                color: Colors.grey.shade500,
-              ),
-            ),
         ],
       ),
     );
@@ -966,25 +993,25 @@ class ProductDetailsView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   children: [
-          //     Text(
-          //       'Reviews',
-          //       style: TextStyle(
-          //         fontSize: isSmallScreen ? 14 : 16,
-          //         fontWeight: FontWeight.w600,
-          //         color: const Color(0xFF1E293B),
-          //       ),
-          //     ),
-          //     if (!isSmallScreen)
-          //       TextButton(
-          //         onPressed: () {},
-          //         child: const Text('View All Reviews'),
-          //       ),
-          //   ],
-          // ),
-          // const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Reviews',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              if (!isSmallScreen)
+                TextButton(
+                  onPressed: () {},
+                  child: const Text('View All Reviews'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
           if (isSmallScreen)
             Column(
               children: [
