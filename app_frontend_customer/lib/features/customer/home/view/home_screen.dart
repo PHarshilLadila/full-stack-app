@@ -9,6 +9,7 @@ import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.d
 import 'package:app_frontend_customer/features/customer/home/bloc/product_event.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_state.dart';
 import 'package:app_frontend_customer/features/customer/home/model/product_model.dart';
+import 'package:app_frontend_customer/features/customer/home/view/product_details_screen.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_bloc.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_event.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_state.dart';
@@ -384,7 +385,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildProductCard(Product product) {
     final bool isFavorite = favoriteProductIds.contains(product.id);
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsScreen(productId: product.id),
+          ),
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,

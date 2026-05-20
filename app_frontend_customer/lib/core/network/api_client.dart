@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
@@ -27,10 +28,11 @@ class ApiClient {
 
     final headers = {"Content-Type": "application/json"};
 
-    if (token != null) {
+    if (token != null && token.isNotEmpty) {
       headers["Authorization"] = "Bearer $token";
     }
-
+    log('GET Request: ${uri.toString()}');
+    log('Headers: $headers');
     return await http.get(uri, headers: headers);
   }
 
