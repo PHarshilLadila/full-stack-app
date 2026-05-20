@@ -168,3 +168,93 @@ class Pagination {
     };
   }
 }
+
+// lib/features/customer/home/model/product_model.dart
+// Add this class to your existing product_model.dart
+
+class ProductDetails {
+  final String id;
+  final String sellerId;
+  final String sellerName;
+  final String productName;
+  final String mainBannerImage;
+  final List<String> multipleImages;
+  final double price;
+  final double discountPrice;
+  final int stock;
+  final bool stockAvailable;
+  final String category;
+  final String subCategory;
+  final List<String> tags;
+  final double rating;
+  final int totalReviews;
+  final String shortDescription;
+  final String detailedDescription;
+  final Map<String, dynamic> specifications;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final bool isActive;
+
+  ProductDetails({
+    required this.id,
+    required this.sellerId,
+    required this.sellerName,
+    required this.productName,
+    required this.mainBannerImage,
+    required this.multipleImages,
+    required this.price,
+    required this.discountPrice,
+    required this.stock,
+    required this.stockAvailable,
+    required this.category,
+    required this.subCategory,
+    required this.tags,
+    required this.rating,
+    required this.totalReviews,
+    required this.shortDescription,
+    required this.detailedDescription,
+    required this.specifications,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.isActive,
+  });
+
+  factory ProductDetails.fromJson(Map<String, dynamic> json) {
+    return ProductDetails(
+      id: json['_id'] ?? '',
+      sellerId: json['sellerId'] ?? '',
+      sellerName: json['sellerName'] ?? '',
+      productName: json['productName'] ?? '',
+      mainBannerImage: json['mainBannerImage'] ?? '',
+      multipleImages: json['multipleImages'] != null
+          ? List<String>.from(json['multipleImages'])
+          : [],
+      price: (json['price'] ?? 0).toDouble(),
+      discountPrice: (json['discountPrice'] ?? 0).toDouble(),
+      stock: json['stock'] ?? 0,
+      stockAvailable: json['stockAvailable'] ?? false,
+      category: json['category'] ?? '',
+      subCategory: json['subCategory'] ?? '',
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
+      rating: (json['rating'] ?? 0).toDouble(),
+      totalReviews: json['totalReviews'] ?? 0,
+      shortDescription: json['shortDescription'] ?? '',
+      detailedDescription: json['detailedDescription'] ?? '',
+      specifications: json['specifications'] != null
+          ? Map<String, dynamic>.from(json['specifications'])
+          : {},
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
+      isActive: json['isActive'] ?? false,
+    );
+  }
+
+  double get discountedPrice => discountPrice > 0 ? discountPrice : price;
+  
+  double get discountPercentage => price > 0 
+      ? ((price - discountedPrice) / price * 100).roundToDouble()
+      : 0.0;
+  
+  String get formattedPrice => '₹${discountedPrice.toStringAsFixed(0)}';
+  String get formattedOriginalPrice => '₹${price.toStringAsFixed(0)}';
+}
