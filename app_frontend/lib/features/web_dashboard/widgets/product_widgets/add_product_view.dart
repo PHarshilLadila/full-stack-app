@@ -16,7 +16,7 @@ class AddProductView extends StatelessWidget {
           children: [
             buildBackButton(),
             const SizedBox(height: 24),
-            AddProductFormWidget(onSuccess: onBack),
+            ProductFormWidget(onSuccess: onBack),
           ],
         ),
       ),
