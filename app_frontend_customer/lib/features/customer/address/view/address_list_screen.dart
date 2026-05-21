@@ -15,24 +15,14 @@ class AddressListScreen extends StatefulWidget {
   State<AddressListScreen> createState() => _AddressListScreenState();
 }
 
-class _AddressListScreenState extends State<AddressListScreen>
-    with SingleTickerProviderStateMixin {
+class _AddressListScreenState extends State<AddressListScreen> {
   late AddressBloc _addressBloc;
   String? _token;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _addressBloc = AddressBloc(addressService: AddressService());
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
     _loadAddresses();
   }
 
@@ -41,7 +31,6 @@ class _AddressListScreenState extends State<AddressListScreen>
     _token = prefs.getString('auth_token');
     if (_token != null) {
       _addressBloc.add(LoadAddresses(token: _token!));
-      _animationController.forward();
     }
   }
 
@@ -185,6 +174,7 @@ class _AddressListScreenState extends State<AddressListScreen>
             color: Colors.black87,
           ),
         ),
+        iconTheme: IconThemeData(color: Colors.black),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
@@ -232,39 +222,18 @@ class _AddressListScreenState extends State<AddressListScreen>
                 );
               } else if (state is AddressesLoaded) {
                 if (state.addresses.isEmpty) {
-                  return FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: _buildEmptyState(),
-                  );
+                  return _buildEmptyState();
                 }
                 return RefreshIndicator(
                   onRefresh: _refreshAddresses,
                   color: Colors.amber,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: state.addresses.length,
-                      itemBuilder: (context, index) {
-                        final address = state.addresses[index];
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.1),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: _animationController,
-                              curve: Interval(
-                                index * 0.05,
-                                1.0,
-                                curve: Curves.easeOut,
-                              ),
-                            ),
-                          ),
-                          child: _buildAddressCard(address, index),
-                        );
-                      },
-                    ),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: state.addresses.length,
+                    itemBuilder: (context, index) {
+                      final address = state.addresses[index];
+                      return _buildAddressCard(address);
+                    },
                   ),
                 );
               } else if (state is AddressError) {
@@ -280,11 +249,7 @@ class _AddressListScreenState extends State<AddressListScreen>
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder:
-                  (context) => BlocProvider.value(
-                    value: _addressBloc,
-                    child: const AddEditAddressScreen(),
-                  ),
+              builder: (context) => const AddEditAddressScreen(),
             ),
           );
           if (result == true && _token != null) {
@@ -304,7 +269,7 @@ class _AddressListScreenState extends State<AddressListScreen>
     );
   }
 
-  Widget _buildAddressCard(AddressModel address, int index) {
+  Widget _buildAddressCard(AddressModel address) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Material(
@@ -326,101 +291,73 @@ class _AddressListScreenState extends State<AddressListScreen>
                     // Header with type and default badge
                     Row(
                       children: [
-                        // Animated address type chip
-                        TweenAnimationBuilder(
-                          tween: Tween<double>(begin: 0, end: 1),
-                          duration: Duration(milliseconds: 300 + (index * 50)),
-                          builder: (context, double value, child) {
-                            return Opacity(
-                              opacity: value,
-                              child: Transform.scale(
-                                scale: value,
-                                child: child,
+                        // Address type chip
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                _getAddressTypeColor(address.addressType),
+                                _getAddressTypeColor(
+                                  address.addressType,
+                                ).withOpacity(0.7),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _getAddressTypeIcon(address.addressType),
+                                size: 14,
+                                color: Colors.white,
                               ),
-                            );
-                          },
-                          child: Container(
+                              const SizedBox(width: 6),
+                              Text(
+                                address.addressType.toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        if (address.isDefault)
+                          Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
+                              horizontal: 10,
+                              vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  _getAddressTypeColor(address.addressType),
-                                  _getAddressTypeColor(
-                                    address.addressType,
-                                  ).withOpacity(0.7),
-                                ],
-                              ),
+                              color: Colors.amber.shade100,
                               borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.amber.shade300),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  _getAddressTypeIcon(address.addressType),
+                                  Icons.star,
                                   size: 14,
-                                  color: Colors.white,
+                                  color: Colors.amber.shade700,
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 4),
                                 Text(
-                                  address.addressType.toUpperCase(),
-                                  style: const TextStyle(
-                                    fontSize: 11,
+                                  'Default',
+                                  style: TextStyle(
+                                    fontSize: 10,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                                    color: Colors.amber.shade700,
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        if (address.isDefault)
-                          TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: const Duration(milliseconds: 400),
-                            builder: (context, double value, child) {
-                              return Opacity(
-                                opacity: value,
-                                child: Transform.scale(
-                                  scale: value,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.amber.shade100,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Colors.amber.shade300,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.star,
-                                    size: 14,
-                                    color: Colors.amber.shade700,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Default',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.amber.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
                           ),
                       ],
@@ -597,10 +534,8 @@ class _AddressListScreenState extends State<AddressListScreen>
                           context,
                           MaterialPageRoute(
                             builder:
-                                (context) => BlocProvider.value(
-                                  value: _addressBloc,
-                                  child: AddEditAddressScreen(address: address),
-                                ),
+                                (context) =>
+                                    AddEditAddressScreen(address: address),
                           ),
                         );
                         if (result == true && _token != null) {
@@ -650,97 +585,71 @@ class _AddressListScreenState extends State<AddressListScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Hero(
-            tag: 'empty_address',
-            child: TweenAnimationBuilder(
-              tween: Tween<double>(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 600),
-              builder: (context, double value, child) {
-                return Opacity(
-                  opacity: value,
-                  child: Transform.scale(scale: value, child: child),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(30),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.location_off_outlined,
-                  size: 80,
-                  color: Colors.amber.shade300,
-                ),
-              ),
+          Container(
+            padding: const EdgeInsets.all(30),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.location_off_outlined,
+              size: 80,
+              color: Colors.amber.shade300,
             ),
           ),
           const SizedBox(height: 24),
-          TweenAnimationBuilder(
-            tween: Tween<double>(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 600),
-            builder: (context, double value, child) {
-              return Opacity(
-                opacity: value,
-                child: Transform.translate(
-                  offset: Offset(0, 20 * (1 - value)),
-                  child: child,
+          Column(
+            children: [
+              const Text(
+                'No Addresses Yet',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-              );
-            },
-            child: Column(
-              children: [
-                const Text(
-                  'No Addresses Yet',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Add your first delivery address to\nget started with shopping',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Add your first delivery address to\nget started with shopping',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddEditAddressScreen(),
-                      ),
-                    );
-                    if (result == true && _token != null) {
-                      _refreshAddresses();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 14,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddEditAddressScreen(),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 2,
+                  );
+                  if (result == true && _token != null) {
+                    _refreshAddresses();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 28,
+                    vertical: 14,
                   ),
-                  icon: const Icon(Icons.add),
-                  label: const Text(
-                    'Add Your First Address',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
+                  elevation: 2,
                 ),
-              ],
-            ),
+                icon: const Icon(Icons.add),
+                label: const Text(
+                  'Add Your First Address',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -752,26 +661,16 @@ class _AddressListScreenState extends State<AddressListScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TweenAnimationBuilder(
-            tween: Tween<double>(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 500),
-            builder: (context, double value, child) {
-              return Opacity(
-                opacity: value,
-                child: Transform.scale(scale: value, child: child),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red.shade300,
-              ),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red.shade300,
             ),
           ),
           const SizedBox(height: 24),
@@ -838,7 +737,6 @@ class _AddressListScreenState extends State<AddressListScreen>
 
   @override
   void dispose() {
-    _animationController.dispose();
     _addressBloc.close();
     super.dispose();
   }
