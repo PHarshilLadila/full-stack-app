@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<String> favoriteProductIds = {};
   String greeting = "";
   bool _isLoadingFavorites = false;
+  Timer? _greetingTimer;
 
   Future<void> getUserToken() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -78,11 +79,15 @@ class _HomeScreenState extends State<HomeScreen> {
     Timer.periodic(const Duration(minutes: 1), (timer) {
       _updateGreeting();
     });
+    _greetingTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _updateGreeting();
+    });
     _loadFavorites();
   }
 
   @override
   void dispose() {
+    _greetingTimer?.cancel();
     _scrollController.dispose();
     _searchController.dispose();
     _userBloc.close();
@@ -135,8 +140,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _updateGreeting() {
+    if (!mounted) return; // Guard against disposed state
     final hour = DateTime.now().hour;
-
     setState(() {
       if (hour < 12) {
         greeting = 'Good Morning';
@@ -734,7 +739,10 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               context.read<ProductBloc>().add(RefreshProducts());
             },
-            child: const Text('Retry'),
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(Colors.amber),
+            ),
+            child: const Text('Retry', style: TextStyle(color: Colors.black)),
           ),
         ],
       ),

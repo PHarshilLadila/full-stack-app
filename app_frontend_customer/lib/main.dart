@@ -1,6 +1,8 @@
 import 'package:app_frontend_customer/features/auth/view/auth_screen.dart';
 import 'package:app_frontend_customer/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
 import 'package:app_frontend_customer/features/bottom_navbar/view/bottom_navbar_screen.dart';
+import 'package:app_frontend_customer/features/customer/cart/bloc/cart_bloc.dart';
+import 'package:app_frontend_customer/features/customer/cart/service/cart_service.dart';
 import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_bloc.dart';
 import 'package:app_frontend_customer/features/customer/favorite/service/favorites_service.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.dart';
@@ -32,6 +34,7 @@ class MyApp extends StatelessWidget {
           create:
               (context) => FavoritesBloc(favoritesService: FavoritesService()),
         ),
+        BlocProvider(create: (context) => CartBloc(cartService: CartService())),
       ],
       child: MaterialApp(
         title: 'Velmora Shopping',

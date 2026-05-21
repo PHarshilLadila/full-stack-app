@@ -1,7 +1,9 @@
 // lib/features/customer/home/screen/product_details_screen.dart
 
 import 'dart:async';
-
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_bloc.dart';
 import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_event.dart';
 import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_state.dart';
@@ -9,9 +11,9 @@ import 'package:app_frontend_customer/features/customer/favorite/service/favorit
 import 'package:app_frontend_customer/features/customer/home/bloc/product_details_bloc/product_details_bloc.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_details_bloc/product_details_event.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_details_bloc/product_details_state.dart';
+import 'package:app_frontend_customer/features/customer/cart/service/cart_service.dart';
+import 'package:app_frontend_customer/features/customer/cart/model/cart_model.dart';
 import 'package:app_frontend_customer/utils/common/custom_loader.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_frontend_customer/features/customer/home/model/product_model.dart';
 import 'package:app_frontend_customer/features/customer/home/service/product_details_service.dart';
 
@@ -131,6 +133,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
   int _selectedImageIndex = 0;
   int _quantity = 1;
   bool _isFavorite = false;
+  bool _isAddingToCart = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   StreamSubscription<FavoritesState>? _favoritesSubscription;
@@ -146,7 +149,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
     );
 
-    // Check if product is already in favorites
     _checkFavoriteStatus();
   }
 
@@ -155,6 +157,13 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
     _animationController.dispose();
     _favoritesSubscription?.cancel();
     super.dispose();
+  }
+
+  // Helper method to get token from SharedPreferences
+  Future<String?> _getToken() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    final token = preferences.getString("auth_token");
+    return token;
   }
 
   Future<void> _checkFavoriteStatus() async {
@@ -168,10 +177,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
         );
       });
     } else {
-      // Fetch favorites if not loaded
       favoritesBloc.add(const FetchFavorites());
-
-      // Listen for state changes
       _favoritesSubscription = favoritesBloc.stream.listen((state) {
         if (state is FavoritesLoaded && mounted) {
           setState(() {
@@ -187,26 +193,17 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
 
   Future<void> _toggleFavorite() async {
     final favoritesBloc = context.read<FavoritesBloc>();
-
-    // Start animation
     _animationController.forward(from: 0.0);
-
-    // Store the previous state for potential rollback
     final previousFavoriteState = _isFavorite;
 
-    // Optimistically update UI
     setState(() {
       _isFavorite = !_isFavorite;
     });
 
-    // Declare subscription outside the if-else blocks
     StreamSubscription<FavoritesState>? subscription;
 
     if (previousFavoriteState) {
-      // Remove from favorites
       favoritesBloc.add(RemoveFromFavorites(productId: widget.product.id));
-
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Removed from favorites'),
@@ -219,7 +216,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
         ),
       );
 
-      // Listen for errors to revert if needed
       subscription = favoritesBloc.stream.listen((state) {
         if (state is ToggleFavoriteError &&
             state.productId == widget.product.id &&
@@ -246,10 +242,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
         }
       });
     } else {
-      // Add to favorites
       favoritesBloc.add(AddToFavorites(productId: widget.product.id));
-
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Added to favorites'),
@@ -262,7 +255,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
         ),
       );
 
-      // Listen for errors to revert if needed
       subscription = favoritesBloc.stream.listen((state) {
         if (state is ToggleFavoriteError &&
             state.productId == widget.product.id &&
@@ -288,6 +280,166 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
           subscription?.cancel();
         }
       });
+    }
+  }
+
+  // Add to Cart Method with SharedPreferences
+  Future<void> _addToCart() async {
+    setState(() {
+      _isAddingToCart = true;
+    });
+
+    try {
+      // Get token from SharedPreferences
+      final token = await _getToken();
+
+      if (token == null || token.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please login to add items to cart'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Create cart service instance
+      final cartService = CartService();
+
+      // Call add to cart API
+      final response = await cartService.addToCart(
+        productId: widget.product.id,
+        quantity: _quantity,
+        token: token,
+      );
+
+      if (response.success) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(child: Text(response.message)),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+
+        // Optional: Update cart count badge if you have one
+        // You can add a callback to update cart badge here
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add to cart: ${e.toString()}'),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAddingToCart = false;
+        });
+      }
+    }
+  }
+
+  // Buy Now Method
+  Future<void> _buyNow() async {
+    final token = await _getToken();
+
+    if (token == null || token.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please login to proceed with purchase'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // First add to cart, then navigate to checkout
+    setState(() {
+      _isAddingToCart = true;
+    });
+
+    try {
+      final cartService = CartService();
+      final response = await cartService.addToCart(
+        productId: widget.product.id,
+        quantity: _quantity,
+        token: token,
+      );
+
+      if (response.success) {
+        // Navigate to checkout or cart screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Proceeding to checkout...'),
+            duration: Duration(seconds: 1),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to cart screen
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => const CartScreen()),
+        // );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to process: ${e.toString()}'),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAddingToCart = false;
+        });
+      }
     }
   }
 
@@ -431,7 +583,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
                     color: Color(0xFFF5F5F5),
                   ),
                   _buildSpecifications(),
-                  const SizedBox(height: 100), // Bottom padding for FAB
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -445,23 +597,9 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
           child: ProductDetailsBottomBar(
             product: widget.product,
             quantity: _quantity,
-            onAddToCart: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Added to cart!'),
-                  duration: Duration(seconds: 1),
-                  backgroundColor: Color(0xFFFF6B6B),
-                ),
-              );
-            },
-            onBuyNow: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Buy now feature coming soon!'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
+            isAddingToCart: _isAddingToCart,
+            onAddToCart: _addToCart,
+            onBuyNow: _buyNow,
           ),
         ),
       ],
@@ -611,10 +749,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
-          // Product Name
           Text(
             widget.product.productName,
             style: const TextStyle(
@@ -623,10 +758,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
               height: 1.3,
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // Seller Info
           Row(
             children: [
               Container(
@@ -664,8 +796,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
                   ],
                 ),
               ),
-
-              // Rating
               if (widget.product.rating > 0)
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -1059,10 +1189,11 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
   }
 }
 
-// Bottom FAB for Add to Cart/Buy Now
+// Updated ProductDetailsBottomBar
 class ProductDetailsBottomBar extends StatelessWidget {
   final ProductDetails product;
   final int quantity;
+  final bool isAddingToCart;
   final VoidCallback onAddToCart;
   final VoidCallback onBuyNow;
 
@@ -1070,6 +1201,7 @@ class ProductDetailsBottomBar extends StatelessWidget {
     Key? key,
     required this.product,
     required this.quantity,
+    this.isAddingToCart = false,
     required this.onAddToCart,
     required this.onBuyNow,
   }) : super(key: key);
@@ -1125,7 +1257,10 @@ class ProductDetailsBottomBar extends StatelessWidget {
           // Add to Cart Button
           Expanded(
             child: ElevatedButton(
-              onPressed: product.stockAvailable ? onAddToCart : null,
+              onPressed:
+                  product.stockAvailable && !isAddingToCart
+                      ? onAddToCart
+                      : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: const Color(0xFFFF6B6B),
@@ -1133,20 +1268,34 @@ class ProductDetailsBottomBar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: const Color(0xFFFF6B6B), width: 1.5),
+                  side: const BorderSide(color: Color(0xFFFF6B6B), width: 1.5),
                 ),
               ),
-              child: const Text(
-                'Add to Cart',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
+              child:
+                  isAddingToCart
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFFFF6B6B),
+                        ),
+                      )
+                      : const Text(
+                        'Add to Cart',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
             ),
           ),
           const SizedBox(width: 12),
           // Buy Now Button
           Expanded(
             child: ElevatedButton(
-              onPressed: product.stockAvailable ? onBuyNow : null,
+              onPressed:
+                  product.stockAvailable && !isAddingToCart ? onBuyNow : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF6B6B),
                 foregroundColor: Colors.white,
