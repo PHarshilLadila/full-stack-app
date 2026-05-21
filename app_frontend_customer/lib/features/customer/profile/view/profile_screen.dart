@@ -3,6 +3,8 @@
 import 'dart:developer';
 import 'dart:ui';
 
+import 'package:app_frontend_customer/features/customer/address/view/add_edit_address_screen.dart';
+import 'package:app_frontend_customer/features/customer/address/view/address_list_screen.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_bloc.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_event.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_state.dart';
@@ -611,6 +613,56 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                       ],
                                     ),
                                   ),
+                                  const SizedBox(height: 24),
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: Colors.grey.withOpacity(0.2),
+                                      ),
+                                    ),
+                                    child: ListTile(
+                                      leading: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber.shade50,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.location_on_outlined,
+                                          color: Colors.amber,
+                                        ),
+                                      ),
+                                      title: const Text(
+                                        'Manage Addresses',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      subtitle: const Text(
+                                        'Add, edit or delete your delivery addresses',
+                                      ),
+                                      trailing: const Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 16,
+                                      ),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    const AddressListScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+
                                   const SizedBox(height: 24),
                                   // Order History Section
                                   Container(
