@@ -1,6 +1,8 @@
 import 'package:app_frontend_customer/features/auth/view/auth_screen.dart';
 import 'package:app_frontend_customer/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
 import 'package:app_frontend_customer/features/bottom_navbar/view/bottom_navbar_screen.dart';
+import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_bloc.dart';
+import 'package:app_frontend_customer/features/customer/favorite/service/favorites_service.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.dart';
 import 'package:app_frontend_customer/features/customer/home/service/product_service.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_bloc.dart';
@@ -25,6 +27,10 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => BottomNavigationBloc()),
         BlocProvider(
           create: (context) => ProductBloc(productService: ProductService()),
+        ),
+        BlocProvider(
+          create:
+              (context) => FavoritesBloc(favoritesService: FavoritesService()),
         ),
       ],
       child: MaterialApp(

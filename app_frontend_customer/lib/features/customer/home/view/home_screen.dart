@@ -5,6 +5,10 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_bloc.dart';
+import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_event.dart';
+import 'package:app_frontend_customer/features/customer/favorite/service/favorites_service.dart';
+import 'package:app_frontend_customer/features/customer/favorite/view/favorites_screen.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_event.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_state.dart';
@@ -40,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String authToken = "";
   Set<String> favoriteProductIds = {};
   String greeting = "";
+  bool _isLoadingFavorites = false;
 
   Future<void> getUserToken() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -73,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Timer.periodic(const Duration(minutes: 1), (timer) {
       _updateGreeting();
     });
+    _loadFavorites();
   }
 
   @override
@@ -94,6 +100,38 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     }
+  }
+
+  Future<void> _loadFavorites() async {
+    if (_isLoadingFavorites) return;
+
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    final token = preferences.getString("auth_token");
+
+    if (token != null && token.isNotEmpty) {
+      _isLoadingFavorites = true;
+      final favoritesService = FavoritesService();
+      try {
+        final response = await favoritesService.getFavorites();
+        if (mounted) {
+          setState(() {
+            favoriteProductIds =
+                response.data.map((item) => item.productId).toSet();
+          });
+        }
+      } catch (e) {
+        log('Error loading favorites: $e');
+      } finally {
+        _isLoadingFavorites = false;
+      }
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // This will be called when navigating back to this screen
+    _loadFavorites();
   }
 
   void _updateGreeting() {
@@ -120,7 +158,13 @@ class _HomeScreenState extends State<HomeScreen> {
           Scaffold.of(context).openDrawer();
         },
         onNotificationTap: () {},
-        onFavouriteTap: () {},
+        onFavouriteTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const FavoritesScreen()),
+          );
+        },
+
         showMenu: true,
         showNotification: true,
         showFavourite: true,
@@ -391,7 +435,12 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (context) => ProductDetailsScreen(productId: product.id),
           ),
-        );
+        ).then((_) {
+          if (mounted) {
+            _loadFavorites();
+            // context.read<ProductBloc>().add(const FetchProducts());
+          }
+        });
       },
       child: Container(
         decoration: BoxDecoration(
@@ -570,14 +619,38 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: IconButton(
                           padding: EdgeInsets.zero,
                           splashRadius: 20,
-                          onPressed: () {
-                            setState(() {
-                              if (isFavorite) {
+                          onPressed: () async {
+                            // Add this logic for API integration
+                            final favoritesBloc = context.read<FavoritesBloc>();
+                            if (isFavorite) {
+                              // Remove from favorites
+                              favoritesBloc.add(
+                                RemoveFromFavorites(productId: product.id),
+                              );
+                              setState(() {
                                 favoriteProductIds.remove(product.id);
-                              } else {
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Removed from favorites'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            } else {
+                              // Add to favorites
+                              favoritesBloc.add(
+                                AddToFavorites(productId: product.id),
+                              );
+                              setState(() {
                                 favoriteProductIds.add(product.id);
-                              }
-                            });
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Added to favorites'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            }
                           },
                           icon: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),

@@ -1,7 +1,15 @@
 // lib/features/customer/home/screen/product_details_screen.dart
+
+import 'dart:async';
+
+import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_bloc.dart';
+import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_event.dart';
+import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_state.dart';
+import 'package:app_frontend_customer/features/customer/favorite/service/favorites_service.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_details_bloc/product_details_bloc.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_details_bloc/product_details_event.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_details_bloc/product_details_state.dart';
+import 'package:app_frontend_customer/utils/common/custom_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_frontend_customer/features/customer/home/model/product_model.dart';
@@ -15,28 +23,36 @@ class ProductDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: BlocProvider(
-        create:
-            (context) => ProductDetailsBloc(
-              productDetailsService: ProductDetailsService(),
-            )..add(FetchProductDetails(productId: productId)),
-        child: const ProductDetailsView(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create:
+              (context) => ProductDetailsBloc(
+                productDetailsService: ProductDetailsService(),
+              )..add(FetchProductDetails(productId: productId)),
+        ),
+        BlocProvider(
+          create:
+              (context) => FavoritesBloc(favoritesService: FavoritesService()),
+        ),
+      ],
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: const ProductDetailsView(),
       ),
     );
   }
 }
 
 class ProductDetailsView extends StatelessWidget {
-  const ProductDetailsView({Key? key}) : super(key: key);
+  const ProductDetailsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProductDetailsBloc, ProductDetailsState>(
       builder: (context, state) {
         if (state is ProductDetailsLoading) {
-          return const _LoadingView();
+          return const CustomLoader(loadingPageName: 'Details');
         } else if (state is ProductDetailsLoaded) {
           return _ProductDetailsContent(product: state.product);
         } else if (state is ProductDetailsError) {
@@ -44,29 +60,6 @@ class ProductDetailsView extends StatelessWidget {
         }
         return const SizedBox.shrink();
       },
-    );
-  }
-}
-
-class _LoadingView extends StatelessWidget {
-  const _LoadingView({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B6B)),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Loading product details...',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -133,100 +126,342 @@ class _ProductDetailsContent extends StatefulWidget {
   State<_ProductDetailsContent> createState() => _ProductDetailsContentState();
 }
 
-class _ProductDetailsContentState extends State<_ProductDetailsContent> {
+class _ProductDetailsContentState extends State<_ProductDetailsContent>
+    with SingleTickerProviderStateMixin {
   int _selectedImageIndex = 0;
   int _quantity = 1;
   bool _isFavorite = false;
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  StreamSubscription<FavoritesState>? _favoritesSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+
+    // Check if product is already in favorites
+    _checkFavoriteStatus();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _favoritesSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    final favoritesBloc = context.read<FavoritesBloc>();
+    final currentState = favoritesBloc.state;
+
+    if (currentState is FavoritesLoaded) {
+      setState(() {
+        _isFavorite = currentState.favorites.any(
+          (item) => item.productId == widget.product.id,
+        );
+      });
+    } else {
+      // Fetch favorites if not loaded
+      favoritesBloc.add(const FetchFavorites());
+
+      // Listen for state changes
+      _favoritesSubscription = favoritesBloc.stream.listen((state) {
+        if (state is FavoritesLoaded && mounted) {
+          setState(() {
+            _isFavorite = state.favorites.any(
+              (item) => item.productId == widget.product.id,
+            );
+          });
+          _favoritesSubscription?.cancel();
+        }
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    final favoritesBloc = context.read<FavoritesBloc>();
+
+    // Start animation
+    _animationController.forward(from: 0.0);
+
+    // Store the previous state for potential rollback
+    final previousFavoriteState = _isFavorite;
+
+    // Optimistically update UI
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+
+    // Declare subscription outside the if-else blocks
+    StreamSubscription<FavoritesState>? subscription;
+
+    if (previousFavoriteState) {
+      // Remove from favorites
+      favoritesBloc.add(RemoveFromFavorites(productId: widget.product.id));
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Removed from favorites'),
+          duration: const Duration(seconds: 1),
+          backgroundColor: Colors.grey[800],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+
+      // Listen for errors to revert if needed
+      subscription = favoritesBloc.stream.listen((state) {
+        if (state is ToggleFavoriteError &&
+            state.productId == widget.product.id &&
+            mounted) {
+          setState(() {
+            _isFavorite = previousFavoriteState;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          subscription?.cancel();
+        } else if (state is ToggleFavoriteSuccess &&
+            state.productId == widget.product.id &&
+            mounted) {
+          subscription?.cancel();
+        }
+      });
+    } else {
+      // Add to favorites
+      favoritesBloc.add(AddToFavorites(productId: widget.product.id));
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Added to favorites'),
+          duration: const Duration(seconds: 1),
+          backgroundColor: const Color(0xFFFF6B6B),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+
+      // Listen for errors to revert if needed
+      subscription = favoritesBloc.stream.listen((state) {
+        if (state is ToggleFavoriteError &&
+            state.productId == widget.product.id &&
+            mounted) {
+          setState(() {
+            _isFavorite = previousFavoriteState;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          subscription?.cancel();
+        } else if (state is ToggleFavoriteSuccess &&
+            state.productId == widget.product.id &&
+            mounted) {
+          subscription?.cancel();
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        // App Bar with Back Button and Actions
-        SliverAppBar(
-          expandedHeight: MediaQuery.of(context).size.height * 0.45,
-          floating: false,
-          pinned: true,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+    return Stack(
+      children: [
+        CustomScrollView(
+          slivers: [
+            // App Bar with Back Button and Actions
+            SliverAppBar(
+              expandedHeight: MediaQuery.of(context).size.height * 0.45,
+              floating: false,
+              pinned: true,
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.black87,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              actions: [
+                Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: BlocBuilder<FavoritesBloc, FavoritesState>(
+                    builder: (context, state) {
+                      final isToggling =
+                          state is ToggleFavoriteLoading &&
+                          state.productId == widget.product.id;
+
+                      if (isToggling) {
+                        return Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFFFF6B6B),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: IconButton(
+                          icon: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (child, animation) {
+                              return ScaleTransition(
+                                scale: animation,
+                                child: child,
+                              );
+                            },
+                            child: Icon(
+                              _isFavorite
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              key: ValueKey(_isFavorite),
+                              color: _isFavorite ? Colors.red : Colors.black87,
+                              size: 26,
+                            ),
+                          ),
+                          onPressed: _toggleFavorite,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
+              flexibleSpace: FlexibleSpaceBar(background: _buildImageGallery()),
             ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          actions: [
-            Container(
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+
+            // Product Details Content
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProductHeader(),
+                  const Divider(
+                    height: 32,
+                    thickness: 8,
+                    color: Color(0xFFF5F5F5),
                   ),
+                  _buildPriceSection(),
+                  const Divider(
+                    height: 32,
+                    thickness: 8,
+                    color: Color(0xFFF5F5F5),
+                  ),
+                  _buildQuantitySelector(),
+                  const Divider(
+                    height: 32,
+                    thickness: 8,
+                    color: Color(0xFFF5F5F5),
+                  ),
+                  _buildTags(),
+                  const Divider(
+                    height: 32,
+                    thickness: 8,
+                    color: Color(0xFFF5F5F5),
+                  ),
+                  _buildDescription(),
+                  const Divider(
+                    height: 32,
+                    thickness: 8,
+                    color: Color(0xFFF5F5F5),
+                  ),
+                  _buildSpecifications(),
+                  const SizedBox(height: 100), // Bottom padding for FAB
                 ],
-              ),
-              child: IconButton(
-                icon: Icon(
-                  _isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  color: _isFavorite ? Colors.red : Colors.black87,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isFavorite = !_isFavorite;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        _isFavorite
-                            ? 'Added to favorites'
-                            : 'Removed from favorites',
-                      ),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
-                },
               ),
             ),
           ],
-          flexibleSpace: FlexibleSpaceBar(background: _buildImageGallery()),
         ),
-
-        // Product Details Content
-        SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildProductHeader(),
-              const Divider(height: 32, thickness: 8, color: Color(0xFFF5F5F5)),
-              _buildPriceSection(),
-              const Divider(height: 32, thickness: 8, color: Color(0xFFF5F5F5)),
-              _buildQuantitySelector(),
-              const Divider(height: 32, thickness: 8, color: Color(0xFFF5F5F5)),
-              _buildTags(),
-              const Divider(height: 32, thickness: 8, color: Color(0xFFF5F5F5)),
-              _buildDescription(),
-              const Divider(height: 32, thickness: 8, color: Color(0xFFF5F5F5)),
-              _buildSpecifications(),
-              const SizedBox(height: 100), // Bottom padding for FAB
-            ],
+        // Bottom Bar
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: ProductDetailsBottomBar(
+            product: widget.product,
+            quantity: _quantity,
+            onAddToCart: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Added to cart!'),
+                  duration: Duration(seconds: 1),
+                  backgroundColor: Color(0xFFFF6B6B),
+                ),
+              );
+            },
+            onBuyNow: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Buy now feature coming soon!'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -281,7 +516,8 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                       _selectedImageIndex = index;
                     });
                   },
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     width: 70,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
@@ -293,6 +529,17 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                                 : Colors.grey.shade300,
                         width: isSelected ? 2 : 1,
                       ),
+                      boxShadow:
+                          isSelected
+                              ? [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFFF6B6B,
+                                  ).withOpacity(0.3),
+                                  blurRadius: 8,
+                                ),
+                              ]
+                              : null,
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(11),
@@ -854,13 +1101,22 @@ class ProductDetailsBottomBar extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '₹${(product.discountedPrice * quantity).toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFFF6B6B),
+                TweenAnimationBuilder(
+                  tween: Tween<double>(
+                    begin: 0,
+                    end: product.discountedPrice * quantity,
                   ),
+                  duration: const Duration(milliseconds: 300),
+                  builder: (context, value, child) {
+                    return Text(
+                      '₹${value.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFF6B6B),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
