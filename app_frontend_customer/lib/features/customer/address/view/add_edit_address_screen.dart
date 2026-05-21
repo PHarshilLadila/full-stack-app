@@ -672,7 +672,7 @@ class _AddEditAddressScreenState extends State<AddEditAddressScreen>
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: Colors.amber.shade100,
+            color: Colors.amber.withOpacity(0.2),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, size: 18, color: Colors.amber.shade700),
@@ -739,7 +739,7 @@ class AppTextField extends StatelessWidget {
             icon: hugeIcon,
             color: Colors.amber,
             size: 22.0,
-            strokeWidth: 2,
+            strokeWidth: 1,
           ),
         ),
         suffixIcon: sufixIcon,
