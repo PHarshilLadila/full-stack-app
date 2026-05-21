@@ -1,6 +1,7 @@
 // lib/features/customer/address/screens/address_list_screen.dart
 import 'package:app_frontend_customer/features/customer/address/model/address_model.dart';
 import 'package:app_frontend_customer/features/customer/address/service/address_service.dart';
+import 'package:app_frontend_customer/utils/common/custom_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -200,26 +201,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
           child: BlocBuilder<AddressBloc, AddressState>(
             builder: (context, state) {
               if (state is AddressLoading) {
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: CircularProgressIndicator(
-                          color: Colors.amber,
-                          strokeWidth: 3,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Loading addresses...',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                );
+                return CustomLoader(loadingPageName: "Address");
               } else if (state is AddressesLoaded) {
                 if (state.addresses.isEmpty) {
                   return _buildEmptyState();
