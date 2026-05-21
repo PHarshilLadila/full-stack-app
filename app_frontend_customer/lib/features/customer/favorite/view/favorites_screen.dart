@@ -61,9 +61,63 @@ class _FavoritesScreenState extends State<FavoritesScreen>
             (context) =>
                 FavoritesBloc(favoritesService: FavoritesService())
                   ..add(const FetchFavorites()),
-        child: BlocBuilder<FavoritesBloc, FavoritesState>(
+        child: BlocConsumer<FavoritesBloc, FavoritesState>(
+          buildWhen: (previous, current) {
+            return current is FavoritesInitial ||
+                current is FavoritesLoading ||
+                current is FavoritesLoaded ||
+                current is FavoritesError;
+          },
+          listenWhen: (previous, current) {
+            return current is ToggleFavoriteSuccess ||
+                current is ToggleFavoriteError ||
+                current is FavoritesError;
+          },
+          listener: (context, state) {
+            if (state is ToggleFavoriteSuccess) {
+              final message =
+                  state.isFavorite
+                      ? 'Added to favorites'
+                      : 'Removed from favorites';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                  duration: const Duration(seconds: 1),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            } else if (state is ToggleFavoriteError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            } else if (state is FavoritesError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          },
           builder: (context, state) {
-            if (state is FavoritesLoading) {
+            if (state is FavoritesInitial || state is FavoritesLoading) {
               return const CustomLoader(loadingPageName: 'Favorites');
             }
 
