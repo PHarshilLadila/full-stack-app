@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 
 class ProductService {
   final ApiClient apiClient = ApiClient();
-  final String baseUrl = 'https://full-stack-app-4vxu.onrender.com';
+  final String baseUrl = 'https://full-stack-app-1-4iqk.onrender.com';
 
   Future<List<ProductModel>> fetchSellerProducts() async {
     try {

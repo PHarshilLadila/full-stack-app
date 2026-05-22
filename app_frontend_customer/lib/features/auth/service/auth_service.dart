@@ -17,7 +17,7 @@ class AuthService {
     log("Register Request with profile image: ${model.profileImage != null}");
 
     final uri = Uri.parse(
-      "https://full-stack-app-4vxu.onrender.com/auth/register",
+      "https://full-stack-app-1-4iqk.onrender.com/auth/register",
     );
     final request = http.MultipartRequest('POST', uri);
 

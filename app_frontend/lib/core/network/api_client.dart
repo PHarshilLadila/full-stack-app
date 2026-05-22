@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
-  static const String baseUrl = "https://full-stack-app-4vxu.onrender.com";
+  static const String baseUrl = "https://full-stack-app-1-4iqk.onrender.com";
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final url = Uri.parse("$baseUrl$endpoint");

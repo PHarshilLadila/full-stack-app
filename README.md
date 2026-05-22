@@ -40,7 +40,7 @@ This project is built using:
 Backend is built using Dart Frog with MongoDB.
 
 ### 🌐 Live API
-https://full-stack-app-4vxu.onrender.com
+https://full-stack-app-1-4iqk.onrender.com
 
 ### 📡 APIs
 
