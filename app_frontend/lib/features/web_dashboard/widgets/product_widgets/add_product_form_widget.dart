@@ -1919,7 +1919,7 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
     setState(() => isLoading = true);
 
     try {
-      final tags = _selectedTags;
+      // final tags = _selectedTags;
 
       final Map<String, dynamic> specifications = {};
 

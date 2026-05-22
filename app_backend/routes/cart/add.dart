@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, unused_local_variable, inference_failure_on_collection_literal
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
@@ -96,8 +96,8 @@ Future<Response> onRequest(RequestContext context) async {
     final items = (cart!['items'] as List?) ?? [];
 
     // Check if product already in cart
-    int existingIndex = -1;
-    for (int i = 0; i < items.length; i++) {
+    var existingIndex = -1;
+    for (var i = 0; i < items.length; i++) {
       if (items[i]['productId'] == productId) {
         existingIndex = i;
         break;

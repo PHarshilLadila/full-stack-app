@@ -12,7 +12,6 @@ import 'package:app_frontend_customer/features/customer/home/bloc/product_detail
 import 'package:app_frontend_customer/features/customer/home/bloc/product_details_bloc/product_details_event.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_details_bloc/product_details_state.dart';
 import 'package:app_frontend_customer/features/customer/cart/service/cart_service.dart';
-import 'package:app_frontend_customer/features/customer/cart/model/cart_model.dart';
 import 'package:app_frontend_customer/utils/common/custom_loader.dart';
 import 'package:app_frontend_customer/features/customer/home/model/product_model.dart';
 import 'package:app_frontend_customer/features/customer/home/service/product_details_service.dart';

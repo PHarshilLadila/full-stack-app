@@ -1,6 +1,4 @@
-// ignore_for_file: public_member_api_docs, lines_longer_than_80_chars
-
-import 'package:mongo_dart/mongo_dart.dart';
+// ignore_for_file: public_member_api_docs, lines_longer_than_80_chars, sort_constructors_first
 
 class SalesAnalytics {
   final double totalRevenue;

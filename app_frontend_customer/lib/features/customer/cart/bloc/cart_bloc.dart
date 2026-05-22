@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'package:app_frontend_customer/features/customer/favorite/service/favorites_service.dart';
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_frontend_customer/features/customer/cart/bloc/cart_event.dart';
 import 'package:app_frontend_customer/features/customer/cart/bloc/cart_state.dart';

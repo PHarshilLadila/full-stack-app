@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, unused_local_variable, inference_failure_on_collection_literal
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
@@ -73,7 +73,7 @@ Future<Response> onRequest(RequestContext context) async {
 
       if (sellerItems.isNotEmpty) {
         // Calculate seller total safely
-        double sellerTotal = 0.0;
+        var sellerTotal = 0.0;
         for (final item in sellerItems) {
           sellerTotal += (item['totalPrice'] as num?)?.toDouble() ?? 0.0;
         }

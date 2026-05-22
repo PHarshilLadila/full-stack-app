@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, inference_failure_on_collection_literal
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';

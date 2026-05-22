@@ -1,9 +1,7 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, inference_failure_on_collection_literal
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-
 import 'package:my_backend/config/env.dart';
 import 'package:my_backend/db/mongo.dart';
 import 'package:my_backend/services/analytics_service.dart';

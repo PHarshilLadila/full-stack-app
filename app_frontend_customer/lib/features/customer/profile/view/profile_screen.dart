@@ -3,7 +3,6 @@
 import 'dart:developer';
 import 'dart:ui';
 
-import 'package:app_frontend_customer/features/customer/address/view/add_edit_address_screen.dart';
 import 'package:app_frontend_customer/features/customer/address/view/address_list_screen.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_bloc.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_event.dart';
