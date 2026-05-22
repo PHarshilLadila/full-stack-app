@@ -38,7 +38,6 @@
 //     );
 //   };
 // }
-
 // ignore_for_file: avoid_print
 
 import 'dart:io';
@@ -49,16 +48,15 @@ Handler middleware(Handler handler) {
   return (context) async {
     print('🔥 Middleware hit');
     
-    // Ensure database connection is ready
-    try {
-      await MongoService.ensureConnection();
-    } catch (e) {
-      print('❌ Database connection failed: $e');
+    // Ensure connection is ready (this will be fast if already connected)
+    final isConnected = await MongoService.ensureConnection();
+    if (!isConnected) {
+      print('❌ Database not available');
       return Response.json(
         statusCode: 503,
         body: {
           'error': 'Service temporarily unavailable',
-          'message': 'Please try again in a moment',
+          'message': 'Database connection failed. Please try again.',
         },
       );
     }
@@ -78,7 +76,7 @@ Handler middleware(Handler handler) {
     
     final response = await handler(context);
     
-    // Add CORS headers to response
+    // Add CORS headers
     return response.copyWith(
       headers: {
         ...response.headers,
