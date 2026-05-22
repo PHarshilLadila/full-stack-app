@@ -164,8 +164,7 @@
 // }
 
 
-// ignore_for_file: avoid_print, public_member_api_docs, inference_failure_on_instance_creation, avoid_redundant_argument_values, lines_longer_than_80_chars
-// ignore_for_file: avoid_print, public_member_api_docs, inference_failure_on_instance_creation, avoid_redundant_argument_values, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, public_member_api_docs
 
 import 'dart:async';
 import 'package:mongo_dart/mongo_dart.dart';
@@ -181,11 +180,10 @@ class MongoService {
   static DbCollection? _favorites;
   static DbCollection? _orders;
 
+  static Completer<void>? _connectionCompleter;
   static bool _isConnecting = false;
-  static bool isConnected = false;
-  static DateTime? _lastSuccessfulPing;
   static Timer? _keepAliveTimer;
-
+  
   static DbCollection? get users => _users;
   static DbCollection? get products => _products;
   static DbCollection? get reviews => _reviews;
@@ -194,32 +192,61 @@ class MongoService {
   static DbCollection? get favorites => _favorites;
   static DbCollection? get orders => _orders;
 
-  /// Check if the current connection is actually alive
-  static Future<bool> _isConnectionAlive() async {
-    if (_db == null || !isConnected) return false;
+  /// Initialize MongoDB connection (called once at startup)
+  static Future<void> init() async {
+    // Wait for any ongoing connection
+    if (_connectionCompleter != null) {
+      print('⏳ Waiting for existing connection...');
+      await _connectionCompleter!.future;
+      return;
+    }
+    
+    _connectionCompleter = Completer<void>();
     
     try {
-      // Use runCommand to ping the database
-      final result = await _db!.runCommand({'ping': 1}).timeout(
-        const Duration(seconds: 3),
-        onTimeout: () => throw Exception('Ping timeout'),
-      );
-      
-      // Check if ping was successful (should return {ok: 1.0})
-      final isOk = result['ok'] == 1.0;
-      if (isOk) {
-        _lastSuccessfulPing = DateTime.now();
-      }
-      return isOk;
+      await _connect();
+      _connectionCompleter!.complete();
     } catch (e) {
-      print('⚠️ Connection health check failed: $e');
+      _connectionCompleter!.completeError(e);
+      rethrow;
+    } finally {
+      _connectionCompleter = null;
+    }
+  }
+
+  /// Ensure connection is ready (called by middleware)
+  static Future<void> ensureConnection() async {
+    // If already connected and alive, return
+    if (_db != null && await _isAlive()) {
+      return;
+    }
+    
+    // If connection is dead, reset
+    if (_db != null) {
+      print('⚠️ Connection dead, resetting...');
+      await _resetConnection();
+    }
+    
+    // If not connected, connect
+    if (_db == null) {
+      await init();
+    }
+  }
+
+  /// Check if current connection is alive
+  static Future<bool> _isAlive() async {
+    if (_db == null) return false;
+    
+    try {
+      await _db!.runCommand({'ping': 1}).timeout(const Duration(seconds: 2));
+      return true;
+    } catch (e) {
       return false;
     }
   }
 
-  /// Force close and reset the connection
-  static Future<void> _forceDisconnect() async {
-    print('🔄 Force disconnecting dead connection...');
+  /// Reset dead connection
+  static Future<void> _resetConnection() async {
     _keepAliveTimer?.cancel();
     _keepAliveTimer = null;
     
@@ -228,89 +255,62 @@ class MongoService {
         await _db!.close();
       }
     } catch (e) {
-      // Ignore errors during force disconnect
-      print('Error during force disconnect: $e');
-    } finally {
-      _db = null;
-      _users = null;
-      _products = null;
-      _reviews = null;
-      _addresses = null;
-      _carts = null;
-      _favorites = null;
-      _orders = null;
-      isConnected = false;
-      _isConnecting = false;
-      _lastSuccessfulPing = null;
+      // Ignore
     }
+    
+    _db = null;
+    _users = null;
+    _products = null;
+    _reviews = null;
+    _addresses = null;
+    _carts = null;
+    _favorites = null;
+    _orders = null;
+    _isConnecting = false;
   }
 
-  static Future<void> connect() async {
-    // If we have a connection, check if it's still alive
-    if (isConnected && _db != null) {
-      // Check if connection is actually alive
-      final isAlive = await _isConnectionAlive();
-      
-      if (isAlive) {
-        print('✅ Already connected to MongoDB');
-        return;
-      } else {
-        print('⚠️ Existing connection is dead, reconnecting...');
-        await _forceDisconnect();
-      }
-    }
-
-    // If currently connecting, wait to avoid multiple connections
+  /// Actual connection logic
+  static Future<void> _connect() async {
     if (_isConnecting) {
-      print('⏳ Connection already in progress, waiting...');
-      int waitCount = 0;
-      while (_isConnecting && waitCount < 30) {
+      print('⏳ Already connecting, waiting...');
+      // Wait up to 10 seconds for connection
+      for (int i = 0; i < 100 && _isConnecting; i++) {
         await Future.delayed(const Duration(milliseconds: 100));
-        waitCount++;
       }
-      if (isConnected && _db != null) {
-        // Verify the connection is actually good
-        final isAlive = await _isConnectionAlive();
-        if (isAlive) return;
-      }
-      // If we get here, either timeout or connection is dead
-      _isConnecting = false;
+      if (_db != null) return;
     }
-
+    
     _isConnecting = true;
-
+    
     try {
-      print('Connecting to MongoDB...');
-
+      print('🔄 Establishing MongoDB connection...');
+      
       final mongoUrl = Env.mongoUrl;
       if (mongoUrl.isEmpty) {
-        throw Exception('MongoDB URL is empty. Please check .env file');
+        throw Exception('MongoDB URL is empty');
       }
-
-      // Add connection pool settings and keep-alive to prevent disconnection
-      String modifiedUrl = mongoUrl;
       
-      // Add connection parameters for better reliability with Atlas free tier
-      if (!mongoUrl.contains('maxPoolSize')) {
+      // Create connection with proper parameters for Render + Atlas
+      String finalUrl = mongoUrl;
+      
+      // Add safeAtlas=true for better Atlas compatibility
+      if (!mongoUrl.contains('safeAtlas')) {
         final separator = mongoUrl.contains('?') ? '&' : '?';
-        modifiedUrl = '$mongoUrl${separator}maxPoolSize=5&minPoolSize=1&maxIdleTimeMS=60000&heartbeatFrequencyMS=10000';
-        print('🔌 Added connection pool parameters');
+        finalUrl = '$mongoUrl${separator}safeAtlas=true&retryWrites=true';
+        print('📝 Added safeAtlas parameter');
       }
       
-      // Create DB connection
-      _db = await Db.create(modifiedUrl);
-
-      // Open connection with proper options
+      _db = await Db.create(finalUrl);
+      
+      // Open connection
       await _db!.open();
       
-      // Test the connection immediately with runCommand
+      // Verify connection with ping
       final pingResult = await _db!.runCommand({'ping': 1});
       if (pingResult['ok'] != 1.0) {
-        throw Exception('Ping failed: $pingResult');
+        throw Exception('Ping failed');
       }
       
-      _lastSuccessfulPing = DateTime.now();
-
       // Initialize collections
       _users = _db!.collection('users');
       _products = _db!.collection('products');
@@ -319,172 +319,113 @@ class MongoService {
       _carts = _db!.collection('carts');
       _favorites = _db!.collection('favorites');
       _orders = _db!.collection('orders');
-
-      // Create indexes (ignore duplicate errors by catching them)
-      await _createIndexes();
-
-      isConnected = true;
-      print('✅ MongoDB Connected Successfully');
       
-      // Start background keep-alive pinger
-      _startKeepAlivePinger();
+      // Create indexes (non-blocking, don't wait)
+      _createIndexes().catchError((e) {
+        print('⚠️ Index creation warning: $e');
+      });
+      
+      // Start keep-alive timer
+      _startKeepAlive();
+      
+      print('✅ MongoDB Connected Successfully');
       
     } catch (e) {
       print('❌ MongoDB Connection Error: $e');
-      print('❌ URL: ${_maskUrl(Env.mongoUrl)}');
-      isConnected = false;
       _db = null;
-      // Don't rethrow - let the app continue
+      rethrow;
     } finally {
       _isConnecting = false;
     }
   }
 
-  static Future<void> _createIndexes() async {
-    // Create indexes with try-catch for each to prevent failures
-    try {
-      await _products!.createIndex(key: 'productName', unique: false);
-      print('✅ Text index created');
-    } catch (indexError) {
-      print('⚠️ Text index warning: $indexError');
-    }
-
-    try {
-      await _products!.createIndex(key: 'category', unique: false);
-      await _products!.createIndex(key: 'sellerId', unique: false);
-      await _products!.createIndex(key: 'price', unique: false);
-      await _products!.createIndex(key: 'tags', unique: false);
-      print('✅ Regular indexes created');
-    } catch (indexError) {
-      print('⚠️ Index creation warning: $indexError');
-    }
-
-    try {
-      await _reviews!.createIndex(key: 'productId', unique: false);
-      await _reviews!.createIndex(key: 'userId', unique: false);
-      await _reviews!.createIndex(key: 'rating', unique: false);
-      await _reviews!.createIndex(key: 'createdAt', unique: false);
-      print('✅ Review indexes created');
-    } catch (indexError) {
-      print('⚠️ Review index creation warning: $indexError');
-    }
-    
-    try {
-      await _addresses!.createIndex(key: 'userId', unique: false);
-      await _addresses!.createIndex(key: 'isDefault', unique: false);
-
-      await _carts!.createIndex(key: 'userId', unique: false);
-
-      await _favorites!.createIndex(key: 'userId', unique: false);
-      await _favorites!.createIndex(key: 'productId', unique: false);
-      
-      // Composite unique index to prevent duplicate favorites
-      try {
-        await _favorites!.createIndex(
-          keys: {'userId': 1, 'productId': 1}, 
-          unique: true,
-        );
-      } catch (e) {
-        print('⚠️ Favorites composite index warning: $e');
-      }
-
-      await _orders!.createIndex(key: 'orderId', unique: true);
-      await _orders!.createIndex(key: 'userId', unique: false);
-      await _orders!.createIndex(key: 'sellerId', unique: false);
-      await _orders!.createIndex(key: 'orderStatus', unique: false);
-      await _orders!.createIndex(key: 'createdAt', unique: false);
-      print('✅ Additional indexes created');
-    } catch (indexError) {
-      print('⚠️ Additional index creation warning: $indexError');
-    }
-  }
-
-  static void _startKeepAlivePinger() {
-    // Cancel existing timer if any
+  /// Start keep-alive pinger to prevent connection timeout
+  static void _startKeepAlive() {
     _keepAliveTimer?.cancel();
     
-    // Send a ping every 20 seconds to keep the connection alive
-    _keepAliveTimer = Timer.periodic(const Duration(seconds: 20), (timer) async {
-      if (!isConnected || _db == null) {
+    _keepAliveTimer = Timer.periodic(const Duration(seconds: 25), (timer) async {
+      if (_db == null) {
         timer.cancel();
-        _keepAliveTimer = null;
         return;
       }
       
       try {
-        final result = await _db!.runCommand({'ping': 1}).timeout(
-          const Duration(seconds: 5),
-          onTimeout: () => throw Exception('Ping timeout'),
-        );
-        
-        if (result['ok'] == 1.0) {
-          _lastSuccessfulPing = DateTime.now();
-          // Optional: print('.',); // Uncomment for debugging
-        } else {
-          throw Exception('Ping failed: $result');
-        }
+        await _db!.runCommand({'ping': 1}).timeout(const Duration(seconds: 5));
+        // Optional: print('💓 Ping');
       } catch (e) {
-        print('⚠️ Keep-alive ping failed: $e');
-        // Mark connection as potentially dead
-        isConnected = false;
+        print('⚠️ Keep-alive failed: $e');
         timer.cancel();
-        _keepAliveTimer = null;
+        // Don't auto-reconnect here, let next request handle it
       }
     });
   }
 
-  /// Get a guaranteed fresh connection for critical operations
-  static Future<Db> getFreshConnection() async {
-    // If current connection is dead, force reconnect
-    if (!await _isConnectionAlive()) {
-      await _forceDisconnect();
-      await connect();
-    }
+  /// Safe index creation
+  static Future<void> _createIndexes() async {
+    // Products
+    await _safeCreateIndex(_products!, 'productName');
+    await _safeCreateIndex(_products!, 'category');
+    await _safeCreateIndex(_products!, 'sellerId');
+    await _safeCreateIndex(_products!, 'price');
+    await _safeCreateIndex(_products!, 'tags');
     
-    if (_db == null || !isConnected) {
-      await connect();
-    }
+    // Reviews
+    await _safeCreateIndex(_reviews!, 'productId');
+    await _safeCreateIndex(_reviews!, 'userId');
+    await _safeCreateIndex(_reviews!, 'rating');
+    await _safeCreateIndex(_reviews!, 'createdAt');
     
-    if (_db == null) {
-      throw Exception('Failed to establish MongoDB connection');
-    }
+    // Addresses
+    await _safeCreateIndex(_addresses!, 'userId');
+    await _safeCreateIndex(_addresses!, 'isDefault');
     
-    return _db!;
+    // Carts
+    await _safeCreateIndex(_carts!, 'userId');
+    
+    // Favorites
+    await _safeCreateIndex(_favorites!, 'userId');
+    await _safeCreateIndex(_favorites!, 'productId');
+    
+    // Orders
+    await _safeCreateIndex(_orders!, 'orderId', unique: true);
+    await _safeCreateIndex(_orders!, 'userId');
+    await _safeCreateIndex(_orders!, 'sellerId');
+    await _safeCreateIndex(_orders!, 'orderStatus');
+    await _safeCreateIndex(_orders!, 'createdAt');
+    
+    print('✅ Indexes verified');
   }
-
-  static Future<void> disconnect() async {
-    _keepAliveTimer?.cancel();
-    _keepAliveTimer = null;
-    
-    if (_db != null) {
-      try {
-        await _db!.close();
-        print('MongoDB disconnected');
-      } catch (e) {
-        print('Error disconnecting: $e');
-      }
-      isConnected = false;
-      _db = null;
-      _users = null;
-      _products = null;
-      _reviews = null;
-      _addresses = null;
-      _carts = null;
-      _favorites = null;
-      _orders = null;
-    }
-  }
-
-  static String _maskUrl(String url) {
+  
+  static Future<void> _safeCreateIndex(
+    DbCollection collection,
+    String field, {
+    bool unique = false,
+  }) async {
     try {
-      // Just show the first part of the URL for debugging
-      if (url.contains('@')) {
-        final parts = url.split('@');
-        if (parts.length > 1) {
-          return '${parts[0].substring(0, parts[0].indexOf('://') + 3)}***@${parts[1]}';
-        }
+      await collection.createIndex(key: field, unique: unique);
+    } catch (e) {
+      // Index might already exist, that's fine
+      if (!e.toString().contains('already exists')) {
+        print('⚠️ Index warning on $field: $e');
       }
-    } catch (_) {}
-    return url.length > 50 ? '${url.substring(0, 50)}...' : url;
+    }
+  }
+
+  /// Get a collection, ensuring connection is ready
+  static Future<DbCollection> getCollection(DbCollection? collection, String name) async {
+    await ensureConnection();
+    if (collection == null) {
+      throw Exception('Collection $name not initialized');
+    }
+    return collection;
+  }
+
+  /// Clean shutdown
+  static Future<void> close() async {
+    _keepAliveTimer?.cancel();
+    if (_db != null) {
+      await _db!.close();
+      print('MongoDB connection closed');
+    }
   }
 }
