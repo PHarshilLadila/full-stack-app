@@ -49,8 +49,10 @@ Future<Response> onRequest(RequestContext context) async {
     final skip = (page - 1) * limit;
     final status = queryParams['status'];
 
-    // Get all orders - Remove .sort() from Stream
-    final allOrdersStream = await MongoService.orders!.find({}).toList();
+    // Fix: Use explicit Map<String, dynamic> for empty filter
+    final Map<String, dynamic> emptyFilter = {};
+    final allOrdersStream =
+        await MongoService.orders!.find(emptyFilter).toList();
 
     // Sort manually (newest first)
     allOrdersStream.sort((a, b) {
@@ -60,7 +62,7 @@ Future<Response> onRequest(RequestContext context) async {
     });
 
     // Filter orders that contain seller's products
-    final sellerOrders = [];
+    final List<Map<String, dynamic>> sellerOrders = [];
     for (final order in allOrdersStream) {
       final items = order['items'] as List? ?? [];
 
@@ -78,18 +80,19 @@ Future<Response> onRequest(RequestContext context) async {
           sellerTotal += (item['totalPrice'] as num?)?.toDouble() ?? 0.0;
         }
 
-        sellerOrders.add({
-          ...order,
-          'sellerItems': sellerItems,
-          'sellerTotal': sellerTotal,
-        });
+        // Create a new map with the original order data plus seller-specific fields
+        final Map<String, dynamic> enhancedOrder = Map.from(order);
+        enhancedOrder['sellerItems'] = sellerItems;
+        enhancedOrder['sellerTotal'] = sellerTotal;
+
+        sellerOrders.add(enhancedOrder);
       }
     }
 
     final totalCount = sellerOrders.length;
 
     // Apply status filter first
-    var filteredOrders = sellerOrders;
+    List<Map<String, dynamic>> filteredOrders = sellerOrders;
     if (status != null && status.isNotEmpty) {
       filteredOrders =
           sellerOrders.where((order) {
