@@ -9,19 +9,43 @@ import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_
 import 'package:app_frontend_customer/features/customer/favorite/service/favorites_service.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.dart';
 import 'package:app_frontend_customer/features/customer/home/service/product_service.dart';
+import 'package:app_frontend_customer/features/customer/order/bloc/order_bloc.dart';
+import 'package:app_frontend_customer/features/customer/order/service/order_service.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_bloc.dart';
 import 'package:app_frontend_customer/features/customer/profile/service/user_service.dart';
 import 'package:app_frontend_customer/features/splash/view/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  String token = "";
+
+  void getToken() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String userToken = preferences.getString("auth_token") ?? "";
+    setState(() {
+      userToken = token;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getToken();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,20 +64,23 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => AddressBloc(addressService: AddressService()),
         ),
+        BlocProvider(
+          create: (context) => OrderBloc(orderService: OrderService(token: '')),
+        ),
       ],
       child: MaterialApp(
         title: 'Velmora Shopping',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(     
+        theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.lightGreenAccent,
+            seedColor: Colors.amber,
             primary: Colors.lightGreenAccent,
           ),
-          primaryColor: Colors.lightGreenAccent,
+          primaryColor: Colors.amber,
           scaffoldBackgroundColor: Colors.white,
           textTheme: GoogleFonts.nunitoTextTheme(),
           appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.lightGreenAccent,
+            backgroundColor: Colors.amber,
             foregroundColor: Colors.white,
           ),
           useMaterial3: false,
