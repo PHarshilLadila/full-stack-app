@@ -9,7 +9,7 @@ import 'package:app_frontend/features/web_dashboard/view/customers_content.dart'
 import 'package:app_frontend/features/web_dashboard/view/dashboard_content.dart';
 import 'package:app_frontend/features/web_dashboard/view/help_support_content.dart';
 import 'package:app_frontend/features/web_dashboard/view/marketing_content.dart';
-import 'package:app_frontend/features/web_dashboard/view/orders_content.dart';
+import 'package:app_frontend/features/web_dashboard/order/view/orders_content.dart';
 import 'package:app_frontend/features/web_dashboard/view/payouts_content.dart';
 import 'package:app_frontend/features/web_dashboard/view/product_screen.dart';
 import 'package:app_frontend/features/web_dashboard/view/returns_refunds_content.dart';

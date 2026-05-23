@@ -38,27 +38,53 @@ class OrderModel extends Equatable {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    return OrderModel(
-      id: json['_id'],
-      orderId: json['orderId'],
-      items: (json['items'] as List)
+    // Handle different response structures
+    List<OrderItem> itemsList = [];
+    
+    if (json['items'] != null) {
+      itemsList = (json['items'] as List)
           .map((item) => OrderItem.fromJson(item))
-          .toList(),
-      shippingAddress: ShippingAddress.fromJson(json['shippingAddress']),
-      subtotal: (json['subtotal'] as num).toDouble(),
-      shippingCharge: (json['shippingCharge'] as num).toDouble(),
-      discountAmount: (json['discountAmount'] as num).toDouble(),
-      taxAmount: (json['taxAmount'] as num).toDouble(),
-      totalAmount: (json['totalAmount'] as num).toDouble(),
-      paymentMethod: json['paymentMethod'],
-      paymentStatus: json['paymentStatus'],
-      orderStatus: json['orderStatus'],
-      trackingId: json['trackingId'],
-      orderDate: DateTime.parse(json['orderDate']),
+          .toList();
+    } else if (json['product'] != null) {
+      // Handle single product direct order response
+      itemsList = [OrderItem.fromJson(json['product'])];
+    }
+
+    return OrderModel(
+      id: json['_id'] ?? json['id'] ?? '',
+      orderId: json['orderId'] ?? json['order_id'] ?? '',
+      items: itemsList,
+      shippingAddress: json['shippingAddress'] != null
+          ? ShippingAddress.fromJson(json['shippingAddress'])
+          : ShippingAddress(
+              fullName: '',
+              mobileNumber: '',
+              pincode: '',
+              addressLine1: '',
+              addressLine2: '',
+              landmark: '',
+              city: '',
+              state: '',
+              country: '',
+            ),
+      subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
+      shippingCharge: (json['shippingCharge'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0.0,
+      taxAmount: (json['taxAmount'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
+      paymentMethod: json['paymentMethod'] ?? json['payment_method'] ?? '',
+      paymentStatus: json['paymentStatus'] ?? json['payment_status'] ?? '',
+      orderStatus: json['orderStatus'] ?? json['order_status'] ?? '',
+      trackingId: json['trackingId'] ?? json['tracking_id'],
+      orderDate: json['orderDate'] != null
+          ? DateTime.parse(json['orderDate'])
+          : DateTime.now(),
       deliveredDate: json['deliveredDate'] != null
           ? DateTime.parse(json['deliveredDate'])
           : null,
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
     );
   }
 
@@ -128,16 +154,17 @@ class OrderItem extends Equatable {
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
+    // Handle different key names that might come from API
     return OrderItem(
-      productId: json['productId'],
-      productName: json['productName'],
-      productImage: json['productImage'],
-      price: (json['price'] as num).toDouble(),
-      discountPrice: (json['discountPrice'] as num).toDouble(),
-      quantity: json['quantity'],
-      totalPrice: (json['totalPrice'] as num).toDouble(),
-      sellerId: json['sellerId'],
-      sellerName: json['sellerName'],
+      productId: json['productId'] ?? json['product_id'] ?? json['_id'] ?? '',
+      productName: json['productName'] ?? json['product_name'] ?? json['name'] ?? 'Product',
+      productImage: json['productImage'] ?? json['product_image'] ?? json['mainBannerImage'] ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      discountPrice: (json['discountPrice'] as num?)?.toDouble() ?? (json['discount_price'] as num?)?.toDouble() ?? 0.0,
+      quantity: json['quantity'] ?? json['qty'] ?? 1,
+      totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? (json['total_price'] as num?)?.toDouble() ?? 0.0,
+      sellerId: json['sellerId'] ?? json['seller_id'] ?? '',
+      sellerName: json['sellerName'] ?? json['seller_name'] ?? 'Seller',
     );
   }
 
@@ -194,15 +221,15 @@ class ShippingAddress extends Equatable {
 
   factory ShippingAddress.fromJson(Map<String, dynamic> json) {
     return ShippingAddress(
-      fullName: json['fullName'],
-      mobileNumber: json['mobileNumber'],
-      pincode: json['pincode'],
-      addressLine1: json['addressLine1'],
-      addressLine2: json['addressLine2'],
-      landmark: json['landmark'],
-      city: json['city'],
-      state: json['state'],
-      country: json['country'],
+      fullName: json['fullName'] ?? json['full_name'] ?? '',
+      mobileNumber: json['mobileNumber'] ?? json['mobile_number'] ?? '',
+      pincode: json['pincode'] ?? '',
+      addressLine1: json['addressLine1'] ?? json['address_line1'] ?? '',
+      addressLine2: json['addressLine2'] ?? json['address_line2'] ?? '',
+      landmark: json['landmark'] ?? '',
+      city: json['city'] ?? '',
+      state: json['state'] ?? '',
+      country: json['country'] ?? '',
     );
   }
 
@@ -249,10 +276,10 @@ class PaginationInfo extends Equatable {
 
   factory PaginationInfo.fromJson(Map<String, dynamic> json) {
     return PaginationInfo(
-      currentPage: json['currentPage'],
-      totalPages: json['totalPages'],
-      totalItems: json['totalItems'],
-      itemsPerPage: json['itemsPerPage'],
+      currentPage: json['currentPage'] ?? json['current_page'] ?? 1,
+      totalPages: json['totalPages'] ?? json['total_pages'] ?? 1,
+      totalItems: json['totalItems'] ?? json['total_items'] ?? 0,
+      itemsPerPage: json['itemsPerPage'] ?? json['items_per_page'] ?? 10,
     );
   }
 

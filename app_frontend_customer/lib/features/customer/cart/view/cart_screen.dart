@@ -3,6 +3,7 @@ import 'package:app_frontend_customer/features/customer/cart/bloc/cart_event.dar
 import 'package:app_frontend_customer/features/customer/cart/bloc/cart_state.dart';
 import 'package:app_frontend_customer/features/customer/cart/model/cart_model.dart';
 import 'package:app_frontend_customer/features/customer/cart/service/cart_service.dart';
+import 'package:app_frontend_customer/features/customer/checkout/view/checkout_screen.dart';
 import 'package:app_frontend_customer/features/customer/home/view/product_details_screen.dart';
 import 'package:app_frontend_customer/utils/common/custom_loader.dart';
 import 'package:flutter/material.dart';
@@ -454,10 +455,10 @@ class _CartContentState extends State<_CartContent>
             ),
             child: ElevatedButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Checkout feature coming soon!'),
-                    duration: Duration(seconds: 2),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CheckoutScreen(),
                   ),
                 );
               },

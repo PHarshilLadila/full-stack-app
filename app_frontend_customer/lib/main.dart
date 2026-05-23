@@ -5,6 +5,8 @@ import 'package:app_frontend_customer/features/customer/address/bloc/address_blo
 import 'package:app_frontend_customer/features/customer/address/service/address_service.dart';
 import 'package:app_frontend_customer/features/customer/cart/bloc/cart_bloc.dart';
 import 'package:app_frontend_customer/features/customer/cart/service/cart_service.dart';
+import 'package:app_frontend_customer/features/customer/checkout/bloc/checkout_bloc.dart';
+import 'package:app_frontend_customer/features/customer/checkout/service/checkout_service.dart';
 import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_bloc.dart';
 import 'package:app_frontend_customer/features/customer/favorite/service/favorites_service.dart';
 import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.dart';
@@ -66,6 +68,9 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => OrderBloc(orderService: OrderService(token: '')),
+        ),
+        BlocProvider(
+          create: (context) => CheckoutBloc(checkoutService: CheckoutService()),
         ),
       ],
       child: MaterialApp(

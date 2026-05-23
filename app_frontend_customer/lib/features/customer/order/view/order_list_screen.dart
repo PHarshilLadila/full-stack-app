@@ -54,7 +54,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.amber[700],
+        backgroundColor: const Color(0xFFFF6B6B),
         title: const Text(
           'My Orders',
           style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.5),
@@ -63,10 +63,6 @@ class _OrderListScreenState extends State<OrderListScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: Colors.amber[800]),
         ),
       ),
       body: BlocProvider.value(
@@ -79,7 +75,9 @@ class _OrderListScreenState extends State<OrderListScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFFFF6B6B),
+                      ),
                     ),
                     SizedBox(height: 16),
                     Text(
@@ -130,7 +128,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
               _orderBloc.add(RefreshOrders());
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber[700],
+              backgroundColor: const Color(0xFFFF6B6B),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -173,7 +171,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                 _orderBloc.add(RefreshOrders());
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber[700],
+                backgroundColor: const Color(0xFFFF6B6B),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -196,7 +194,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
       onRefresh: () async {
         _orderBloc.add(RefreshOrders());
       },
-      color: Colors.amber,
+      color: const Color(0xFFFF6B6B),
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.all(16),
@@ -212,7 +210,9 @@ class _OrderListScreenState extends State<OrderListScreen> {
                   width: 40,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFFFF6B6B),
+                    ),
                   ),
                 ),
               ),
@@ -259,7 +259,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Order #${order.orderId.substring(0, 12)}...',
+                      'Order #${order.orderId.length > 12 ? order.orderId.substring(0, 12) : order.orderId}...',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -315,25 +315,34 @@ class _OrderListScreenState extends State<OrderListScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              item.productImage,
-              height: 60,
-              width: 60,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 60,
-                  width: 60,
-                  color: Colors.grey[200],
-                  child: Icon(
-                    Icons.image_not_supported,
-                    color: Colors.grey[400],
-                  ),
-                );
-              },
+            child: Container(
+              height: 70,
+              width: 70,
+              color: Colors.grey[100],
+              child:
+                  item.productImage.isNotEmpty
+                      ? Image.network(
+                        item.productImage,
+                        height: 70,
+                        width: 70,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.image_not_supported,
+                            size: 30,
+                            color: Colors.grey[400],
+                          );
+                        },
+                      )
+                      : Icon(
+                        Icons.image_not_supported,
+                        size: 30,
+                        color: Colors.grey[400],
+                      ),
             ),
           ),
           const SizedBox(width: 12),
@@ -351,6 +360,11 @@ class _OrderListScreenState extends State<OrderListScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
+                Text(
+                  'Seller: ${item.sellerName}',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                ),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Text(
@@ -358,22 +372,37 @@ class _OrderListScreenState extends State<OrderListScreen> {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Colors.amber,
+                        color: Color(0xFFFF6B6B),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      '₹${item.price.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        decoration: TextDecoration.lineThrough,
-                        color: Colors.grey[400],
+                    if (item.price > item.discountPrice)
+                      Text(
+                        '₹${item.price.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          decoration: TextDecoration.lineThrough,
+                          color: Colors.grey[400],
+                        ),
                       ),
-                    ),
                     const Spacer(),
-                    Text(
-                      'Qty: ${item.quantity}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Qty: ${item.quantity}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -433,6 +462,23 @@ class _OrderListScreenState extends State<OrderListScreen> {
               ],
             ),
           ),
+        if (order.taxAmount > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Tax',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+                Text(
+                  '₹${order.taxAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ],
+            ),
+          ),
         const Divider(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -446,7 +492,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.amber,
+                color: Color(0xFFFF6B6B),
               ),
             ),
           ],
@@ -460,25 +506,51 @@ class _OrderListScreenState extends State<OrderListScreen> {
           ),
           child: Row(
             children: [
-              Icon(Icons.payment, size: 16, color: Colors.grey[600]),
+              Icon(
+                Icons.payment,
+                size: 16,
+                color:
+                    order.paymentMethod.toLowerCase() == 'online'
+                        ? Colors.blue
+                        : Colors.green,
+              ),
               const SizedBox(width: 8),
-              Text(
-                'Payment: ${order.paymentMethod.toUpperCase()} • ${order.paymentStatus}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              Expanded(
+                child: Text(
+                  'Payment: ${order.paymentMethod.toUpperCase()} • ${_formatStatus(order.paymentStatus)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      order.paymentStatus.toLowerCase() == 'completed'
+                          ? Colors.green
+                          : Colors.orange,
+                ),
               ),
             ],
           ),
         ),
-        if (order.trackingId != null)
+        if (order.trackingId != null && order.trackingId!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Row(
               children: [
                 Icon(Icons.local_shipping, size: 16, color: Colors.grey[600]),
                 const SizedBox(width: 8),
-                Text(
-                  'Tracking ID: ${order.trackingId}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                Expanded(
+                  child: Text(
+                    'Tracking ID: ${order.trackingId}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
                 ),
               ],
             ),
@@ -495,12 +567,16 @@ class _OrderListScreenState extends State<OrderListScreen> {
         return Colors.blue;
       case 'processing':
         return Colors.orange;
+      case 'pending':
+        return Colors.orange;
       case 'awaiting_payment':
         return Colors.red;
       case 'cancelled':
         return Colors.grey;
+      case 'completed':
+        return Colors.green;
       default:
-        return Colors.amber;
+        return const Color(0xFFFF6B6B);
     }
   }
 

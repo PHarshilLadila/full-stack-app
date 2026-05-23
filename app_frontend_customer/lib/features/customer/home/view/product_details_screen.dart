@@ -1,6 +1,7 @@
 // lib/features/customer/home/screen/product_details_screen.dart
 
 import 'dart:async';
+import 'package:app_frontend_customer/features/customer/checkout/view/checkout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -388,58 +389,18 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
       return;
     }
 
-    // First add to cart, then navigate to checkout
-    setState(() {
-      _isAddingToCart = true;
-    });
-
-    try {
-      final cartService = CartService();
-      final response = await cartService.addToCart(
-        productId: widget.product.id,
-        quantity: _quantity,
-        token: token,
-      );
-
-      if (response.success) {
-        // Navigate to checkout or cart screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Proceeding to checkout...'),
-            duration: Duration(seconds: 1),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate to cart screen
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const CartScreen()),
-        // );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to process: ${e.toString()}'),
-          duration: const Duration(seconds: 2),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isAddingToCart = false;
-        });
-      }
-    }
+    // Navigate directly to checkout with product details
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => CheckoutScreen(
+              isDirectOrder: true,
+              directProductId: widget.product.id,
+              directQuantity: _quantity,
+            ),
+      ),
+    );
   }
 
   @override
