@@ -4,6 +4,8 @@ import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart
 import 'package:app_frontend/features/bottom_navbar/view/bottom_navbar_screen.dart';
 import 'package:app_frontend/features/customer/home/bloc/product_bloc.dart';
 import 'package:app_frontend/features/customer/home/service/product_service.dart';
+import 'package:app_frontend/features/web_dashboard/order/bloc/seller_order_bloc.dart';
+import 'package:app_frontend/features/web_dashboard/order/service/seller_order_service.dart';
 import 'package:app_frontend/features/web_dashboard/web_auth/view/web_auth_screen.dart';
 import 'package:app_frontend/features/web_dashboard/web_dashboard.dart';
 import 'package:flutter/foundation.dart';
@@ -30,6 +32,10 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => BottomNavigationBloc()),
         BlocProvider(
           create: (context) => ProductBloc(productService: ProductService()),
+        ),
+        BlocProvider(
+          create:
+              (context) => SellerOrderBloc(orderService: SellerOrderService()),
         ),
       ],
       child: MaterialApp(
