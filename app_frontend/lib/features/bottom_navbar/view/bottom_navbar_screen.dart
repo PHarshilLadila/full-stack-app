@@ -2,9 +2,9 @@
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_event.dart';
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_state.dart';
-import 'package:app_frontend/features/customer/cart/view/cart_screen.dart';
 import 'package:app_frontend/features/customer/categories_screen/view/categories_screen.dart';
 import 'package:app_frontend/features/customer/home/view/home_screen.dart';
+import 'package:app_frontend/features/customer/order/view/order_screen.dart';
 import 'package:app_frontend/features/customer/profile/view/profile_screen.dart';
 import 'package:app_frontend/features/seller/products/view/seller_product_screen.dart';
 import 'package:app_frontend/features/seller/seller_profile/view/seller_profile_screen.dart';
@@ -45,14 +45,14 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
         const HomeScreen(), // Seller can have their own home screen
         const SellerProductScreen(),
         // Seller might not have cart - you can customize
-        const CartScreen(),
+        const OrderScreen(),
         const SellerProfileScreen(),
       ];
     } else {
       return [
         const HomeScreen(),
         const CategoriesScreen(),
-        const CartScreen(),
+        const OrderScreen(),
         const CustomerProfileScreen(),
       ];
     }
@@ -127,7 +127,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
         },
       ),
       bottomNavigationBar: SizedBox(
-        height: 110, // 70
+        height: 70, // 70 110
         child: BlocBuilder<BottomNavigationBloc, BottomNavigationState>(
           builder: (context, state) {
             return BottomNavigationBar(

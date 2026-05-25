@@ -1,11 +1,11 @@
 {
-    "name": "app_frontend",
-    "short_name": "app_frontend",
+    "name": "Velmora Vendor",
+    "short_name": "Velmora",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Seller Dashboard for Velmora E-commerce.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

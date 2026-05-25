@@ -1629,6 +1629,8 @@
 
 // ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
 
+import 'dart:typed_data';
+
 import 'package:app_frontend/features/seller/products/service/product_service.dart';
 import 'package:app_frontend/features/seller/products/model/product_model.dart';
 import 'package:app_frontend/utils/common/custom_text_field.dart';
@@ -1636,7 +1638,8 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:html' as html;
+// import 'dart:html' as html;
+
 import 'dart:io';
 
 class ProductFormWidget extends StatefulWidget {
@@ -1663,14 +1666,14 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
 
   List<MapEntry<String, String>> _specifications = [];
 
-  List<int>? mainBannerImageBytes;
+  // Use Uint8List instead of blob URLs
+  Uint8List? mainBannerImageBytes;
   String? mainBannerImageName;
-  String? mainBannerImageUrl;
-  List<List<int>> multipleImagesBytes = [];
-  List<String> multipleImageNames = [];
-  List<String> multipleImageUrls = [];
 
-  File? mainBannerImageFile;
+  List<Uint8List> multipleImagesBytes = [];
+  List<String> multipleImageNames = [];
+
+  File? mainBannerImageFile; // kept for edit mode mobile path fallback
   List<File> newMultipleImageFiles = [];
   List<String> existingMultipleImages = [];
 
@@ -1721,13 +1724,11 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
         text: widget.product!.detailedDescription,
       );
       tagsInputController = TextEditingController();
-
       _specifications =
           widget.product!.specifications.entries
-              .map((entry) => MapEntry(entry.key, entry.value.toString()))
+              .map((e) => MapEntry(e.key, e.value.toString()))
               .toList();
       _selectedTags = List.from(widget.product!.tags);
-
       existingMultipleImages = List.from(widget.product!.multipleImages);
     } else {
       productNameController = TextEditingController();
@@ -1738,19 +1739,14 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
       subCategoryController = TextEditingController();
       shortDescriptionController = TextEditingController();
       detailedDescriptionController = TextEditingController();
-      _selectedTags = [];
       tagsInputController = TextEditingController();
+      _selectedTags = [];
     }
   }
 
   @override
   void dispose() {
-    if (!isEditMode && mainBannerImageUrl != null) {
-      html.Url.revokeObjectUrl(mainBannerImageUrl!);
-    }
-    for (var url in multipleImageUrls) {
-      html.Url.revokeObjectUrl(url);
-    }
+    // No blob URLs to revoke — memory is managed by GC
     productNameController.dispose();
     priceController.dispose();
     discountPriceController.dispose();
@@ -1776,61 +1772,38 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-
       setState(() {
         mainBannerImageBytes = bytes;
         mainBannerImageName = pickedFile.name;
-        mainBannerImageUrl = url;
       });
     }
   }
 
   Future<void> pickMultipleImages() async {
     final pickedFiles = await picker.pickMultiImage();
-
     if (pickedFiles.isNotEmpty) {
-      final List<String> urls = [];
-      final List<List<int>> bytesList = [];
-      final List<String> names = [];
-
       for (var file in pickedFiles) {
         final bytes = await file.readAsBytes();
-        final blob = html.Blob([bytes]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-
-        urls.add(url);
-        bytesList.add(bytes);
-        names.add(file.name);
+        setState(() {
+          multipleImagesBytes.add(bytes);
+          multipleImageNames.add(file.name);
+        });
       }
-
-      setState(() {
-        multipleImageUrls.addAll(urls);
-        multipleImagesBytes.addAll(bytesList);
-        multipleImageNames.addAll(names);
-      });
     }
   }
 
   void removeMultipleImage(int index) {
-    if (!isEditMode) {
-      html.Url.revokeObjectUrl(multipleImageUrls[index]);
-    }
-
     setState(() {
-      multipleImageUrls.removeAt(index);
       multipleImagesBytes.removeAt(index);
       multipleImageNames.removeAt(index);
     });
   }
 
+  // Edit mode image pickers (same logic, no dart:html needed)
   Future<void> pickEditMainBannerImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
-
       setState(() {
         mainBannerImageBytes = bytes;
         mainBannerImageName = pickedFile.name;
@@ -1841,30 +1814,15 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
 
   Future<void> pickEditMultipleImages() async {
     final pickedFiles = await picker.pickMultiImage();
-
     if (pickedFiles.isNotEmpty) {
-      final List<List<int>> bytesList = [];
-      final List<String> names = [];
-      final List<File> files = [];
-      final List<String> urls = [];
-
       for (var file in pickedFiles) {
         final bytes = await file.readAsBytes();
-        final blob = html.Blob([bytes]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-
-        urls.add(url);
-        bytesList.add(bytes);
-        names.add(file.name);
-        files.add(File(file.path));
+        setState(() {
+          multipleImagesBytes.add(bytes);
+          multipleImageNames.add(file.name);
+          newMultipleImageFiles.add(File(file.path));
+        });
       }
-
-      setState(() {
-        multipleImageUrls.addAll(urls);
-        multipleImagesBytes.addAll(bytesList);
-        multipleImageNames.addAll(names);
-        newMultipleImageFiles.addAll(files);
-      });
     }
   }
 
@@ -1872,37 +1830,27 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
       setState(() => existingMultipleImages.removeAt(index));
 
   void removeNewEditImage(int index) {
-    if (index < multipleImageUrls.length) {
-      html.Url.revokeObjectUrl(multipleImageUrls[index]);
-      setState(() {
-        multipleImageUrls.removeAt(index);
-        multipleImagesBytes.removeAt(index);
-        multipleImageNames.removeAt(index);
+    setState(() {
+      multipleImagesBytes.removeAt(index);
+      multipleImageNames.removeAt(index);
+      if (index < newMultipleImageFiles.length) {
         newMultipleImageFiles.removeAt(index);
-      });
-    }
+      }
+    });
   }
 
   void _addTag(String tag) {
     if (tag.trim().isNotEmpty && !_selectedTags.contains(tag.trim())) {
-      setState(() {
-        _selectedTags.add(tag.trim());
-      });
+      setState(() => _selectedTags.add(tag.trim()));
     }
     tagsInputController.clear();
   }
 
-  void _removeTag(String tag) {
-    setState(() {
-      _selectedTags.remove(tag);
-    });
-  }
+  void _removeTag(String tag) => setState(() => _selectedTags.remove(tag));
 
   void _addSuggestedTag(String tag) {
     if (!_selectedTags.contains(tag)) {
-      setState(() {
-        _selectedTags.add(tag);
-      });
+      setState(() => _selectedTags.add(tag));
     }
   }
 
@@ -1919,10 +1867,7 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
     setState(() => isLoading = true);
 
     try {
-      // final tags = _selectedTags;
-
       final Map<String, dynamic> specifications = {};
-
       for (var spec in _specifications) {
         if (spec.key.trim().isNotEmpty && spec.value.trim().isNotEmpty) {
           specifications[spec.key.trim()] = spec.value.trim();
@@ -1969,7 +1914,6 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
               backgroundColor: Colors.green,
             ),
           );
-
           widget.onSuccess();
         }
       } else {
@@ -1981,14 +1925,6 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
           multipleImagesNames: multipleImageNames,
         );
 
-        if (mainBannerImageUrl != null) {
-          html.Url.revokeObjectUrl(mainBannerImageUrl!);
-        }
-
-        for (var url in multipleImageUrls) {
-          html.Url.revokeObjectUrl(url);
-        }
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -1996,7 +1932,6 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
               backgroundColor: Colors.green,
             ),
           );
-
           widget.onSuccess();
         }
       }
@@ -2012,6 +1947,270 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
+  }
+
+  // ── The rest of your build() and helper widgets are unchanged ──
+  // Just update _buildMainBannerPreview() to use Image.memory instead of Image.network for local bytes
+
+  Widget _buildMainBannerPreview() {
+    final bool hasNewBytes = mainBannerImageBytes != null;
+    final bool hasExistingNetwork =
+        isEditMode && widget.product != null && !hasNewBytes;
+
+    if (hasNewBytes || hasExistingNetwork) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child:
+                hasNewBytes
+                    ? Image.memory(
+                      mainBannerImageBytes!,
+                      fit: BoxFit.cover,
+                      width: 560,
+                      height: 320,
+                    )
+                    : Image.network(
+                      widget.product!.mainBannerImage,
+                      fit: BoxFit.cover,
+                      width: 560,
+                      height: 320,
+                      errorBuilder:
+                          (context, error, stackTrace) => Container(
+                            width: 560,
+                            height: 320,
+                            color: const Color(0xFFF8FAFC),
+                            child: const Icon(
+                              Icons.broken_image,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
+                    ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap:
+                  () => setState(() {
+                    mainBannerImageBytes = null;
+                    mainBannerImageName = null;
+                    mainBannerImageFile = null;
+                  }),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.all(6.0),
+                  child: Icon(Icons.close, size: 16, color: Colors.black),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Placeholder
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.cloud_upload, size: 40, color: Colors.grey.shade400),
+        const SizedBox(height: 8),
+        Text(
+          'Click to Upload Images',
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          'SVG, PNG, JPG, or GIF (max. 800x400px)',
+          style: TextStyle(
+            color: Colors.grey.shade500,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.withOpacity(0.3), width: 0.5),
+          ),
+          child: const Text(
+            'Select File',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdditionalImagesPreview() {
+    if (isEditMode) {
+      if (existingMultipleImages.isEmpty && multipleImagesBytes.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (existingMultipleImages.isNotEmpty) ...[
+            const Text(
+              'Existing Images',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: existingMultipleImages.length,
+                itemBuilder:
+                    (context, index) => _networkImageTile(
+                      existingMultipleImages[index],
+                      onRemove: () => removeExistingImage(index),
+                    ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (multipleImagesBytes.isNotEmpty) ...[
+            const Text(
+              'New Images',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: multipleImagesBytes.length,
+                itemBuilder:
+                    (context, index) => _memoryImageTile(
+                      multipleImagesBytes[index],
+                      onRemove: () => removeNewEditImage(index),
+                    ),
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    if (multipleImagesBytes.isEmpty) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: multipleImagesBytes.length,
+        itemBuilder:
+            (context, index) => _memoryImageTile(
+              multipleImagesBytes[index],
+              onRemove: () => removeMultipleImage(index),
+            ),
+      ),
+    );
+  }
+
+  Widget _memoryImageTile(Uint8List bytes, {required VoidCallback onRemove}) {
+    return Container(
+      width: 100,
+      margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(
+              bytes,
+              fit: BoxFit.cover,
+              width: 100,
+              height: 100,
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _networkImageTile(String url, {required VoidCallback onRemove}) {
+    return Container(
+      width: 100,
+      margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              url,
+              fit: BoxFit.cover,
+              width: 100,
+              height: 100,
+              errorBuilder:
+                  (c, e, s) =>
+                      const Icon(Icons.broken_image, color: Colors.grey),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -3090,325 +3289,325 @@ class _ProductFormWidgetState extends State<ProductFormWidget> {
         );
   }
 
-  Widget _buildMainBannerPreview() {
-    final bool hasImage =
-        (isEditMode &&
-            (mainBannerImageFile != null || widget.product != null)) ||
-        (!isEditMode && mainBannerImageUrl != null);
+  // Widget _buildMainBannerPreview() {
+  //   final bool hasImage =
+  //       (isEditMode &&
+  //           (mainBannerImageFile != null || widget.product != null)) ||
+  //       (!isEditMode && mainBannerImageUrl != null);
 
-    if (hasImage) {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child:
-                isEditMode
-                    ? (mainBannerImageFile != null
-                        ? Image.file(
-                          mainBannerImageFile!,
-                          fit: BoxFit.cover,
-                          width: 560,
-                          height: 320,
-                        )
-                        : Image.network(
-                          widget.product!.mainBannerImage,
-                          fit: BoxFit.cover,
-                          width: 560,
-                          height: 320,
-                          errorBuilder:
-                              (context, error, stackTrace) => Container(
-                                width: 560,
-                                height: 320,
-                                color: const Color(0xFFF8FAFC),
-                                child: const Icon(
-                                  Icons.broken_image,
-                                  color: Colors.grey,
-                                  size: 40,
-                                ),
-                              ),
-                        ))
-                    : Image.network(
-                      mainBannerImageUrl!,
-                      fit: BoxFit.cover,
-                      width: 560,
-                      height: 320,
-                    ),
-          ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (isEditMode) {
-                    if (mainBannerImageUrl != null) {
-                      html.Url.revokeObjectUrl(mainBannerImageUrl!);
-                    }
-                    mainBannerImageBytes = null;
-                    mainBannerImageName = null;
-                    mainBannerImageUrl = null;
-                    mainBannerImageFile = null;
-                  } else {
-                    if (mainBannerImageUrl != null) {
-                      html.Url.revokeObjectUrl(mainBannerImageUrl!);
-                    }
-                    mainBannerImageBytes = null;
-                    mainBannerImageName = null;
-                    mainBannerImageUrl = null;
-                  }
-                });
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(6.0),
-                  child: Icon(Icons.close, size: 16, color: Colors.black),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
+  //   if (hasImage) {
+  //     return Stack(
+  //       fit: StackFit.expand,
+  //       children: [
+  //         ClipRRect(
+  //           borderRadius: BorderRadius.circular(12),
+  //           child:
+  //               isEditMode
+  //                   ? (mainBannerImageFile != null
+  //                       ? Image.file(
+  //                         mainBannerImageFile!,
+  //                         fit: BoxFit.cover,
+  //                         width: 560,
+  //                         height: 320,
+  //                       )
+  //                       : Image.network(
+  //                         widget.product!.mainBannerImage,
+  //                         fit: BoxFit.cover,
+  //                         width: 560,
+  //                         height: 320,
+  //                         errorBuilder:
+  //                             (context, error, stackTrace) => Container(
+  //                               width: 560,
+  //                               height: 320,
+  //                               color: const Color(0xFFF8FAFC),
+  //                               child: const Icon(
+  //                                 Icons.broken_image,
+  //                                 color: Colors.grey,
+  //                                 size: 40,
+  //                               ),
+  //                             ),
+  //                       ))
+  //                   : Image.network(
+  //                     mainBannerImageUrl!,
+  //                     fit: BoxFit.cover,
+  //                     width: 560,
+  //                     height: 320,
+  //                   ),
+  //         ),
+  //         Positioned(
+  //           top: 8,
+  //           right: 8,
+  //           child: GestureDetector(
+  //             onTap: () {
+  //               setState(() {
+  //                 if (isEditMode) {
+  //                   if (mainBannerImageUrl != null) {
+  //                     html.Url.revokeObjectUrl(mainBannerImageUrl!);
+  //                   }
+  //                   mainBannerImageBytes = null;
+  //                   mainBannerImageName = null;
+  //                   mainBannerImageUrl = null;
+  //                   mainBannerImageFile = null;
+  //                 } else {
+  //                   if (mainBannerImageUrl != null) {
+  //                     html.Url.revokeObjectUrl(mainBannerImageUrl!);
+  //                   }
+  //                   mainBannerImageBytes = null;
+  //                   mainBannerImageName = null;
+  //                   mainBannerImageUrl = null;
+  //                 }
+  //               });
+  //             },
+  //             child: Container(
+  //               decoration: BoxDecoration(
+  //                 color: Colors.white,
+  //                 shape: BoxShape.circle,
+  //                 boxShadow: [
+  //                   BoxShadow(
+  //                     color: Colors.black.withOpacity(0.1),
+  //                     blurRadius: 4,
+  //                     offset: const Offset(0, 2),
+  //                   ),
+  //                 ],
+  //               ),
+  //               child: const Padding(
+  //                 padding: EdgeInsets.all(6.0),
+  //                 child: Icon(Icons.close, size: 16, color: Colors.black),
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     );
+  //   }
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.cloud_upload, size: 40, color: Colors.grey.shade400),
-        const SizedBox(height: 8),
-        Text(
-          'Click to Upload Images',
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Text(
-          'SVG, PNG, JPG, or GIF (max. 800x400px)',
-          style: TextStyle(
-            color: Colors.grey.shade500,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withOpacity(0.3), width: 0.5),
-          ),
-          child: Text(
-            "Select File",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
-    );
-  }
+  //   return Column(
+  //     mainAxisAlignment: MainAxisAlignment.center,
+  //     children: [
+  //       Icon(Icons.cloud_upload, size: 40, color: Colors.grey.shade400),
+  //       const SizedBox(height: 8),
+  //       Text(
+  //         'Click to Upload Images',
+  //         style: TextStyle(
+  //           color: Colors.grey.shade600,
+  //           fontWeight: FontWeight.w600,
+  //         ),
+  //       ),
+  //       Text(
+  //         'SVG, PNG, JPG, or GIF (max. 800x400px)',
+  //         style: TextStyle(
+  //           color: Colors.grey.shade500,
+  //           fontWeight: FontWeight.w500,
+  //         ),
+  //       ),
+  //       const SizedBox(height: 12),
+  //       Container(
+  //         padding: const EdgeInsets.all(10),
+  //         decoration: BoxDecoration(
+  //           color: Colors.white,
+  //           borderRadius: BorderRadius.circular(8),
+  //           border: Border.all(color: Colors.grey.withOpacity(0.3), width: 0.5),
+  //         ),
+  //         child: Text(
+  //           "Select File",
+  //           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
-  Widget _buildAdditionalImagesPreview() {
-    if (isEditMode) {
-      if (existingMultipleImages.isEmpty &&
-          newMultipleImageFiles.isEmpty &&
-          multipleImageUrls.isEmpty) {
-        return const SizedBox.shrink();
-      }
+  // Widget _buildAdditionalImagesPreview() {
+  //   if (isEditMode) {
+  //     if (existingMultipleImages.isEmpty &&
+  //         newMultipleImageFiles.isEmpty &&
+  //         multipleImageUrls.isEmpty) {
+  //       return const SizedBox.shrink();
+  //     }
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (existingMultipleImages.isNotEmpty) ...[
-            const Text(
-              'Existing Images',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF64748B),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: existingMultipleImages.length,
-                itemBuilder:
-                    (context, index) => Container(
-                      width: 100,
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              existingMultipleImages[index],
-                              fit: BoxFit.cover,
-                              width: 100,
-                              height: 100,
-                              errorBuilder:
-                                  (context, error, stackTrace) => Container(
-                                    color: const Color(0xFFF8FAFC),
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      color: Colors.grey,
-                                      size: 30,
-                                    ),
-                                  ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: GestureDetector(
-                              onTap: () => removeExistingImage(index),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-          if (multipleImageUrls.isNotEmpty) ...[
-            const Text(
-              'New Images',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF64748B),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: multipleImageUrls.length,
-                itemBuilder:
-                    (context, index) => Container(
-                      width: 100,
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              multipleImageUrls[index],
-                              fit: BoxFit.cover,
-                              width: 100,
-                              height: 100,
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: GestureDetector(
-                              onTap: () => removeMultipleImage(index),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-              ),
-            ),
-          ],
-        ],
-      );
-    }
+  //     return Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         if (existingMultipleImages.isNotEmpty) ...[
+  //           const Text(
+  //             'Existing Images',
+  //             style: TextStyle(
+  //               fontSize: 12,
+  //               fontWeight: FontWeight.w500,
+  //               color: Color(0xFF64748B),
+  //             ),
+  //           ),
+  //           const SizedBox(height: 8),
+  //           SizedBox(
+  //             height: 100,
+  //             child: ListView.builder(
+  //               scrollDirection: Axis.horizontal,
+  //               itemCount: existingMultipleImages.length,
+  //               itemBuilder:
+  //                   (context, index) => Container(
+  //                     width: 100,
+  //                     margin: const EdgeInsets.only(right: 8),
+  //                     decoration: BoxDecoration(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                       border: Border.all(color: Colors.grey.shade300),
+  //                     ),
+  //                     child: Stack(
+  //                       children: [
+  //                         ClipRRect(
+  //                           borderRadius: BorderRadius.circular(8),
+  //                           child: Image.network(
+  //                             existingMultipleImages[index],
+  //                             fit: BoxFit.cover,
+  //                             width: 100,
+  //                             height: 100,
+  //                             errorBuilder:
+  //                                 (context, error, stackTrace) => Container(
+  //                                   color: const Color(0xFFF8FAFC),
+  //                                   child: const Icon(
+  //                                     Icons.broken_image,
+  //                                     color: Colors.grey,
+  //                                     size: 30,
+  //                                   ),
+  //                                 ),
+  //                           ),
+  //                         ),
+  //                         Positioned(
+  //                           top: 4,
+  //                           right: 4,
+  //                           child: GestureDetector(
+  //                             onTap: () => removeExistingImage(index),
+  //                             child: Container(
+  //                               decoration: BoxDecoration(
+  //                                 color: Colors.black.withOpacity(0.5),
+  //                                 shape: BoxShape.circle,
+  //                               ),
+  //                               child: const Icon(
+  //                                 Icons.close,
+  //                                 size: 16,
+  //                                 color: Colors.white,
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //             ),
+  //           ),
+  //           const SizedBox(height: 12),
+  //         ],
+  //         if (multipleImageUrls.isNotEmpty) ...[
+  //           const Text(
+  //             'New Images',
+  //             style: TextStyle(
+  //               fontSize: 12,
+  //               fontWeight: FontWeight.w500,
+  //               color: Color(0xFF64748B),
+  //             ),
+  //           ),
+  //           const SizedBox(height: 8),
+  //           SizedBox(
+  //             height: 100,
+  //             child: ListView.builder(
+  //               scrollDirection: Axis.horizontal,
+  //               itemCount: multipleImageUrls.length,
+  //               itemBuilder:
+  //                   (context, index) => Container(
+  //                     width: 100,
+  //                     margin: const EdgeInsets.only(right: 8),
+  //                     decoration: BoxDecoration(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                       border: Border.all(color: Colors.grey.shade300),
+  //                     ),
+  //                     child: Stack(
+  //                       children: [
+  //                         ClipRRect(
+  //                           borderRadius: BorderRadius.circular(8),
+  //                           child: Image.network(
+  //                             multipleImageUrls[index],
+  //                             fit: BoxFit.cover,
+  //                             width: 100,
+  //                             height: 100,
+  //                           ),
+  //                         ),
+  //                         Positioned(
+  //                           top: 4,
+  //                           right: 4,
+  //                           child: GestureDetector(
+  //                             onTap: () => removeMultipleImage(index),
+  //                             child: Container(
+  //                               decoration: BoxDecoration(
+  //                                 color: Colors.black.withOpacity(0.5),
+  //                                 shape: BoxShape.circle,
+  //                               ),
+  //                               child: const Icon(
+  //                                 Icons.close,
+  //                                 size: 16,
+  //                                 color: Colors.white,
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //             ),
+  //           ),
+  //         ],
+  //       ],
+  //     );
+  //   }
 
-    if (multipleImageUrls.isEmpty) {
-      return const SizedBox.shrink();
-    }
+  //   if (multipleImageUrls.isEmpty) {
+  //     return const SizedBox.shrink();
+  //   }
 
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: multipleImageUrls.length,
-        itemBuilder:
-            (context, index) => Container(
-              width: 100,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      multipleImageUrls[index],
-                      fit: BoxFit.cover,
-                      width: 100,
-                      height: 100,
-                    ),
-                  ),
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: GestureDetector(
-                      onTap: () => removeMultipleImage(index),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-      ),
-    );
-  }
+  //   return SizedBox(
+  //     height: 100,
+  //     child: ListView.builder(
+  //       scrollDirection: Axis.horizontal,
+  //       itemCount: multipleImageUrls.length,
+  //       itemBuilder:
+  //           (context, index) => Container(
+  //             width: 100,
+  //             margin: const EdgeInsets.only(right: 8),
+  //             decoration: BoxDecoration(
+  //               borderRadius: BorderRadius.circular(8),
+  //               border: Border.all(color: Colors.grey.shade300),
+  //             ),
+  //             child: Stack(
+  //               children: [
+  //                 ClipRRect(
+  //                   borderRadius: BorderRadius.circular(8),
+  //                   child: Image.network(
+  //                     multipleImageUrls[index],
+  //                     fit: BoxFit.cover,
+  //                     width: 100,
+  //                     height: 100,
+  //                   ),
+  //                 ),
+  //                 Positioned(
+  //                   top: 4,
+  //                   right: 4,
+  //                   child: GestureDetector(
+  //                     onTap: () => removeMultipleImage(index),
+  //                     child: Container(
+  //                       decoration: BoxDecoration(
+  //                         color: Colors.black.withOpacity(0.5),
+  //                         shape: BoxShape.circle,
+  //                       ),
+  //                       child: const Icon(
+  //                         Icons.close,
+  //                         size: 16,
+  //                         color: Colors.white,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //     ),
+  //   );
+  // }
 }
