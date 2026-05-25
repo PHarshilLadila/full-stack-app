@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_table_view/material_table_view.dart';
+import 'package:material_table_view/table_view_typedefs.dart';
 import '../bloc/seller_order_bloc.dart';
 import '../bloc/seller_order_event.dart';
 import '../bloc/seller_order_state.dart';
@@ -169,11 +171,35 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
   }
 
   Widget _buildOrdersTable(SellerOrderLoaded state) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 1000;
+    final availableWidth = screenSize.width - 48;
+
+    /// Total = 100
+    final columnFlex = [14, 16, 10, 10, 10, 10, 10];
+
+    final columnWidths =
+        columnFlex.map((flex) => (availableWidth * flex / 100)).toList();
+
+    final rowHeight = 90.0;
+    final headerHeight = 70.0;
+    final tableHeight = (state.orders.length * rowHeight) + headerHeight;
+
+    final columns = [
+      TableColumn(width: columnWidths[0], minResizeWidth: 220),
+      TableColumn(width: columnWidths[1], minResizeWidth: 220),
+      TableColumn(width: columnWidths[2], minResizeWidth: 100),
+      TableColumn(width: columnWidths[3], minResizeWidth: 120),
+      TableColumn(width: columnWidths[4], minResizeWidth: 150),
+      TableColumn(width: columnWidths[5], minResizeWidth: 120),
+      TableColumn(width: columnWidths[6], minResizeWidth: 140),
+    ];
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -182,154 +208,285 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Orders List',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columnSpacing: 24,
-              headingRowColor: WidgetStateProperty.resolveWith(
-                (states) => const Color(0xFFF8FAFC),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: SizedBox(
+          height: tableHeight,
+          child: TableView.builder(
+            columns: columns,
+            rowCount: state.orders.length,
+            rowHeight: rowHeight,
+            headerHeight: headerHeight,
+            style: TableViewStyle(
+              dividers: TableViewDividersStyle(
+                horizontal: TableViewHorizontalDividersStyle(
+                  header: TableViewHorizontalDividerStyle(
+                    color: Colors.grey.shade300,
+                    thickness: 0.5,
+                  ),
+                  footer: TableViewHorizontalDividerStyle(
+                    color: Colors.grey.shade300,
+                    thickness: 0.5,
+                  ),
+                ),
               ),
-              columns: const [
-                DataColumn(
-                  label: Text(
-                    'Order ID',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Customer',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Items',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Total',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Status',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Date',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Actions',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-              rows:
-                  state.orders.map((order) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          Text(
-                            order.orderId.length > 12
-                                ? '${order.orderId.substring(0, 12)}...'
-                                : order.orderId,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                        DataCell(Text(order.customer.fullName)),
-                        DataCell(Text('${order.items.length} items')),
-                        DataCell(
-                          Text(
-                            '₹${order.totalAmount.toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        DataCell(
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getStatusColor(
-                                order.orderStatus,
-                              ).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _formatStatus(order.orderStatus),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: _getStatusColor(order.orderStatus),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(Text(_formatDate(order.orderDate))),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.visibility, size: 18),
-                                onPressed: () => _showOrderDetails(order),
-                                color: const Color(0xFF3B82F6),
-                                tooltip: 'View Details',
-                              ),
-                              if (_canUpdateStatus(order.orderStatus))
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 18),
-                                  onPressed:
-                                      () => _showStatusUpdateDialog(order),
-                                  color: const Color(0xFF7C3AED),
-                                  tooltip: 'Update Status',
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
             ),
-          ),
-          if (!state.hasReachedMax)
-            const Padding(
-              padding: EdgeInsets.only(top: 16),
-              child: Center(
-                child: SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF7C3AED),
+
+            rowBuilder: (context, row, TableRowContentBuilder contentBuilder) {
+              final order = state.orders[row];
+              final statusColor = _getStatusColor(order.orderStatus);
+
+              return contentBuilder(context, (context, column) {
+                switch (column) {
+                  /// ORDER ID
+                  case 0:
+                    return Container(
+                      width: columnWidths[column],
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.orderId,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: isSmallScreen ? 11 : 13,
+                              color: const Color(0xFF1E293B),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          Text(
+                            'ID: ${order.orderId}',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 9 : 11,
+                              color: Colors.grey.shade500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    );
+
+                  /// CUSTOMER
+                  case 1:
+                    return Container(
+                      width: columnWidths[column],
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: isSmallScreen ? 18 : 22,
+                            backgroundColor: const Color(
+                              0xFF7C3AED,
+                            ).withOpacity(0.1),
+                            child: Text(
+                              order.customer.fullName[0].toUpperCase(),
+                              style: const TextStyle(
+                                color: Color(0xFF7C3AED),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  order.customer.fullName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: isSmallScreen ? 11 : 13,
+                                    color: const Color(0xFF1E293B),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+
+                                const SizedBox(height: 4),
+
+                                Text(
+                                  order.customer.mobileNumber,
+                                  style: TextStyle(
+                                    fontSize: isSmallScreen ? 9 : 11,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+
+                  /// ITEMS
+                  case 2:
+                    return Container(
+                      width: columnWidths[column],
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        '${order.items.length} Items',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: isSmallScreen ? 11 : 13,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    );
+
+                  /// TOTAL
+                  case 3:
+                    return Container(
+                      width: columnWidths[column],
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        '₹${order.totalAmount.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: isSmallScreen ? 12 : 14,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+                    );
+
+                  /// STATUS
+                  case 4:
+                    return Container(
+                      width: columnWidths[column],
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 8 : 12,
+                          vertical: isSmallScreen ? 5 : 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          _formatStatus(order.orderStatus),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 10 : 12,
+                            color: statusColor,
+
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    );
+
+                  /// DATE
+                  case 5:
+                    return Container(
+                      width: columnWidths[column],
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        _formatDate(order.orderDate),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: isSmallScreen ? 11 : 12,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    );
+
+                  /// ACTIONS
+                  case 6:
+                    return Container(
+                      width: columnWidths[column],
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.visibility_outlined),
+                            onPressed: () => _showOrderDetails(order),
+                            tooltip: 'View Details',
+                            color: const Color(0xFF3B82F6),
+                            iconSize: isSmallScreen ? 18 : 20,
+                          ),
+
+                          if (_canUpdateStatus(order.orderStatus))
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () => _showStatusUpdateDialog(order),
+                              tooltip: 'Update Status',
+                              color: const Color(0xFF7C3AED),
+                              iconSize: isSmallScreen ? 18 : 20,
+                            ),
+                        ],
+                      ),
+                    );
+
+                  default:
+                    return const SizedBox();
+                }
+              });
+            },
+
+            /// HEADER
+            headerBuilder: (context, contentBuilder) {
+              final headers = [
+                'Order ID',
+                'Customer',
+                'Items',
+                'Total',
+                'Status',
+                'Date',
+                'Actions',
+              ];
+
+              return contentBuilder(context, (context, column) {
+                return Container(
+                  width: columnWidths[column],
+                  alignment:
+                      column == 0 || column == 1
+                          ? Alignment.centerLeft
+                          : Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF8FAFC),
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey, width: 0.5),
                     ),
                   ),
-                ),
-              ),
-            ),
-        ],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    headers[column],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                );
+              });
+            },
+          ),
+        ),
       ),
     );
   }

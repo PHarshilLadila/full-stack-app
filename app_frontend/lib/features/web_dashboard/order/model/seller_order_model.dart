@@ -40,25 +40,41 @@ class SellerOrderModel extends Equatable {
   });
 
   factory SellerOrderModel.fromJson(Map<String, dynamic> json) {
+    print(
+      'Order JSON keys: ${json.keys}',
+    ); // This will show all available fields
+    print('customerName: ${json['customerName']}');
+    print('customerMobile: ${json['customerMobile']}');
     return SellerOrderModel(
-      id: json['_id'] ?? json['id'] ?? '',
-      orderId: json['orderId'] ?? json['order_id'] ?? '',
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      orderId:
+          json['orderId']?.toString() ?? json['order_id']?.toString() ?? '',
+
       items:
           (json['items'] as List?)
               ?.map((item) => SellerOrderItem.fromJson(item))
               .toList() ??
           [],
-      customer: CustomerInfo.fromJson(json['customer'] ?? {}),
+
+      // FIXED: Get customer data directly from order object
+      customer: CustomerInfo(
+        id: '', // No user ID in the order object
+        fullName: json['customerName']?.toString() ?? '',
+        email: json['customerEmail']?.toString() ?? '',
+        mobileNumber: json['customerMobile']?.toString() ?? '',
+      ),
+
       shippingAddress: ShippingAddress.fromJson(json['shippingAddress'] ?? {}),
+
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
       shippingCharge: (json['shippingCharge'] as num?)?.toDouble() ?? 0.0,
       discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0.0,
       taxAmount: (json['taxAmount'] as num?)?.toDouble() ?? 0.0,
       totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
-      paymentMethod: json['paymentMethod'] ?? '',
-      paymentStatus: json['paymentStatus'] ?? '',
-      orderStatus: json['orderStatus'] ?? '',
-      trackingId: json['trackingId'],
+      paymentMethod: json['paymentMethod']?.toString() ?? '',
+      paymentStatus: json['paymentStatus']?.toString() ?? '',
+      orderStatus: json['orderStatus']?.toString() ?? '',
+      trackingId: json['trackingId']?.toString(),
       orderDate:
           json['orderDate'] != null
               ? DateTime.parse(json['orderDate'])
@@ -121,15 +137,34 @@ class SellerOrderItem extends Equatable {
 
   factory SellerOrderItem.fromJson(Map<String, dynamic> json) {
     return SellerOrderItem(
-      productId: json['productId'] ?? json['product_id'] ?? '',
-      productName: json['productName'] ?? json['product_name'] ?? '',
-      productImage: json['productImage'] ?? json['product_image'] ?? '',
+      productId:
+          json['productId']?.toString() ?? json['product_id']?.toString() ?? '',
+
+      productName:
+          json['productName']?.toString() ??
+          json['product_name']?.toString() ??
+          '',
+
+      productImage:
+          json['productImage']?.toString() ??
+          json['product_image']?.toString() ??
+          '',
+
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
+
       discountPrice: (json['discountPrice'] as num?)?.toDouble() ?? 0.0,
+
       quantity: json['quantity'] ?? 1,
+
       totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
-      sellerId: json['sellerId'] ?? json['seller_id'] ?? '',
-      sellerName: json['sellerName'] ?? json['seller_name'] ?? '',
+
+      sellerId:
+          json['sellerId']?.toString() ?? json['seller_id']?.toString() ?? '',
+
+      sellerName:
+          json['sellerName']?.toString() ??
+          json['seller_name']?.toString() ??
+          '',
     );
   }
 
@@ -162,10 +197,22 @@ class CustomerInfo extends Equatable {
 
   factory CustomerInfo.fromJson(Map<String, dynamic> json) {
     return CustomerInfo(
-      id: json['_id'] ?? json['id'] ?? '',
-      fullName: json['fullName'] ?? json['full_name'] ?? '',
-      email: json['email'] ?? '',
-      mobileNumber: json['mobileNumber'] ?? json['mobile_number'] ?? '',
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+
+      fullName:
+          json['fullName']?.toString() ??
+          json['full_name']?.toString() ??
+          json['name']?.toString() ??
+          json['username']?.toString() ??
+          '',
+
+      email: json['email']?.toString() ?? '',
+
+      mobileNumber:
+          json['mobileNumber']?.toString() ??
+          json['mobile_number']?.toString() ??
+          json['mobile']?.toString() ??
+          '',
     );
   }
 
@@ -198,15 +245,33 @@ class ShippingAddress extends Equatable {
 
   factory ShippingAddress.fromJson(Map<String, dynamic> json) {
     return ShippingAddress(
-      fullName: json['fullName'] ?? json['full_name'] ?? '',
-      mobileNumber: json['mobileNumber'] ?? json['mobile_number'] ?? '',
-      pincode: json['pincode'] ?? '',
-      addressLine1: json['addressLine1'] ?? json['address_line1'] ?? '',
-      addressLine2: json['addressLine2'] ?? json['address_line2'] ?? '',
-      landmark: json['landmark'] ?? '',
-      city: json['city'] ?? '',
-      state: json['state'] ?? '',
-      country: json['country'] ?? '',
+      fullName:
+          json['fullName']?.toString() ?? json['full_name']?.toString() ?? '',
+
+      mobileNumber:
+          json['mobileNumber']?.toString() ??
+          json['mobile_number']?.toString() ??
+          '',
+
+      pincode: json['pincode']?.toString() ?? '',
+
+      addressLine1:
+          json['addressLine1']?.toString() ??
+          json['address_line1']?.toString() ??
+          '',
+
+      addressLine2:
+          json['addressLine2']?.toString() ??
+          json['address_line2']?.toString() ??
+          '',
+
+      landmark: json['landmark']?.toString() ?? '',
+
+      city: json['city']?.toString() ?? '',
+
+      state: json['state']?.toString() ?? '',
+
+      country: json['country']?.toString() ?? '',
     );
   }
 
@@ -268,9 +333,11 @@ class OrderStatusUpdateRequest extends Equatable {
 
   Map<String, dynamic> toJson() {
     final data = {'orderId': orderId, 'orderStatus': orderStatus};
+
     if (trackingId != null) {
-      data['trackingId'] = trackingId ?? "";
+      data['trackingId'] = trackingId!;
     }
+
     return data;
   }
 
@@ -301,13 +368,20 @@ class OrderStats extends Equatable {
 
   factory OrderStats.fromOrders(List<SellerOrderModel> orders) {
     int total = orders.length;
+
     int pending = orders.where((o) => o.orderStatus == 'pending').length;
+
     int confirmed = orders.where((o) => o.orderStatus == 'confirmed').length;
+
     int shipped = orders.where((o) => o.orderStatus == 'shipped').length;
+
     int outForDelivery =
         orders.where((o) => o.orderStatus == 'out_for_delivery').length;
+
     int delivered = orders.where((o) => o.orderStatus == 'delivered').length;
+
     int cancelled = orders.where((o) => o.orderStatus == 'cancelled').length;
+
     double revenue = orders
         .where((o) => o.orderStatus == 'delivered')
         .fold(0.0, (sum, o) => sum + o.totalAmount);

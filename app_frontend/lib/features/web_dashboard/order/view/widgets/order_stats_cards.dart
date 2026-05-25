@@ -15,6 +15,8 @@ class OrderStatsCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     final cards = [
       {
         'title': 'Total Orders',
@@ -67,19 +69,36 @@ class OrderStatsCards extends StatelessWidget {
       },
     ];
 
+    int crossAxisCount = 7;
+
+    if (screenWidth < 600) {
+      crossAxisCount = 1;
+    } else if (screenWidth < 900) {
+      crossAxisCount = 2;
+    } else if (screenWidth < 1200) {
+      crossAxisCount = 3;
+    } else if (screenWidth < 1500) {
+      crossAxisCount = 4;
+    } else if (screenWidth < 1800) {
+      crossAxisCount = 5;
+    } else {
+      crossAxisCount = 7;
+    }
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
+      itemCount: cards.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 1,
+        childAspectRatio: screenWidth < 600 ? 2.8 : 2.2,
       ),
-      itemCount: cards.length,
       itemBuilder: (context, index) {
         final card = cards[index];
         final isSelected = selectedFilter == card['filter'];
+
         return _buildStatCard(
           title: card['title'] as String,
           value: card['value'] as String,
@@ -103,7 +122,8 @@ class OrderStatsCards extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected ? color.withOpacity(0.1) : Colors.white,
@@ -120,50 +140,77 @@ class OrderStatsCards extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isMobile = constraints.maxWidth < 220;
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(isMobile ? 8 : 10),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: color, size: 20),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: isMobile ? 20 : 24,
+                  ),
                 ),
 
+                SizedBox(width: isMobile ? 10 : 14),
+
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: isMobile ? 18 : 22,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: isMobile ? 11 : 13,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(isMobile ? 6 : 8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.1),
+                    color: color.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.arrow_circle_right,
-                    color: Colors.black,
-                    size: 20,
+                    Icons.chevron_right,
+                    color: color,
+                    size: isMobile ? 18 : 20,
                   ),
                 ),
               ],
-            ),
-            const Spacer(),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
