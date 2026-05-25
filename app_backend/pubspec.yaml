@@ -16,6 +16,8 @@ dependencies:
   path: ^1.8.0
   cloudinary: ^1.2.0
   http: ^1.1.0
+  firebase_admin: ^0.3.0
+  googleapis_auth: ^1.4.0
 
 dev_dependencies:
   dart_frog_lint: ^0.1.0

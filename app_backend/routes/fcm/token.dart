@@ -1,0 +1,181 @@
+// app_backend/lib/routes/fcm/token.dart
+import 'dart:convert';
+import 'package:dart_frog/dart_frog.dart';
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:my_backend/db/mongo.dart';
+import 'package:my_backend/middleware/auth_middleware.dart';
+
+/// POST /fcm/token - Save or update FCM token
+/// DELETE /fcm/token - Remove FCM token
+Future<Response> onRequest(RequestContext context) async {
+  final method = context.request.method;
+
+  if (method == HttpMethod.post) {
+    return _saveToken(context);
+  } else if (method == HttpMethod.delete) {
+    return _removeToken(context);
+  }
+
+  return Response.json(
+    statusCode: 405,
+    body: {'success': false, 'message': 'Method not allowed'},
+  );
+}
+
+/// Save FCM token
+Future<Response> _saveToken(RequestContext context) async {
+  try {
+    // ✅ FIX: Use AuthData instead of context.get()
+    final authData = context.read<AuthData>();
+    final userId = authData.userId;
+
+    // Parse request body
+    final body =
+        jsonDecode(await context.request.body()) as Map<String, dynamic>;
+    final fcmToken = body['fcmToken']?.toString();
+    final deviceType = body['deviceType']?.toString() ?? 'android';
+    final appType = body['appType']?.toString();
+
+    // Validate required fields
+    if (fcmToken == null || fcmToken.isEmpty) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'fcmToken is required'},
+      );
+    }
+
+    if (appType == null || appType.isEmpty) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'appType is required'},
+      );
+    }
+
+    // Get user from database
+    final userObjectId = ObjectId.parse(userId);
+    final Map<String, dynamic>? user = await MongoService.users!.findOne({
+      '_id': userObjectId,
+    });
+
+    if (user == null) {
+      return Response.json(
+        statusCode: 404,
+        body: {'success': false, 'message': 'User not found'},
+      );
+    }
+
+    // Get existing tokens or create new list
+    List<dynamic> existingTokens = [];
+    if (user['fcmTokens'] != null) {
+      existingTokens = List<dynamic>.from(user['fcmTokens'] as List);
+    }
+
+    // Check if token already exists
+    bool tokenExists = false;
+    for (int i = 0; i < existingTokens.length; i++) {
+      final tokenObj = existingTokens[i] as Map<String, dynamic>;
+      if (tokenObj['token'] == fcmToken) {
+        // Update existing token
+        tokenObj['deviceType'] = deviceType;
+        tokenObj['appType'] = appType;
+        tokenObj['lastUsed'] = DateTime.now().toIso8601String();
+        tokenObj['isActive'] = true;
+        existingTokens[i] = tokenObj;
+        tokenExists = true;
+        break;
+      }
+    }
+
+    // Add new token if not exists
+    if (!tokenExists) {
+      existingTokens.add({
+        'token': fcmToken,
+        'deviceType': deviceType,
+        'appType': appType,
+        'createdAt': DateTime.now().toIso8601String(),
+        'lastUsed': DateTime.now().toIso8601String(),
+        'isActive': true,
+      });
+    }
+
+    // Update user document
+    await MongoService.users!.updateOne(
+      {'_id': userObjectId},
+      {
+        '\$set': {'fcmTokens': existingTokens},
+      },
+    );
+
+    return Response.json(
+      statusCode: 200,
+      body: {'success': true, 'message': 'FCM token saved successfully'},
+    );
+  } catch (e) {
+    print('Error saving FCM token: $e');
+    return Response.json(
+      statusCode: 500,
+      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+    );
+  }
+}
+
+/// Remove FCM token
+Future<Response> _removeToken(RequestContext context) async {
+  try {
+    // ✅ FIX: Use AuthData instead of context.get()
+    final authData = context.read<AuthData>();
+    final userId = authData.userId;
+
+    final body =
+        jsonDecode(await context.request.body()) as Map<String, dynamic>;
+    final fcmToken = body['fcmToken']?.toString();
+
+    if (fcmToken == null || fcmToken.isEmpty) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'fcmToken is required'},
+      );
+    }
+
+    final userObjectId = ObjectId.parse(userId);
+    final Map<String, dynamic>? user = await MongoService.users!.findOne({
+      '_id': userObjectId,
+    });
+
+    if (user == null) {
+      return Response.json(
+        statusCode: 404,
+        body: {'success': false, 'message': 'User not found'},
+      );
+    }
+
+    List<dynamic> existingTokens = [];
+    if (user['fcmTokens'] != null) {
+      existingTokens = List<dynamic>.from(user['fcmTokens'] as List);
+    }
+
+    // Remove the token
+    existingTokens.removeWhere((token) {
+      final tokenObj = token as Map<String, dynamic>;
+      return tokenObj['token'] == fcmToken;
+    });
+
+    await MongoService.users!.updateOne(
+      {'_id': userObjectId},
+      {
+        '\$set': {'fcmTokens': existingTokens},
+      },
+    );
+
+    return Response.json(
+      statusCode: 200,
+      body: {'success': true, 'message': 'FCM token removed successfully'},
+    );
+  } catch (e) {
+    print('Error removing FCM token: $e');
+    return Response.json(
+      statusCode: 500,
+      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+    );
+  }
+}

@@ -177,7 +177,8 @@ class MongoService {
   static DbCollection? _carts;
   static DbCollection? _favorites;
   static DbCollection? _orders;
-  
+  static DbCollection? _notifications;
+
   static Timer? _keepAliveTimer;
   static bool _isConnected = false;
   static Completer<bool>? _connectionCompleter;
@@ -189,6 +190,7 @@ class MongoService {
   static DbCollection? get carts => _carts;
   static DbCollection? get favorites => _favorites;
   static DbCollection? get orders => _orders;
+  static DbCollection? get notifications => _notifications;
 
   /// Initialize connection (call once at startup)
   static Future<bool> init() async {
@@ -202,16 +204,16 @@ class MongoService {
         await _close();
       }
     }
-    
+
     // If connection is in progress, wait for it
     if (_connectionCompleter != null) {
       print('⏳ Waiting for ongoing connection...');
       return _connectionCompleter!.future;
     }
-    
+
     // Start new connection
     _connectionCompleter = Completer<bool>();
-    
+
     try {
       await _connect();
       _connectionCompleter!.complete(true);
@@ -230,7 +232,7 @@ class MongoService {
     if (_isConnected && _db != null) {
       return true;
     }
-    
+
     // Slow path: need to connect
     return await init();
   }
@@ -238,39 +240,42 @@ class MongoService {
   /// Actual connection logic
   static Future<void> _connect() async {
     print('🔄 Establishing MongoDB connection...');
-    
+
     final mongoUrl = Env.mongoUrl;
     if (mongoUrl.isEmpty) {
       throw Exception('MongoDB URL is empty');
     }
-    
+
     try {
       // Build connection URL with proper parameters
       String finalUrl = mongoUrl;
       if (!mongoUrl.contains('safeAtlas')) {
         final separator = mongoUrl.contains('?') ? '&' : '?';
-        finalUrl = '$mongoUrl${separator}safeAtlas=true&retryWrites=true&retryReads=true';
+        finalUrl =
+            '$mongoUrl${separator}safeAtlas=true&retryWrites=true&retryReads=true';
       }
-      
+
       // Create and open connection with timeout
       _db = await Db.create(finalUrl);
-      
+
       // Add timeout to open operation
       await _db!.open().timeout(
         const Duration(seconds: 30),
         onTimeout: () => throw Exception('Connection timeout after 30 seconds'),
       );
-      
+
       // Test connection with ping
-      final pingResult = await _db!.runCommand({'ping': 1}).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Ping timeout'),
-      );
-      
+      final pingResult = await _db!
+          .runCommand({'ping': 1})
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => throw Exception('Ping timeout'),
+          );
+
       if (pingResult['ok'] != 1.0) {
         throw Exception('Ping failed: $pingResult');
       }
-      
+
       // Initialize collections
       _users = _db!.collection('users');
       _products = _db!.collection('products');
@@ -279,18 +284,18 @@ class MongoService {
       _carts = _db!.collection('carts');
       _favorites = _db!.collection('favorites');
       _orders = _db!.collection('orders');
-      
+      _notifications = _db!.collection('notifications');
+
       // Create indexes in background (don't wait)
       _createIndexes().catchError((e) {
         print('⚠️ Index creation warning: ${e.toString().substring(0, 100)}');
       });
-      
+
       // Start keep-alive
       _startKeepAlive();
-      
+
       _isConnected = true;
       print('✅ MongoDB Connected Successfully');
-      
     } catch (e) {
       print('❌ MongoDB Connection Error: $e');
       _isConnected = false;
@@ -302,12 +307,14 @@ class MongoService {
   /// Check if connection is alive
   static Future<bool> _isAlive() async {
     if (_db == null) return false;
-    
+
     try {
-      final result = await _db!.runCommand({'ping': 1}).timeout(
-        const Duration(seconds: 2),
-        onTimeout: () => throw Exception('Timeout'),
-      );
+      final result = await _db!
+          .runCommand({'ping': 1})
+          .timeout(
+            const Duration(seconds: 2),
+            onTimeout: () => throw Exception('Timeout'),
+          );
       return result['ok'] == 1.0;
     } catch (e) {
       return false;
@@ -317,13 +324,15 @@ class MongoService {
   /// Keep connection alive
   static void _startKeepAlive() {
     _keepAliveTimer?.cancel();
-    
-    _keepAliveTimer = Timer.periodic(const Duration(seconds: 20), (timer) async {
+
+    _keepAliveTimer = Timer.periodic(const Duration(seconds: 20), (
+      timer,
+    ) async {
       if (!_isConnected || _db == null) {
         timer.cancel();
         return;
       }
-      
+
       try {
         await _db!.runCommand({'ping': 1}).timeout(const Duration(seconds: 5));
         // print('💓 Keep-alive ping successful');
@@ -339,7 +348,7 @@ class MongoService {
   static Future<void> _close() async {
     _keepAliveTimer?.cancel();
     _keepAliveTimer = null;
-    
+
     if (_db != null) {
       try {
         await _db!.close();
@@ -347,7 +356,7 @@ class MongoService {
         // Ignore
       }
     }
-    
+
     _db = null;
     _isConnected = false;
   }
@@ -360,34 +369,41 @@ class MongoService {
     await _safeCreateIndex(_products!, 'sellerId');
     await _safeCreateIndex(_products!, 'price');
     await _safeCreateIndex(_products!, 'tags');
-    
+
     // Reviews
     await _safeCreateIndex(_reviews!, 'productId');
     await _safeCreateIndex(_reviews!, 'userId');
     await _safeCreateIndex(_reviews!, 'rating');
     await _safeCreateIndex(_reviews!, 'createdAt');
-    
+
     // Addresses
     await _safeCreateIndex(_addresses!, 'userId');
     await _safeCreateIndex(_addresses!, 'isDefault');
-    
+
     // Carts
     await _safeCreateIndex(_carts!, 'userId');
-    
+
     // Favorites
     await _safeCreateIndex(_favorites!, 'userId');
     await _safeCreateIndex(_favorites!, 'productId');
-    
+
     // Orders
     await _safeCreateIndex(_orders!, 'orderId', unique: true);
     await _safeCreateIndex(_orders!, 'userId');
     await _safeCreateIndex(_orders!, 'sellerId');
     await _safeCreateIndex(_orders!, 'orderStatus');
     await _safeCreateIndex(_orders!, 'createdAt');
-    
+
+    // Notifications indexes
+    await _safeCreateIndex(_notifications!, 'userId');
+    await _safeCreateIndex(_notifications!, 'notificationId', unique: true);
+    await _safeCreateIndex(_notifications!, 'type');
+    await _safeCreateIndex(_notifications!, 'createdAt');
+    await _safeCreateIndex(_notifications!, 'isRead');
+
     print('✅ All indexes verified');
   }
-  
+
   static Future<void> _safeCreateIndex(
     DbCollection collection,
     String field, {

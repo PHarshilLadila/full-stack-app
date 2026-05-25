@@ -1,311 +1,4 @@
-// // ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, inference_failure_on_collection_literal
-
-// import 'dart:convert';
-// import 'package:dart_frog/dart_frog.dart';
-// import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-// import 'package:mongo_dart/mongo_dart.dart';
-
-// import 'package:my_backend/config/env.dart';
-// import 'package:my_backend/db/mongo.dart';
-
-// /// POST /order/create
-// Future<Response> onRequest(RequestContext context) async {
-//   print('🔥 /order/create API HIT');
-
-//   if (context.request.method != HttpMethod.post) {
-//     return Response.json(
-//       statusCode: 405,
-//       body: {'success': false, 'message': 'Method not allowed'},
-//     );
-//   }
-
-//   final authHeader = context.request.headers['authorization'];
-//   if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-//     return Response.json(
-//       statusCode: 401,
-//       body: {'success': false, 'message': 'Token missing'},
-//     );
-//   }
-
-//   final token = authHeader.split(' ')[1];
-
-//   try {
-//     final jwt = JWT.verify(token, SecretKey(Env.jwtSecret));
-//     final userId = jwt.payload['id'].toString();
-
-//     final body =
-//         jsonDecode(await context.request.body()) as Map<String, dynamic>;
-
-//     final addressId = body['addressId']?.toString();
-//     final paymentMethod = body['paymentMethod']?.toString() ?? 'cod';
-
-//     if (addressId == null || addressId.isEmpty) {
-//       return Response.json(
-//         statusCode: 400,
-//         body: {'success': false, 'message': 'Address ID required'},
-//       );
-//     }
-
-//     // Get cart
-//     final cart = await MongoService.carts!.findOne({'userId': userId});
-//     if (cart == null || (cart['items'] as List?)?.isEmpty == true) {
-//       return Response.json(
-//         statusCode: 400,
-//         body: {'success': false, 'message': 'Cart is empty'},
-//       );
-//     }
-
-//     // Get address
-//     ObjectId? addressObjectId;
-//     try {
-//       addressObjectId = ObjectId.parse(addressId);
-//     } catch (e) {
-//       return Response.json(
-//         statusCode: 400,
-//         body: {'success': false, 'message': 'Invalid address ID format'},
-//       );
-//     }
-
-//     final address = await MongoService.addresses!.findOne({
-//       '_id': addressObjectId,
-//       'userId': userId,
-//     });
-
-//     if (address == null) {
-//       return Response.json(
-//         statusCode: 404,
-//         body: {'success': false, 'message': 'Address not found'},
-//       );
-//     }
-
-//     // Get user details
-//     ObjectId? userObjectId;
-//     try {
-//       userObjectId = ObjectId.parse(userId);
-//     } catch (e) {
-//       return Response.json(
-//         statusCode: 400,
-//         body: {'success': false, 'message': 'Invalid user ID format'},
-//       );
-//     }
-
-//     final user = await MongoService.users!.findOne({'_id': userObjectId});
-
-//     if (user == null) {
-//       return Response.json(
-//         statusCode: 404,
-//         body: {'success': false, 'message': 'User not found'},
-//       );
-//     }
-
-//     final items = cart['items'] as List? ?? [];
-
-//     if (items.isEmpty) {
-//       return Response.json(
-//         statusCode: 400,
-//         body: {'success': false, 'message': 'Cart is empty'},
-//       );
-//     }
-
-//     // Verify stock for all items
-//     for (final item in items) {
-//       final productIdStr = item['productId']?.toString();
-//       if (productIdStr == null || productIdStr.isEmpty) {
-//         return Response.json(
-//           statusCode: 400,
-//           body: {'success': false, 'message': 'Invalid product ID in cart'},
-//         );
-//       }
-
-//       ObjectId? productObjectId;
-//       try {
-//         productObjectId = ObjectId.parse(productIdStr);
-//       } catch (e) {
-//         return Response.json(
-//           statusCode: 400,
-//           body: {
-//             'success': false,
-//             'message': 'Invalid product ID format: $productIdStr',
-//           },
-//         );
-//       }
-
-//       final product = await MongoService.products!.findOne({
-//         '_id': productObjectId,
-//       });
-
-//       if (product == null) {
-//         return Response.json(
-//           statusCode: 404,
-//           body: {
-//             'success': false,
-//             'message': 'Product ${item['productName']} not found',
-//           },
-//         );
-//       }
-
-//       final stock = product['stock'] as int? ?? 0;
-//       final quantity = item['quantity'] as int? ?? 1;
-
-//       if (stock < quantity) {
-//         return Response.json(
-//           statusCode: 400,
-//           body: {
-//             'success': false,
-//             'message':
-//                 'Insufficient stock for ${item['productName']}. Available: $stock',
-//           },
-//         );
-//       }
-//     }
-
-//     // Generate order ID
-//     final shortUserId = userId.length > 4 ? userId.substring(0, 4) : userId;
-//     final orderId = 'ORD${DateTime.now().millisecondsSinceEpoch}${shortUserId}';
-
-//     // Prepare order items
-//     final orderItems = [];
-//     for (final item in items) {
-//       final productIdStr = item['productId'].toString();
-//       final productObjectId = ObjectId.parse(productIdStr);
-
-//       final product = await MongoService.products!.findOne({
-//         '_id': productObjectId,
-//       });
-
-//       final price = (item['price'] as num?)?.toDouble() ?? 0.0;
-//       final discountPrice =
-//           item['discountPrice'] != null
-//               ? (item['discountPrice'] as num).toDouble()
-//               : null;
-//       final effectivePrice = discountPrice ?? price;
-//       final quantity = item['quantity'] as int? ?? 1;
-
-//       orderItems.add({
-//         'productId': productIdStr,
-//         'productName': item['productName']?.toString() ?? '',
-//         'productImage': item['productImage']?.toString() ?? '',
-//         'price': price,
-//         'discountPrice': discountPrice,
-//         'quantity': quantity,
-//         'totalPrice': effectivePrice * quantity,
-//         'sellerId': item['sellerId']?.toString() ?? '',
-//         'sellerName': item['sellerName']?.toString() ?? '',
-//       });
-
-//       // Update stock
-//       final currentStock = product?['stock'] as int? ?? 0;
-//       await MongoService.products!.updateOne(
-//         {'_id': productObjectId},
-//         {
-//           '\$inc': {'stock': -quantity},
-//           '\$set': {'stockAvailable': (currentStock - quantity) > 0},
-//         },
-//       );
-//     }
-
-//     // Calculate totals
-//     final subtotal = (cart['totalAmount'] as num?)?.toDouble() ?? 0.0;
-//     final discountAmount = (cart['discountAmount'] as num?)?.toDouble() ?? 0.0;
-//     final shippingCharge = 50.0; // Fixed shipping charge
-//     final taxAmount = (subtotal - discountAmount) * 0.05; // 5% tax
-//     final totalAmount =
-//         (subtotal - discountAmount) + shippingCharge + taxAmount;
-
-//     // Prepare shipping address
-//     final shippingAddress = {
-//       'fullName': address['fullName']?.toString() ?? '',
-//       'mobileNumber': address['mobileNumber']?.toString() ?? '',
-//       'pincode': address['pincode']?.toString() ?? '',
-//       'addressLine1': address['addressLine1']?.toString() ?? '',
-//       'addressLine2': address['addressLine2']?.toString() ?? '',
-//       'landmark': address['landmark']?.toString() ?? '',
-//       'city': address['city']?.toString() ?? '',
-//       'state': address['state']?.toString() ?? '',
-//       'country': address['country']?.toString() ?? 'India',
-//     };
-
-//     // Create order
-//     final orderData = {
-//       'orderId': orderId,
-//       'userId': userId,
-//       'userName':
-//           user['fullName']?.toString() ?? user['name']?.toString() ?? 'User',
-//       'userEmail': user['email']?.toString() ?? '',
-//       'userMobile': user['mobile']?.toString() ?? '',
-//       'items': orderItems,
-//       'shippingAddress': shippingAddress,
-//       'subtotal': subtotal,
-//       'shippingCharge': shippingCharge,
-//       'discountAmount': discountAmount,
-//       'taxAmount': taxAmount,
-//       'totalAmount': totalAmount,
-//       'paymentMethod': paymentMethod,
-//       'paymentStatus': paymentMethod == 'cod' ? 'pending' : 'pending',
-//       'orderStatus': 'pending',
-//       'orderDate': DateTime.now(),
-//       'createdAt': DateTime.now(),
-//       'updatedAt': DateTime.now(),
-//     };
-
-//     final result = await MongoService.orders!.insertOne(orderData);
-
-//     if (!result.isSuccess) {
-//       // Rollback stock updates if order creation fails
-//       for (final item in items) {
-//         final productIdStr = item['productId'].toString();
-//         final productObjectId = ObjectId.parse(productIdStr);
-//         final quantity = item['quantity'] as int? ?? 1;
-
-//         await MongoService.products!.updateOne(
-//           {'_id': productObjectId},
-//           {
-//             '\$inc': {'stock': quantity},
-//           },
-//         );
-//       }
-//       return Response.json(
-//         statusCode: 500,
-//         body: {'success': false, 'message': 'Failed to create order'},
-//       );
-//     }
-
-//     // Clear cart
-//     await MongoService.carts!.updateOne(
-//       {'userId': userId},
-//       {
-//         '\$set': {
-//           'items': [],
-//           'totalAmount': 0.0,
-//           'discountAmount': 0.0,
-//           'finalAmount': 0.0,
-//           'updatedAt': DateTime.now(),
-//         },
-//       },
-//     );
-
-//     return Response.json(
-//       statusCode: 201,
-//       body: {
-//         'success': true,
-//         'message': 'Order placed successfully',
-//         'data': {
-//           'orderId': orderId,
-//           'totalAmount': totalAmount,
-//           'paymentMethod': paymentMethod,
-//         },
-//       },
-//     );
-//   } catch (e, stackTrace) {
-//     print('❌ ERROR: $e');
-//     print('Stack trace: $stackTrace');
-//     return Response.json(
-//       statusCode: 500,
-//       body: {'success': false, 'message': 'Server error: ${e.toString()}'},
-//     );
-//   }
-// }
-
+// app_backend/lib/routes/order/update_status.dart
 // ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
 
 import 'dart:convert';
@@ -314,14 +7,21 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 import 'package:my_backend/config/env.dart';
-import 'package:my_backend/config/stripe.dart';
 import 'package:my_backend/db/mongo.dart';
+import 'package:my_backend/services/notification_service.dart';
 
-/// POST /order/create
+/// Generate tracking ID
+String generateTrackingId(String orderId) {
+  final timestamp = DateTime.now().millisecondsSinceEpoch;
+  final random = DateTime.now().microsecond % 10000;
+  return 'TRK${timestamp}${random.toString().padLeft(4, '0')}';
+}
+
+/// PUT /order/update_status
 Future<Response> onRequest(RequestContext context) async {
-  print('🔥 /order/create API HIT');
+  print('🔥 /order/update_status API HIT');
 
-  if (context.request.method != HttpMethod.post) {
+  if (context.request.method != HttpMethod.put) {
     return Response.json(
       statusCode: 405,
       body: {'success': false, 'message': 'Method not allowed'},
@@ -341,420 +41,273 @@ Future<Response> onRequest(RequestContext context) async {
   try {
     final jwt = JWT.verify(token, SecretKey(Env.jwtSecret));
     final userId = jwt.payload['id'].toString();
+    final userRole = jwt.payload['role']?.toString() ?? 'customer';
 
     final body =
         jsonDecode(await context.request.body()) as Map<String, dynamic>;
+    final orderId = body['orderId']?.toString();
+    final orderStatus = body['orderStatus']?.toString();
 
-    final addressId = body['addressId']?.toString();
-    final paymentMethod = body['paymentMethod']?.toString() ?? 'cod';
-
-    // Fix: Properly cast isDirectOrder to bool
-    final isDirectOrder = body['isDirectOrder'] == true;
-    final directProduct = body['directProduct'] as Map<String, dynamic>?;
-
-    if (addressId == null || addressId.isEmpty) {
+    if (orderId == null || orderId.isEmpty) {
       return Response.json(
         statusCode: 400,
-        body: {'success': false, 'message': 'Address ID required'},
+        body: {'success': false, 'message': 'Order ID required'},
       );
     }
 
-    // Get cart or direct product
-    List<dynamic> items = [];
-    double subtotal = 0.0;
-    double discountAmount = 0.0;
-
-    if (isDirectOrder && directProduct != null) {
-      // Direct order (single product)
-      final productId = directProduct['productId']?.toString();
-      final quantity = directProduct['quantity'] as int? ?? 1;
-
-      if (productId == null || productId.isEmpty) {
-        return Response.json(
-          statusCode: 400,
-          body: {
-            'success': false,
-            'message': 'Product ID required for direct order',
-          },
-        );
-      }
-
-      ObjectId? productObjectId;
-      try {
-        productObjectId = ObjectId.parse(productId);
-      } catch (e) {
-        return Response.json(
-          statusCode: 400,
-          body: {'success': false, 'message': 'Invalid product ID format'},
-        );
-      }
-
-      final product = await MongoService.products!.findOne({
-        '_id': productObjectId,
-      });
-
-      if (product == null) {
-        return Response.json(
-          statusCode: 404,
-          body: {'success': false, 'message': 'Product not found'},
-        );
-      }
-
-      final stock = product['stock'] as int? ?? 0;
-      if (stock < quantity) {
-        return Response.json(
-          statusCode: 400,
-          body: {
-            'success': false,
-            'message': 'Insufficient stock. Available: $stock',
-          },
-        );
-      }
-
-      final price = (product['price'] as num?)?.toDouble() ?? 0.0;
-      final discountPrice =
-          product['discountPrice'] != null
-              ? (product['discountPrice'] as num).toDouble()
-              : null;
-      final effectivePrice = discountPrice ?? price;
-
-      items = [
-        {
-          'productId': productId,
-          'productName': product['name']?.toString() ?? '',
-          'productImage':
-              product['images'] != null &&
-                      (product['images'] as List).isNotEmpty
-                  ? (product['images'] as List)[0].toString()
-                  : '',
-          'price': price,
-          'discountPrice': discountPrice,
-          'quantity': quantity,
-          'totalPrice': effectivePrice * quantity,
-          'sellerId': product['sellerId']?.toString() ?? '',
-          'sellerName': product['sellerName']?.toString() ?? '',
-        },
-      ];
-
-      subtotal = effectivePrice * quantity;
-    } else {
-      // Cart order
-      final cart = await MongoService.carts!.findOne({'userId': userId});
-      if (cart == null || (cart['items'] as List?)?.isEmpty == true) {
-        return Response.json(
-          statusCode: 400,
-          body: {'success': false, 'message': 'Cart is empty'},
-        );
-      }
-
-      items = cart['items'] as List? ?? [];
-      subtotal = (cart['totalAmount'] as num?)?.toDouble() ?? 0.0;
-      discountAmount = (cart['discountAmount'] as num?)?.toDouble() ?? 0.0;
-    }
-
-    if (items.isEmpty) {
+    if (orderStatus == null || orderStatus.isEmpty) {
       return Response.json(
         statusCode: 400,
-        body: {'success': false, 'message': 'No items to order'},
+        body: {'success': false, 'message': 'Order status required'},
       );
     }
 
-    // Get address
-    ObjectId? addressObjectId;
-    try {
-      addressObjectId = ObjectId.parse(addressId);
-    } catch (e) {
+    final validStatuses = [
+      'pending',
+      'confirmed',
+      'shipped',
+      'out_for_delivery',
+      'delivered',
+      'cancelled',
+    ];
+    if (!validStatuses.contains(orderStatus)) {
       return Response.json(
         statusCode: 400,
-        body: {'success': false, 'message': 'Invalid address ID format'},
+        body: {'success': false, 'message': 'Invalid order status'},
       );
     }
 
-    final address = await MongoService.addresses!.findOne({
-      '_id': addressObjectId,
-      'userId': userId,
-    });
+    final order = await MongoService.orders!.findOne({'orderId': orderId});
 
-    if (address == null) {
+    if (order == null) {
       return Response.json(
         statusCode: 404,
-        body: {'success': false, 'message': 'Address not found'},
+        body: {'success': false, 'message': 'Order not found'},
       );
     }
 
-    // Get user details
-    ObjectId? userObjectId;
-    try {
-      userObjectId = ObjectId.parse(userId);
-    } catch (e) {
-      return Response.json(
-        statusCode: 400,
-        body: {'success': false, 'message': 'Invalid user ID format'},
-      );
-    }
-
-    final user = await MongoService.users!.findOne({'_id': userObjectId});
-
-    if (user == null) {
-      return Response.json(
-        statusCode: 404,
-        body: {'success': false, 'message': 'User not found'},
-      );
-    }
-
-    // Verify stock for all items
-    for (final item in items) {
-      final productIdStr = item['productId']?.toString();
-      if (productIdStr == null || productIdStr.isEmpty) {
+    // Customer can only cancel their own orders
+    if (userRole == 'customer') {
+      if (order['userId'] != userId) {
         return Response.json(
-          statusCode: 400,
-          body: {'success': false, 'message': 'Invalid product ID in order'},
+          statusCode: 403,
+          body: {'success': false, 'message': 'Unauthorized'},
         );
       }
 
-      ObjectId? productObjectId;
-      try {
-        productObjectId = ObjectId.parse(productIdStr);
-      } catch (e) {
+      // Customers can only cancel pending orders
+      if (orderStatus != 'cancelled') {
         return Response.json(
-          statusCode: 400,
+          statusCode: 403,
           body: {
             'success': false,
-            'message': 'Invalid product ID format: $productIdStr',
+            'message': 'Customers can only cancel orders',
           },
         );
       }
 
-      final product = await MongoService.products!.findOne({
-        '_id': productObjectId,
-      });
-
-      if (product == null) {
-        return Response.json(
-          statusCode: 404,
-          body: {
-            'success': false,
-            'message': 'Product ${item['productName']} not found',
-          },
-        );
-      }
-
-      final stock = product['stock'] as int? ?? 0;
-      final quantity = item['quantity'] as int? ?? 1;
-
-      if (stock < quantity) {
+      final currentStatus = order['orderStatus']?.toString();
+      if (currentStatus != 'pending' && currentStatus != 'awaiting_payment') {
         return Response.json(
           statusCode: 400,
           body: {
             'success': false,
-            'message':
-                'Insufficient stock for ${item['productName']}. Available: $stock',
+            'message': 'Order cannot be cancelled at this stage',
           },
         );
       }
     }
 
-    // Generate order ID
-    final shortUserId = userId.length > 4 ? userId.substring(0, 4) : userId;
-    final orderId = 'ORD${DateTime.now().millisecondsSinceEpoch}${shortUserId}';
+    // Seller/Admin permissions
+    if (userRole == 'seller') {
+      final items = order['items'] as List? ?? [];
+      bool hasSellerProduct = false;
 
-    // Prepare order items and update stock
-    final List<Map<String, dynamic>> orderItems = [];
-    for (final item in items) {
-      final productIdStr = item['productId'].toString();
-      final productObjectId = ObjectId.parse(productIdStr);
+      for (final item in items) {
+        final itemSellerId = item['sellerId']?.toString();
+        if (itemSellerId == userId) {
+          hasSellerProduct = true;
+          break;
+        }
+      }
 
-      final product = await MongoService.products!.findOne({
-        '_id': productObjectId,
-      });
-
-      final price = (item['price'] as num?)?.toDouble() ?? 0.0;
-      final discountPrice =
-          item['discountPrice'] != null
-              ? (item['discountPrice'] as num).toDouble()
-              : null;
-      final effectivePrice = discountPrice ?? price;
-      final quantity = item['quantity'] as int? ?? 1;
-
-      orderItems.add({
-        'productId': productIdStr,
-        'productName': item['productName']?.toString() ?? '',
-        'productImage': item['productImage']?.toString() ?? '',
-        'price': price,
-        'discountPrice': discountPrice,
-        'quantity': quantity,
-        'totalPrice': effectivePrice * quantity,
-        'sellerId': item['sellerId']?.toString() ?? '',
-        'sellerName': item['sellerName']?.toString() ?? '',
-      });
-
-      // Update stock
-      final currentStock = product?['stock'] as int? ?? 0;
-      await MongoService.products!.updateOne(
-        {'_id': productObjectId},
-        {
-          '\$inc': {'stock': -quantity},
-          '\$set': {'stockAvailable': (currentStock - quantity) > 0},
-        },
-      );
+      if (!hasSellerProduct) {
+        return Response.json(
+          statusCode: 403,
+          body: {
+            'success': false,
+            'message': 'Unauthorized to update this order',
+          },
+        );
+      }
     }
 
-    // Calculate totals
-    final shippingCharge = 50.0;
-    final taxAmount = (subtotal - discountAmount) * 0.05;
-    final totalAmount =
-        (subtotal - discountAmount) + shippingCharge + taxAmount;
-
-    // Prepare shipping address
-    final shippingAddress = {
-      'fullName': address['fullName']?.toString() ?? '',
-      'mobileNumber': address['mobileNumber']?.toString() ?? '',
-      'pincode': address['pincode']?.toString() ?? '',
-      'addressLine1': address['addressLine1']?.toString() ?? '',
-      'addressLine2': address['addressLine2']?.toString() ?? '',
-      'landmark': address['landmark']?.toString() ?? '',
-      'city': address['city']?.toString() ?? '',
-      'state': address['state']?.toString() ?? '',
-      'country': address['country']?.toString() ?? 'India',
+    // Fix: Explicitly type as Map<String, dynamic>
+    final Map<String, dynamic> updateData = {
+      'orderStatus': orderStatus,
+      'updatedAt': DateTime.now(),
     };
 
-    // Initialize Stripe
-    StripeConfig.init(Env.stripeSecretKey);
+    // Auto-generate tracking ID when status changes to 'shipped'
+    if (orderStatus == 'shipped') {
+      final trackingId = generateTrackingId(orderId);
+      updateData['trackingId'] = trackingId;
+      updateData['shippedDate'] = DateTime.now();
+    }
 
-    // Handle payment based on method
-    String paymentStatus = 'pending';
-    String? paymentIntentId;
-    String? clientSecret;
+    if (orderStatus == 'out_for_delivery') {
+      updateData['outForDeliveryDate'] = DateTime.now();
+    }
 
-    if (paymentMethod == 'online') {
-      try {
-        // Create Payment Intent using direct HTTP
-        final Map<String, dynamic> paymentIntent =
-            await StripeConfig.createPaymentIntent(totalAmount, 'inr');
+    if (orderStatus == 'delivered') {
+      updateData['deliveredDate'] = DateTime.now();
+      updateData['paymentStatus'] = 'completed';
+    }
 
-        // Fix: Properly cast the values to String?
-        paymentIntentId = paymentIntent['id']?.toString();
-        clientSecret = paymentIntent['client_secret']?.toString();
-        paymentStatus = 'pending';
+    if (orderStatus == 'cancelled') {
+      updateData['cancelledDate'] = DateTime.now();
 
-        if (paymentIntentId == null || clientSecret == null) {
-          throw Exception('Invalid payment intent response');
+      // Restore stock for cancelled order
+      final items = order['items'] as List? ?? [];
+      for (final item in items) {
+        final productIdStr = item['productId']?.toString();
+        if (productIdStr == null || productIdStr.isEmpty) {
+          continue;
         }
-      } catch (e) {
-        print('Stripe payment intent creation failed: $e');
-        // Rollback stock updates
-        for (final item in items) {
-          final productIdStr = item['productId'].toString();
+
+        try {
           final productObjectId = ObjectId.parse(productIdStr);
           final quantity = item['quantity'] as int? ?? 1;
+
           await MongoService.products!.updateOne(
             {'_id': productObjectId},
             {
               '\$inc': {'stock': quantity},
             },
           );
+        } catch (e) {
+          print('Error restoring stock for product $productIdStr: $e');
         }
-        return Response.json(
-          statusCode: 400,
-          body: {
-            'success': false,
-            'message': 'Payment initialization failed: $e',
-          },
-        );
       }
     }
 
-    // Create order
-    final Map<String, dynamic> orderData = {
-      'orderId': orderId,
-      'userId': userId,
-      'userName':
-          user['fullName']?.toString() ?? user['name']?.toString() ?? 'User',
-      'userEmail': user['email']?.toString() ?? '',
-      'userMobile': user['mobile']?.toString() ?? '',
-      'items': orderItems,
-      'shippingAddress': shippingAddress,
-      'subtotal': subtotal,
-      'shippingCharge': shippingCharge,
-      'discountAmount': discountAmount,
-      'taxAmount': taxAmount,
-      'totalAmount': totalAmount,
-      'paymentMethod': paymentMethod,
-      'paymentStatus': paymentStatus,
-      'paymentIntentId': paymentIntentId,
-      'orderStatus': paymentMethod == 'cod' ? 'pending' : 'awaiting_payment',
-      'orderDate': DateTime.now(),
-      'createdAt': DateTime.now(),
-      'updatedAt': DateTime.now(),
-    };
-
-    final result = await MongoService.orders!.insertOne(orderData);
+    final result = await MongoService.orders!.updateOne(
+      {'orderId': orderId},
+      {'\$set': updateData},
+    );
 
     if (!result.isSuccess) {
-      // Rollback stock updates if order creation fails
-      for (final item in items) {
-        final productIdStr = item['productId'].toString();
-        final productObjectId = ObjectId.parse(productIdStr);
-        final quantity = item['quantity'] as int? ?? 1;
-        await MongoService.products!.updateOne(
-          {'_id': productObjectId},
-          {
-            '\$inc': {'stock': quantity},
-          },
-        );
-      }
       return Response.json(
         statusCode: 500,
-        body: {'success': false, 'message': 'Failed to create order'},
+        body: {'success': false, 'message': 'Failed to update order status'},
       );
     }
 
-    // Clear cart only if it's a cart order
-    if (!isDirectOrder) {
-      await MongoService.carts!.updateOne(
-        {'userId': userId},
-        {
-          '\$set': {
-            'items': [],
-            'totalAmount': 0.0,
-            'discountAmount': 0.0,
-            'finalAmount': 0.0,
-            'updatedAt': DateTime.now(),
-          },
-        },
-      );
+    // ============================================================
+    // ========== SEND NOTIFICATIONS FOR STATUS CHANGE ============
+    // ============================================================
+
+    final customerId = order['userId']?.toString();
+    final orderIdStr = orderId;
+    final trackingIdValue = updateData['trackingId'] as String?;
+
+    if (customerId != null && customerId.isNotEmpty) {
+      String title = '';
+      String message = '';
+      String statusType = '';
+
+      switch (orderStatus) {
+        case 'confirmed':
+          title = '✅ Order Confirmed!';
+          message = 'Your order #$orderIdStr has been confirmed by the seller.';
+          statusType = 'order_confirmed';
+          break;
+
+        case 'shipped':
+          title = '📦 Order Shipped!';
+          if (trackingIdValue != null && trackingIdValue.isNotEmpty) {
+            message =
+                'Your order #$orderIdStr has been shipped. Tracking ID: $trackingIdValue';
+          } else {
+            message =
+                'Your order #$orderIdStr has been shipped and is on the way!';
+          }
+          statusType = 'order_shipped';
+          break;
+
+        case 'out_for_delivery':
+          title = '🚚 Out for Delivery!';
+          message =
+              'Your order #$orderIdStr is out for delivery and will reach you soon.';
+          statusType = 'order_out_for_delivery';
+          break;
+
+        case 'delivered':
+          title = '🎉 Order Delivered!';
+          message =
+              'Your order #$orderIdStr has been delivered successfully. Thank you for shopping with us!';
+          statusType = 'order_delivered';
+          break;
+
+        case 'cancelled':
+          title = '❌ Order Cancelled';
+          message = 'Your order #$orderIdStr has been cancelled.';
+          statusType = 'order_cancelled';
+          break;
+
+        default:
+          title = '📝 Order Updated';
+          message =
+              'Your order #$orderIdStr status has been updated to: $orderStatus';
+          statusType = 'order_updated';
+      }
+
+      if (title.isNotEmpty) {
+        // Send push notification to customer
+        await NotificationService.notifyCustomerOrderStatus(
+          customerId: customerId,
+          orderId: orderIdStr,
+          status: statusType,
+          title: title,
+          message: message,
+          trackingId: trackingIdValue,
+        );
+
+        // Save notification to database for customer
+        await NotificationService.saveNotificationHistory(
+          userId: customerId,
+          userRole: 'customer',
+          title: title,
+          body: message,
+          type: statusType,
+          data: {'orderId': orderIdStr, 'status': orderStatus},
+        );
+
+        print(
+          '✅ Notification sent to customer: $customerId for status: $orderStatus',
+        );
+      }
     }
 
-    // For online payments, return payment intent details
-    if (paymentMethod == 'online' &&
-        paymentIntentId != null &&
-        clientSecret != null) {
-      return Response.json(
-        statusCode: 201,
-        body: {
-          'success': true,
-          'message': 'Order created. Please complete payment.',
-          'data': {
-            'orderId': orderId,
-            'totalAmount': totalAmount,
-            'paymentMethod': paymentMethod,
-            'paymentIntentId': paymentIntentId,
-            'clientSecret': clientSecret,
-          },
-        },
-      );
+    // ============================================================
+    // ========== END NOTIFICATIONS ===============================
+    // ============================================================
+
+    final Map<String, dynamic> responseData = {
+      'orderId': orderId,
+      'orderStatus': orderStatus,
+    };
+
+    if (updateData.containsKey('trackingId')) {
+      responseData['trackingId'] = updateData['trackingId'] as String;
     }
 
     return Response.json(
-      statusCode: 201,
+      statusCode: 200,
       body: {
         'success': true,
-        'message': 'Order placed successfully',
-        'data': {
-          'orderId': orderId,
-          'totalAmount': totalAmount,
-          'paymentMethod': paymentMethod,
-        },
+        'message': 'Order status updated successfully',
+        'data': responseData,
       },
     );
   } catch (e, stackTrace) {

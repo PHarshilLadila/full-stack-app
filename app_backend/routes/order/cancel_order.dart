@@ -33,7 +33,8 @@ Future<Response> onRequest(RequestContext context) async {
     final jwt = JWT.verify(token, SecretKey(Env.jwtSecret));
     final userId = jwt.payload['id'].toString();
 
-    final body = jsonDecode(await context.request.body()) as Map<String, dynamic>;
+    final body =
+        jsonDecode(await context.request.body()) as Map<String, dynamic>;
     final orderId = body['orderId']?.toString();
     final reason = body['reason']?.toString() ?? 'Cancelled by customer';
 
@@ -62,7 +63,7 @@ Future<Response> onRequest(RequestContext context) async {
     }
 
     final currentStatus = order['orderStatus']?.toString();
-    
+
     // Check if order can be cancelled
     final cancellableStatuses = ['pending', 'awaiting_payment'];
     if (!cancellableStatuses.contains(currentStatus)) {
@@ -70,7 +71,8 @@ Future<Response> onRequest(RequestContext context) async {
         statusCode: 400,
         body: {
           'success': false,
-          'message': 'Order cannot be cancelled at this stage. Current status: $currentStatus',
+          'message':
+              'Order cannot be cancelled at this stage. Current status: $currentStatus',
         },
       );
     }
@@ -89,7 +91,9 @@ Future<Response> onRequest(RequestContext context) async {
 
         await MongoService.products!.updateOne(
           {'_id': productObjectId},
-          {'\$inc': {'stock': quantity}},
+          {
+            '\$inc': {'stock': quantity},
+          },
         );
       } catch (e) {
         print('Error restoring stock for product $productIdStr: $e');
@@ -122,10 +126,7 @@ Future<Response> onRequest(RequestContext context) async {
       body: {
         'success': true,
         'message': 'Order cancelled successfully',
-        'data': {
-          'orderId': orderId,
-          'orderStatus': 'cancelled',
-        },
+        'data': {'orderId': orderId, 'orderStatus': 'cancelled'},
       },
     );
   } catch (e, stackTrace) {
