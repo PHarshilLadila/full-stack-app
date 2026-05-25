@@ -1,27 +1,38 @@
+// main.dart
 import 'package:app_frontend_customer/features/auth/view/auth_screen.dart';
-import 'package:app_frontend_customer/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
-import 'package:app_frontend_customer/features/bottom_navbar/view/bottom_navbar_screen.dart';
-import 'package:app_frontend_customer/features/customer/address/bloc/address_bloc.dart';
-import 'package:app_frontend_customer/features/customer/address/service/address_service.dart';
-import 'package:app_frontend_customer/features/customer/cart/bloc/cart_bloc.dart';
-import 'package:app_frontend_customer/features/customer/cart/service/cart_service.dart';
-import 'package:app_frontend_customer/features/customer/checkout/bloc/checkout_bloc.dart';
-import 'package:app_frontend_customer/features/customer/checkout/service/checkout_service.dart';
-import 'package:app_frontend_customer/features/customer/favorite/bloc/favorites_bloc.dart';
-import 'package:app_frontend_customer/features/customer/favorite/service/favorites_service.dart';
-import 'package:app_frontend_customer/features/customer/home/bloc/product_bloc.dart';
-import 'package:app_frontend_customer/features/customer/home/service/product_service.dart';
-import 'package:app_frontend_customer/features/customer/order/bloc/order_bloc.dart';
-import 'package:app_frontend_customer/features/customer/order/service/order_service.dart';
-import 'package:app_frontend_customer/features/customer/profile/bloc/user_bloc.dart';
-import 'package:app_frontend_customer/features/customer/profile/service/user_service.dart';
-import 'package:app_frontend_customer/features/splash/view/splash_screen.dart';
+import 'package:app_frontend_customer/service/fcm_notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-void main() {
+import 'features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
+import 'features/bottom_navbar/view/bottom_navbar_screen.dart';
+import 'features/customer/address/bloc/address_bloc.dart';
+import 'features/customer/address/service/address_service.dart';
+import 'features/customer/cart/bloc/cart_bloc.dart';
+import 'features/customer/cart/service/cart_service.dart';
+import 'features/customer/checkout/bloc/checkout_bloc.dart';
+import 'features/customer/checkout/service/checkout_service.dart';
+import 'features/customer/favorite/bloc/favorites_bloc.dart';
+import 'features/customer/favorite/service/favorites_service.dart';
+import 'features/customer/home/bloc/product_bloc.dart';
+import 'features/customer/home/service/product_service.dart';
+import 'features/customer/order/bloc/order_bloc.dart';
+import 'features/customer/order/service/order_service.dart';
+import 'features/customer/profile/bloc/user_bloc.dart';
+import 'features/customer/profile/service/user_service.dart';
+import 'features/splash/view/splash_screen.dart';
+ 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp();
+  
+  // Initialize FCM Notifications
+  await FCMNotificationService.initialize();
+  
   runApp(const MyApp());
 }
 
@@ -39,7 +50,7 @@ class _MyAppState extends State<MyApp> {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String userToken = preferences.getString("auth_token") ?? "";
     setState(() {
-      userToken = token;
+      token = userToken;
     });
   }
 
@@ -59,15 +70,14 @@ class _MyAppState extends State<MyApp> {
           create: (context) => ProductBloc(productService: ProductService()),
         ),
         BlocProvider(
-          create:
-              (context) => FavoritesBloc(favoritesService: FavoritesService()),
+          create: (context) => FavoritesBloc(favoritesService: FavoritesService()),
         ),
         BlocProvider(create: (context) => CartBloc(cartService: CartService())),
         BlocProvider(
           create: (context) => AddressBloc(addressService: AddressService()),
         ),
         BlocProvider(
-          create: (context) => OrderBloc(orderService: OrderService(token: '')),
+          create: (context) => OrderBloc(orderService: OrderService(token: token)),
         ),
         BlocProvider(
           create: (context) => CheckoutBloc(checkoutService: CheckoutService()),

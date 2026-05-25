@@ -1,4 +1,6 @@
+// features/splash/bloc/splash_bloc.dart
 import 'dart:developer';
+import 'package:app_frontend_customer/service/fcm_notification_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -11,10 +13,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     on<CheckAuthStatus>((event, emit) async {
       emit(SplashLoading());
 
-      // First, check API connection
       await _checkApiConnection(emit);
-
-      // Then check authentication status
       await _checkAuthStatus(emit);
     });
   }
@@ -36,7 +35,6 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       emit(SplashApiError('Unable to connect to server'));
     }
 
-    // Wait for 1 second so user can see the splash
     await Future.delayed(const Duration(milliseconds: 1000));
   }
 
@@ -51,9 +49,10 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     log("Splash - User Role: $userRole");
     log("Splash - User ID: $userId");
 
-    // Check if token exists and is valid (not empty)
     if (token != null && token.isNotEmpty) {
-      // For customer only - emit authenticated
+      // Refresh FCM token on app start (optional but good practice)
+      await FCMNotificationService.saveTokenToBackend(token);
+
       emit(
         Authenticated(
           token: token,

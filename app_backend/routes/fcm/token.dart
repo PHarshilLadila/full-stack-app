@@ -1,9 +1,10 @@
 // app_backend/lib/routes/fcm/token.dart
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:my_backend/config/env.dart';
 import 'package:my_backend/db/mongo.dart';
-import 'package:my_backend/middleware/auth_middleware.dart';
 
 /// POST /fcm/token - Save or update FCM token
 /// DELETE /fcm/token - Remove FCM token
@@ -22,12 +23,36 @@ Future<Response> onRequest(RequestContext context) async {
   );
 }
 
+/// Extract user ID from JWT token
+String? _getUserIdFromToken(RequestContext context) {
+  final authHeader = context.request.headers['authorization'];
+  if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  final token = authHeader.split(' ')[1];
+
+  try {
+    final jwt = JWT.verify(token, SecretKey(Env.jwtSecret));
+    return jwt.payload['id']?.toString();
+  } catch (e) {
+    print('Invalid token: $e');
+    return null;
+  }
+}
+
 /// Save FCM token
 Future<Response> _saveToken(RequestContext context) async {
   try {
-    // ✅ FIX: Use AuthData instead of context.get()
-    final authData = context.read<AuthData>();
-    final userId = authData.userId;
+    // Get user ID from JWT token directly
+    final userId = _getUserIdFromToken(context);
+
+    if (userId == null) {
+      return Response.json(
+        statusCode: 401,
+        body: {'success': false, 'message': 'User not authenticated'},
+      );
+    }
 
     // Parse request body
     final body =
@@ -75,7 +100,6 @@ Future<Response> _saveToken(RequestContext context) async {
     for (int i = 0; i < existingTokens.length; i++) {
       final tokenObj = existingTokens[i] as Map<String, dynamic>;
       if (tokenObj['token'] == fcmToken) {
-        // Update existing token
         tokenObj['deviceType'] = deviceType;
         tokenObj['appType'] = appType;
         tokenObj['lastUsed'] = DateTime.now().toIso8601String();
@@ -122,9 +146,13 @@ Future<Response> _saveToken(RequestContext context) async {
 /// Remove FCM token
 Future<Response> _removeToken(RequestContext context) async {
   try {
-    // ✅ FIX: Use AuthData instead of context.get()
-    final authData = context.read<AuthData>();
-    final userId = authData.userId;
+    final userId = _getUserIdFromToken(context);
+    if (userId == null) {
+      return Response.json(
+        statusCode: 401,
+        body: {'success': false, 'message': 'User not authenticated'},
+      );
+    }
 
     final body =
         jsonDecode(await context.request.body()) as Map<String, dynamic>;
@@ -154,7 +182,6 @@ Future<Response> _removeToken(RequestContext context) async {
       existingTokens = List<dynamic>.from(user['fcmTokens'] as List);
     }
 
-    // Remove the token
     existingTokens.removeWhere((token) {
       final tokenObj = token as Map<String, dynamic>;
       return tokenObj['token'] == fcmToken;

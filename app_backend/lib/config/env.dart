@@ -15,3 +15,4 @@ class Env {
   static String get firebaseClientEmail => env['FIREBASE_CLIENT_EMAIL'] ?? '';
   static String get firebasePrivateKey => env['FIREBASE_PRIVATE_KEY'] ?? '';
 }
+ 

@@ -8,16 +8,17 @@ plugins {
 
 android {
     namespace = "com.example.app_frontend_customer"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 35 // flutter.compileSdkVersion
+    ndkVersion = "27.0.12077973" // flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11  // 11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "11" // JavaVersion.VERSION_11.toString()
     }
 
     defaultConfig {
@@ -25,8 +26,8 @@ android {
         applicationId = "com.example.app_frontend_customer"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 23 // flutter.minSdkVersion
+        targetSdk = 35 // flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -52,6 +53,7 @@ dependencies {
   // TODO: Add the dependencies for Firebase products you want to use
   // When using the BoM, don't specify versions in Firebase dependencies
   implementation("com.google.firebase:firebase-analytics")
+  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
 
   // Add the dependencies for any other desired Firebase products

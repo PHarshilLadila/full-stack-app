@@ -1,11 +1,14 @@
+// features/auth/bloc/auth_bloc.dart
 import 'dart:developer';
-
 import 'package:app_frontend_customer/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend_customer/features/auth/bloc/auth_state.dart';
-import 'package:app_frontend_customer/features/auth/service/auth_service.dart';
+import 'package:app_frontend_customer/service/fcm_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../model/login_model.dart';
+import '../model/register_model.dart';
+import '../service/auth_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService service;
@@ -17,9 +20,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final message = await service.register(event.registerModel);
         log("Register Success: $message");
-        
-        // After successful registration, just show success and stay on auth screen
-        // User will manually login
         emit(AuthSuccess(message, isRegistration: true));
       } catch (e) {
         log("Register Error: $e");
@@ -38,7 +38,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         log("Login Success - UserId: ${response.userId}");
 
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Save all user data locally
         await prefs.setString('auth_token', response.token);
         await prefs.setString('user_role', response.role.toLowerCase());
@@ -50,6 +50,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await prefs.setString('user_mobile', response.user!.mobile);
           await prefs.setString('user_username', response.user!.username);
         }
+
+        // ==============================================
+        // SAVE FCM TOKEN TO BACKEND AFTER LOGIN SUCCESS
+        // ==============================================
+        await FCMNotificationService.saveTokenToBackend(response.token);
+        // ==============================================
 
         emit(
           AuthSuccess(

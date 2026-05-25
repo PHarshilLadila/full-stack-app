@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_event.dart';
 import 'package:app_frontend_customer/features/customer/profile/bloc/user_state.dart';
 import 'package:app_frontend_customer/features/customer/profile/service/user_service.dart';
+import 'package:app_frontend_customer/service/fcm_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,6 +66,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         if (token != null && token.isNotEmpty) {
           final result = await userService.logout(token);
           log("Logout API response: $result");
+        }
+        if (token != null) {
+          // Remove FCM token from backend
+          await FCMNotificationService.removeTokenFromBackend(token);
         }
 
         await prefs.clear();
