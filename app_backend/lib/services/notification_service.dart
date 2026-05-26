@@ -1,70 +1,73 @@
-// app_backend/lib/services/notification_service.dart
-import 'dart:convert';
+// app_backend/services/notification_service.dart
 import 'package:mongo_dart/mongo_dart.dart';
-import '../config/firebase.dart';
 import '../db/mongo.dart';
+import '../config/firebase.dart';
 
 class NotificationService {
-  /// Send push notification to a device
-  static Future<bool> sendPushNotification({
+  // Save FCM token to database
+  static Future<void> saveFCMToken({
+    required String userId,
     required String fcmToken,
-    required String title,
-    required String body,
-    Map<String, String>? data,
+    required String role,
   }) async {
     try {
-      return await FirebaseConfig.sendNotification(
-        fcmToken: fcmToken,
-        title: title,
-        body: body,
-        data: data,
+      final result = await MongoService.users!.updateOne(
+        {'_id': ObjectId.parse(userId)},
+        {
+          '\$set': {
+            'fcmToken': fcmToken,
+            'updatedAt': DateTime.now(),
+            'role': role, // Ensure role is set
+          },
+        },
       );
+
+      if (result.isSuccess) {
+        print('✅ FCM Token saved for $role: $userId');
+      } else {
+        print('❌ Failed to save FCM token for $role: $userId');
+      }
     } catch (e) {
-      print('❌ Error sending push notification: $e');
-      return false;
+      print('❌ Failed to save FCM token: $e');
     }
   }
 
-  /// Send notification to seller about new order
-  static Future<void> notifySellerNewOrder({
-    required String sellerId,
-    required String orderId,
-    required String customerName,
-    required double orderAmount,
-    required int itemCount,
-  }) async {
-    final title = '🛍️ New Order Received!';
-    final body = '$customerName placed order #$orderId for ₹$orderAmount';
-
-    final data = {
-      'type': 'order_created',
-      'orderId': orderId,
-      'customerName': customerName,
-      'orderAmount': orderAmount.toString(),
-      'itemCount': itemCount.toString(),
-      'clickAction': 'ORDER_DETAILS',
-    };
-
-    // Send to seller mobile
-    await _sendToUserOnApp(
-      userId: sellerId,
-      appType: 'seller_mobile',
-      title: title,
-      body: body,
-      data: data,
-    );
-
-    // Also send to seller web
-    await _sendToUserOnApp(
-      userId: sellerId,
-      appType: 'seller_web',
-      title: title,
-      body: body,
-      data: data,
-    );
+  // Get customer's FCM token
+  static Future<String?> getCustomerFCMToken(String userId) async {
+    try {
+      final user = await MongoService.users!.findOne({
+        '_id': ObjectId.parse(userId),
+      });
+      final token = user?['fcmToken']?.toString();
+      print(
+        '📱 Customer token for $userId: ${token != null ? 'Found' : 'Not found'}',
+      );
+      return token;
+    } catch (e) {
+      print('❌ Failed to get customer token: $e');
+      return null;
+    }
   }
 
-  /// Send notification to customer about order status
+  // Get seller's FCM token
+  static Future<String?> getSellerFCMToken(String sellerId) async {
+    try {
+      final seller = await MongoService.users!.findOne({
+        '_id': ObjectId.parse(sellerId),
+        'role': 'seller',
+      });
+      final token = seller?['fcmToken']?.toString();
+      print(
+        '📱 Seller token for $sellerId: ${token != null ? 'Found' : 'Not found'}',
+      );
+      return token;
+    } catch (e) {
+      print('❌ Failed to get seller token: $e');
+      return null;
+    }
+  }
+
+  // Send notification to customer for order status change
   static Future<void> notifyCustomerOrderStatus({
     required String customerId,
     required String orderId,
@@ -73,67 +76,87 @@ class NotificationService {
     required String message,
     String? trackingId,
   }) async {
-    final data = {
-      'type': status,
-      'orderId': orderId,
-      'status': status,
-      'clickAction': 'ORDER_DETAILS',
-    };
-
-    if (trackingId != null) {
-      data['trackingId'] = trackingId;
-    }
-
-    // Send to customer mobile only
-    await _sendToUserOnApp(
-      userId: customerId,
-      appType: 'customer_mobile',
-      title: title,
-      body: message,
-      data: data,
-    );
-  }
-
-  /// Internal method to send notification to specific app type
-  static Future<void> _sendToUserOnApp({
-    required String userId,
-    required String appType,
-    required String title,
-    required String body,
-    Map<String, String>? data,
-  }) async {
     try {
-      final userObjectId = ObjectId.parse(userId);
-      final user = await MongoService.users!.findOne({'_id': userObjectId});
+      final fcmToken = await getCustomerFCMToken(customerId);
 
-      if (user == null) {
-        print('User not found: $userId');
+      if (fcmToken == null || fcmToken.isEmpty) {
+        print('⚠️ No FCM token found for customer: $customerId');
         return;
       }
 
-      final tokens = user['fcmTokens'] as List? ?? [];
+      final success = await FirebaseConfig.sendNotification(
+        fcmToken: fcmToken,
+        title: title,
+        body: message,
+        data: {
+          'type': 'order_status',
+          'orderId': orderId,
+          'status': status,
+          'trackingId': trackingId ?? '',
+        },
+      );
 
-      for (var tokenObj in tokens) {
-        final token = tokenObj['token'] as String?;
-        final tokenAppType = tokenObj['appType'] as String?;
-
-        if (token != null &&
-            tokenObj['isActive'] == true &&
-            tokenAppType == appType) {
-          await sendPushNotification(
-            fcmToken: token,
-            title: title,
-            body: body,
-            data: data,
-          );
-        }
+      if (success) {
+        print('✅ Notification sent to customer: $customerId');
+      } else {
+        print('❌ Failed to send notification to customer: $customerId');
       }
     } catch (e) {
-      print('❌ Error sending to user: $e');
+      print('❌ Failed to send customer notification: $e');
     }
   }
 
-  /// Save notification to database history
+  // Send notification to seller for new order
+  static Future<void> notifySellerNewOrder({
+    required String sellerId,
+    required String orderId,
+    required String customerName,
+  }) async {
+    try {
+      final fcmToken = await getSellerFCMToken(sellerId);
+
+      if (fcmToken == null || fcmToken.isEmpty) {
+        print('⚠️ No FCM token found for seller: $sellerId');
+        return;
+      }
+
+      final success = await FirebaseConfig.sendNotification(
+        fcmToken: fcmToken,
+        title: '🛒 New Order Received!',
+        body: 'Order #$orderId from $customerName',
+        data: {
+          'type': 'new_order',
+          'orderId': orderId,
+          'customerName': customerName,
+        },
+      );
+
+      if (success) {
+        print('✅ Notification sent to seller: $sellerId');
+      } else {
+        print('❌ Failed to send notification to seller: $sellerId');
+      }
+    } catch (e) {
+      print('❌ Failed to send seller notification: $e');
+    }
+  }
+
+  // Send notification to multiple sellers (for bulk orders)
+  static Future<void> notifyMultipleSellers({
+    required List<String> sellerIds,
+    required String orderId,
+    required String customerName,
+  }) async {
+    for (final sellerId in sellerIds) {
+      await notifySellerNewOrder(
+        sellerId: sellerId,
+        orderId: orderId,
+        customerName: customerName,
+      );
+    }
+  }
+
+  // Save notification history in database
   static Future<void> saveNotificationHistory({
     required String userId,
     required String userRole,
@@ -143,24 +166,19 @@ class NotificationService {
     Map<String, dynamic>? data,
   }) async {
     try {
-      final shortId = userId.length > 4 ? userId.substring(0, 4) : userId;
-      final notificationId =
-          'NOTIF_${DateTime.now().millisecondsSinceEpoch}_$shortId';
-
-      final notificationData = {
-        'notificationId': notificationId,
+      final notification = {
         'userId': userId,
         'userRole': userRole,
         'title': title,
         'body': body,
         'type': type,
-        'data': data,
+        'data': data ?? {},
         'isRead': false,
         'createdAt': DateTime.now(),
       };
 
-      await MongoService.notifications!.insertOne(notificationData);
-      print('✅ Notification saved to history: $notificationId');
+      await MongoService.notifications!.insert(notification);
+      print('✅ Notification saved to history for $userRole: $userId');
     } catch (e) {
       print('❌ Failed to save notification history: $e');
     }
