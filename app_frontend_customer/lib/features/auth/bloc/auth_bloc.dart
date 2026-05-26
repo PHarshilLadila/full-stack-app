@@ -1,4 +1,4 @@
-// features/auth/bloc/auth_bloc.dart
+// app_frontend_customer/lib/features/auth/bloc/auth_bloc.dart
 import 'dart:developer';
 import 'package:app_frontend_customer/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend_customer/features/auth/bloc/auth_state.dart';
@@ -54,6 +54,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // ==============================================
         // SAVE FCM TOKEN TO BACKEND AFTER LOGIN SUCCESS
         // ==============================================
+        // Add small delay to ensure token is available
+        await Future.delayed(const Duration(milliseconds: 500));
         await FCMNotificationService.saveTokenToBackend(response.token);
         // ==============================================
 
@@ -69,6 +71,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } catch (e) {
         log("Login Error: $e");
         debugPrint("Login Error : $e");
+        emit(AuthError(e.toString()));
+      }
+    });
+
+    // Add logout event handler
+    on<LogoutEvent>((event, emit) async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('auth_token');
+        
+        if (token != null) {
+          await FCMNotificationService.removeTokenFromBackend(token);
+        }
+        
+        await prefs.clear();
+        emit(AuthInitial());
+      } catch (e) {
+        log("Logout Error: $e");
         emit(AuthError(e.toString()));
       }
     });

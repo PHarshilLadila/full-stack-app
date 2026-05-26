@@ -1,4 +1,4 @@
-// features/auth/bloc/auth_bloc.dart
+// app_frontend/lib/features/auth/bloc/auth_bloc.dart
 import 'dart:developer';
 import 'package:app_frontend/service/fcm_notification_service.dart';
 import 'package:flutter/material.dart';
@@ -45,8 +45,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         // ==============================================
         // SAVE SELLER FCM TOKEN AFTER LOGIN
-        // (For both seller and customer)
         // ==============================================
+        // Add small delay to ensure token is available
+        await Future.delayed(const Duration(milliseconds: 500));
         await FCMNotificationService.saveTokenToBackend(response.token);
         // ==============================================
 
@@ -59,6 +60,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       } catch (e) {
         log("Login Error: $e");
+        emit(AuthError(e.toString()));
+      }
+    });
+
+    // Add logout event handler
+    on<LogoutEvent>((event, emit) async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('auth_token');
+        
+        if (token != null) {
+          await FCMNotificationService.removeTokenFromBackend(token);
+        }
+        
+        await prefs.clear();
+        emit(AuthInitial());
+      } catch (e) {
+        log("Logout Error: $e");
         emit(AuthError(e.toString()));
       }
     });

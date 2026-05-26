@@ -63,7 +63,7 @@ class FCMNotificationService {
         FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
         FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
       }
-      
+
       _isInitialized = true;
     } catch (e) {
       log('⚠️ Seller FCM initialization error: $e');
@@ -71,28 +71,30 @@ class FCMNotificationService {
   }
 
   /// Save FCM token to backend (Called after successful login)
+  // Update this method in your FCMNotificationService class
   static Future<void> saveTokenToBackend(String authToken) async {
     try {
       final String? fcmToken = await _fcm.getToken();
-      
+
       if (fcmToken == null || fcmToken.isEmpty) {
         log('❌ No FCM token available for seller');
         return;
       }
 
-      // Check if token already saved
       final prefs = await SharedPreferences.getInstance();
-      final savedKey = kIsWeb ? 'seller_web_token_saved' : 'seller_mobile_token_saved';
+      final savedKey =
+          kIsWeb ? 'seller_web_token_saved' : 'seller_mobile_token_saved';
       final savedToken = prefs.getString(savedKey);
+
       if (savedToken == fcmToken) {
         log('✅ Seller FCM token already saved');
         return;
       }
 
-      // Determine app type
       final String appType = kIsWeb ? 'seller_web' : 'seller_mobile';
 
       log('📤 Saving seller token with appType: $appType');
+      log('📤 Auth Token: ${authToken.substring(0, 20)}...');
 
       final response = await http.post(
         Uri.parse('https://full-stack-app-1-4iqk.onrender.com/fcm/token'),
@@ -102,14 +104,17 @@ class FCMNotificationService {
         },
         body: jsonEncode({
           'fcmToken': fcmToken,
-          'deviceType': kIsWeb ? 'web' : (defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios'),
+          'deviceType': kIsWeb ? 'web' : 'android',
           'appType': appType,
         }),
       );
 
+      log('📤 Response status: ${response.statusCode}');
+      log('📤 Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         await prefs.setString(savedKey, fcmToken);
-        log('✅ Seller FCM token saved to backend successfully (appType: $appType)');
+        log('✅ Seller FCM token saved to backend successfully');
       } else {
         log('❌ Failed to save seller token: ${response.body}');
       }
@@ -135,7 +140,9 @@ class FCMNotificationService {
 
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.remove(kIsWeb ? 'seller_web_token_saved' : 'seller_mobile_token_saved');
+        await prefs.remove(
+          kIsWeb ? 'seller_web_token_saved' : 'seller_mobile_token_saved',
+        );
         log('✅ Seller token removed from backend');
       }
     } catch (e) {
@@ -148,7 +155,7 @@ class FCMNotificationService {
     log('📨 Seller foreground message received');
     log('Title: ${message.notification?.title}');
     log('Body: ${message.notification?.body}');
-    
+
     _showLocalNotification(
       title: message.notification?.title ?? 'New Update',
       body: message.notification?.body ?? '',
@@ -168,17 +175,18 @@ class FCMNotificationService {
     required String body,
   }) async {
     if (kIsWeb) return; // Web doesn't need local notifications
-    
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'seller_orders_channel',
-      'Seller Order Notifications',
-      channelDescription: 'Notifications for new orders and updates',
-      importance: Importance.high,
-      priority: Priority.high,
-      showWhen: true,
-      enableVibration: true,
-      playSound: true,
-    );
+
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'seller_orders_channel',
+          'Seller Order Notifications',
+          channelDescription: 'Notifications for new orders and updates',
+          importance: Importance.high,
+          priority: Priority.high,
+          showWhen: true,
+          enableVibration: true,
+          playSound: true,
+        );
 
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,

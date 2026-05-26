@@ -15,4 +15,4 @@ class LoginEvent extends AuthEvent {
   final LoginModel loginModel;
 
   LoginEvent(this.loginModel);
-}
+}class LogoutEvent extends AuthEvent {}

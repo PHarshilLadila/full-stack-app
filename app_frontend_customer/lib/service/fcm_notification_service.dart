@@ -98,6 +98,7 @@ class FCMNotificationService {
   }
 
   /// Save FCM token to backend
+  // Update the saveTokenToBackend method
   static Future<void> saveTokenToBackend(String authToken) async {
     if (!_fcmSupported) {
       log('⚠️ FCM not supported, skipping token save');
@@ -114,10 +115,13 @@ class FCMNotificationService {
 
       final prefs = await SharedPreferences.getInstance();
       final savedToken = prefs.getString('fcm_token_saved');
+
       if (savedToken == fcmToken) {
-        log('✅ FCM token already saved');
+        log('✅ Customer FCM token already saved');
         return;
       }
+
+      log('📤 Saving customer token...');
 
       final response = await http.post(
         Uri.parse('https://full-stack-app-1-4iqk.onrender.com/fcm/token'),
@@ -132,14 +136,16 @@ class FCMNotificationService {
         }),
       );
 
+      log('📤 Response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         await prefs.setString('fcm_token_saved', fcmToken);
-        log('✅ FCM token saved to backend');
+        log('✅ Customer FCM token saved to backend');
       } else {
-        log('❌ Failed to save: ${response.body}');
+        log('❌ Failed to save customer token: ${response.body}');
       }
     } catch (e) {
-      log('❌ Error saving token: $e');
+      log('❌ Error saving customer token: $e');
     }
   }
 
