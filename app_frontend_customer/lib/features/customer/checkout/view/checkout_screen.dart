@@ -1,4 +1,5 @@
 import 'package:app_frontend_customer/features/customer/address/service/address_service.dart';
+import 'package:app_frontend_customer/features/customer/cart/bloc/cart_event.dart';
 import 'package:app_frontend_customer/features/customer/checkout/model/checkout_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,6 +47,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     _initializeScreen();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CartBloc>().stream.listen((state) {
+        if (state is CartLoaded && mounted) {
+          setState(() {
+            _cartSummary = state.cartSummary;
+          });
+        }
+      });
+    });
   }
 
   Future<void> _initializeScreen() async {
@@ -61,6 +71,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         await _fetchProductDetails();
       }
     } else {
+      if (_token.isNotEmpty) {
+        context.read<CartBloc>().add(LoadCart()); // AA LINE ADD KARO
+      }
       _loadCartData();
     }
 
@@ -111,10 +124,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _loadCartData() {
     final cartState = context.read<CartBloc>().state;
+
+    // Debug print - JOVA MATE
+    print('CartBloc State: ${cartState.runtimeType}');
+
     if (cartState is CartLoaded) {
       setState(() {
         _cartSummary = cartState.cartSummary;
       });
+    } else if (cartState is CartError) {
+      print('Cart Error: ${cartState.message}');
+    } else if (cartState is CartInitial) {
+      // Cart initial che, load karo
+      context.read<CartBloc>().add(LoadCart());
     }
   }
 

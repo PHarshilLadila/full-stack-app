@@ -1,317 +1,335 @@
-// app_backend/lib/routes/order/update_status.dart
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
-
+// app_backend/lib/routes/order/create.dart
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:mongo_dart/mongo_dart.dart';
-
 import 'package:my_backend/config/env.dart';
 import 'package:my_backend/db/mongo.dart';
-import 'package:my_backend/services/notification_service.dart';
 
-/// Generate tracking ID
-String generateTrackingId(String orderId) {
+/// Generate unique order ID
+String generateOrderId() {
   final timestamp = DateTime.now().millisecondsSinceEpoch;
   final random = DateTime.now().microsecond % 10000;
-  return 'TRK${timestamp}${random.toString().padLeft(4, '0')}';
+  return 'ORD${timestamp}${random.toString().padLeft(4, '0')}';
 }
 
-/// PUT /order/update_status
+/// POST /order/create
 Future<Response> onRequest(RequestContext context) async {
-  print('🔥 /order/update_status API HIT');
+  print('🔥 POST /order/create API HIT');
+  print('📍 Method: ${context.request.method}');
+  print('📍 Path: ${context.request.uri.path}');
 
-  if (context.request.method != HttpMethod.put) {
+  // Allow only POST method
+  if (context.request.method != HttpMethod.post) {
+    print('❌ Method not allowed: ${context.request.method}');
     return Response.json(
       statusCode: 405,
-      body: {'success': false, 'message': 'Method not allowed'},
+      headers: {
+        'Allow': 'POST',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+      body: {'success': false, 'message': 'Method not allowed. Use POST'},
     );
   }
 
+  // Handle OPTIONS preflight (CORS)
+  if (context.request.method == HttpMethod.options) {
+    return Response.json(
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+      body: {},
+    );
+  }
+
+  // Get token from header
   final authHeader = context.request.headers['authorization'];
+  print('📝 Auth Header present: ${authHeader != null}');
+
   if (authHeader == null || !authHeader.startsWith('Bearer ')) {
     return Response.json(
       statusCode: 401,
-      body: {'success': false, 'message': 'Token missing'},
+      body: {'success': false, 'message': 'Token missing or invalid'},
     );
   }
 
   final token = authHeader.split(' ')[1];
 
   try {
+    // Verify JWT token
     final jwt = JWT.verify(token, SecretKey(Env.jwtSecret));
     final userId = jwt.payload['id'].toString();
-    final userRole = jwt.payload['role']?.toString() ?? 'customer';
+    print('✅ User ID from token: $userId');
 
-    final body =
-        jsonDecode(await context.request.body()) as Map<String, dynamic>;
-    final orderId = body['orderId']?.toString();
-    final orderStatus = body['orderStatus']?.toString();
+    // Parse request body
+    final body = await context.request.json() as Map<String, dynamic>;
+    print('📦 Request body: $body');
 
-    if (orderId == null || orderId.isEmpty) {
+    final addressId = body['addressId']?.toString();
+    final paymentMethod = body['paymentMethod']?.toString();
+    final bool isDirectOrder = (body['isDirectOrder'] as bool?) ?? false;
+
+    print('📝 Create Order Request:');
+    print('  - User ID: $userId');
+    print('  - Address ID: $addressId');
+    print('  - Payment Method: $paymentMethod');
+    print('  - Is Direct Order: $isDirectOrder');
+
+    if (addressId == null || addressId.isEmpty) {
       return Response.json(
         statusCode: 400,
-        body: {'success': false, 'message': 'Order ID required'},
+        body: {'success': false, 'message': 'Address ID required'},
       );
     }
 
-    if (orderStatus == null || orderStatus.isEmpty) {
+    if (paymentMethod == null || paymentMethod.isEmpty) {
       return Response.json(
         statusCode: 400,
-        body: {'success': false, 'message': 'Order status required'},
+        body: {'success': false, 'message': 'Payment method required'},
       );
     }
 
-    final validStatuses = [
-      'pending',
-      'confirmed',
-      'shipped',
-      'out_for_delivery',
-      'delivered',
-      'cancelled',
-    ];
-    if (!validStatuses.contains(orderStatus)) {
+    // Validate payment method
+    if (!['cod', 'online'].contains(paymentMethod)) {
       return Response.json(
         statusCode: 400,
-        body: {'success': false, 'message': 'Invalid order status'},
+        body: {'success': false, 'message': 'Invalid payment method'},
       );
     }
 
-    final order = await MongoService.orders!.findOne({'orderId': orderId});
+    // Get user's address
+    late ObjectId addressObjectId;
+    try {
+      addressObjectId = ObjectId.parse(addressId);
+    } catch (e) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'Invalid address ID format'},
+      );
+    }
 
-    if (order == null) {
+    final address = await MongoService.addresses?.findOne({
+      '_id': addressObjectId,
+      'userId': userId,
+    });
+
+    if (address == null) {
       return Response.json(
         statusCode: 404,
-        body: {'success': false, 'message': 'Order not found'},
+        body: {'success': false, 'message': 'Address not found'},
       );
     }
 
-    // Customer can only cancel their own orders
-    if (userRole == 'customer') {
-      if (order['userId'] != userId) {
-        return Response.json(
-          statusCode: 403,
-          body: {'success': false, 'message': 'Unauthorized'},
-        );
-      }
+    List<Map<String, dynamic>> orderItems = [];
+    double totalAmount = 0.0;
+    double discountAmount = 0.0;
+    double finalAmount = 0.0;
 
-      // Customers can only cancel pending orders
-      if (orderStatus != 'cancelled') {
-        return Response.json(
-          statusCode: 403,
-          body: {
-            'success': false,
-            'message': 'Customers can only cancel orders',
-          },
-        );
-      }
-
-      final currentStatus = order['orderStatus']?.toString();
-      if (currentStatus != 'pending' && currentStatus != 'awaiting_payment') {
+    if (isDirectOrder) {
+      // Direct order from product page
+      final directProduct = body['directProduct'] as Map<String, dynamic>?;
+      if (directProduct == null) {
         return Response.json(
           statusCode: 400,
           body: {
             'success': false,
-            'message': 'Order cannot be cancelled at this stage',
+            'message': 'Direct product details required',
           },
         );
       }
-    }
 
-    // Seller/Admin permissions
-    if (userRole == 'seller') {
-      final items = order['items'] as List? ?? [];
-      bool hasSellerProduct = false;
+      final productId = directProduct['productId']?.toString();
+      final quantity = directProduct['quantity'] as int? ?? 1;
 
-      for (final item in items) {
-        final itemSellerId = item['sellerId']?.toString();
-        if (itemSellerId == userId) {
-          hasSellerProduct = true;
-          break;
-        }
-      }
-
-      if (!hasSellerProduct) {
+      if (productId == null || productId.isEmpty) {
         return Response.json(
-          statusCode: 403,
-          body: {
-            'success': false,
-            'message': 'Unauthorized to update this order',
-          },
+          statusCode: 400,
+          body: {'success': false, 'message': 'Product ID required'},
         );
       }
-    }
 
-    // Fix: Explicitly type as Map<String, dynamic>
-    final Map<String, dynamic> updateData = {
-      'orderStatus': orderStatus,
-      'updatedAt': DateTime.now(),
-    };
+      late ObjectId productObjectId;
+      try {
+        productObjectId = ObjectId.parse(productId);
+      } catch (e) {
+        return Response.json(
+          statusCode: 400,
+          body: {'success': false, 'message': 'Invalid product ID format'},
+        );
+      }
 
-    // Auto-generate tracking ID when status changes to 'shipped'
-    if (orderStatus == 'shipped') {
-      final trackingId = generateTrackingId(orderId);
-      updateData['trackingId'] = trackingId;
-      updateData['shippedDate'] = DateTime.now();
-    }
+      final product = await MongoService.products?.findOne({
+        '_id': productObjectId,
+      });
 
-    if (orderStatus == 'out_for_delivery') {
-      updateData['outForDeliveryDate'] = DateTime.now();
-    }
+      if (product == null) {
+        return Response.json(
+          statusCode: 404,
+          body: {'success': false, 'message': 'Product not found'},
+        );
+      }
 
-    if (orderStatus == 'delivered') {
-      updateData['deliveredDate'] = DateTime.now();
-      updateData['paymentStatus'] = 'completed';
-    }
+      final originalPrice = (product['price'] as num).toDouble();
+      final discountedPrice =
+          (product['discountPrice'] as num?)?.toDouble() ?? originalPrice;
+      final price = discountedPrice;
+      final itemTotal = price * quantity;
 
-    if (orderStatus == 'cancelled') {
-      updateData['cancelledDate'] = DateTime.now();
+      orderItems.add({
+        'productId': productId,
+        'productName': product['productName'],
+        'productImage': product['mainBannerImage'],
+        'originalPrice': originalPrice,
+        'price': price,
+        'quantity': quantity,
+        'sellerId': product['sellerId']?.toString() ?? '',
+        'sellerName': product['sellerName'] ?? '',
+        'totalPrice': itemTotal,
+      });
 
-      // Restore stock for cancelled order
-      final items = order['items'] as List? ?? [];
-      for (final item in items) {
-        final productIdStr = item['productId']?.toString();
-        if (productIdStr == null || productIdStr.isEmpty) {
+      totalAmount = originalPrice * quantity;
+      discountAmount = (originalPrice - price) * quantity;
+      finalAmount = itemTotal;
+    } else {
+      // Order from cart
+      final cart = await MongoService.carts?.findOne({'userId': userId});
+
+      if (cart == null) {
+        return Response.json(
+          statusCode: 400,
+          body: {'success': false, 'message': 'Cart is empty'},
+        );
+      }
+
+      final cartItems = cart['items'] as List? ?? [];
+
+      if (cartItems.isEmpty) {
+        return Response.json(
+          statusCode: 400,
+          body: {'success': false, 'message': 'Cart is empty'},
+        );
+      }
+
+      for (final item in cartItems) {
+        final productId = item['productId']?.toString();
+        if (productId == null) continue;
+
+        late ObjectId productObjectId;
+        try {
+          productObjectId = ObjectId.parse(productId);
+        } catch (e) {
+          print('Invalid product ID: $productId');
           continue;
         }
 
-        try {
-          final productObjectId = ObjectId.parse(productIdStr);
-          final quantity = item['quantity'] as int? ?? 1;
+        final product = await MongoService.products?.findOne({
+          '_id': productObjectId,
+        });
 
-          await MongoService.products!.updateOne(
-            {'_id': productObjectId},
-            {
-              '\$inc': {'stock': quantity},
-            },
-          );
-        } catch (e) {
-          print('Error restoring stock for product $productIdStr: $e');
+        if (product != null) {
+          final originalPrice = (product['price'] as num).toDouble();
+          final discountedPrice =
+              (product['discountPrice'] as num?)?.toDouble() ?? originalPrice;
+          final price = discountedPrice;
+          final quantity = item['quantity'] as int? ?? 1;
+          final itemTotal = price * quantity;
+
+          orderItems.add({
+            'productId': productId,
+            'productName': product['productName'],
+            'productImage': product['mainBannerImage'],
+            'originalPrice': originalPrice,
+            'price': price,
+            'quantity': quantity,
+            'sellerId': product['sellerId']?.toString() ?? '',
+            'sellerName': product['sellerName'] ?? '',
+            'totalPrice': itemTotal,
+          });
+
+          totalAmount += originalPrice * quantity;
+          discountAmount += (originalPrice - price) * quantity;
+          finalAmount += itemTotal;
         }
       }
-    }
 
-    final result = await MongoService.orders!.updateOne(
-      {'orderId': orderId},
-      {'\$set': updateData},
-    );
-
-    if (!result.isSuccess) {
-      return Response.json(
-        statusCode: 500,
-        body: {'success': false, 'message': 'Failed to update order status'},
+      // Clear cart after order
+      await MongoService.carts?.updateOne(
+        {'userId': userId},
+        {
+          '\$set': {'items': [], 'totalItems': 0},
+        },
       );
     }
 
-    // ============================================================
-    // ========== SEND NOTIFICATIONS FOR STATUS CHANGE ============
-    // ============================================================
-
-    final customerId = order['userId']?.toString();
-    final orderIdStr = orderId;
-    final trackingIdValue = updateData['trackingId'] as String?;
-
-    if (customerId != null && customerId.isNotEmpty) {
-      String title = '';
-      String message = '';
-      String statusType = '';
-
-      switch (orderStatus) {
-        case 'confirmed':
-          title = '✅ Order Confirmed!';
-          message = 'Your order #$orderIdStr has been confirmed by the seller.';
-          statusType = 'order_confirmed';
-          break;
-
-        case 'shipped':
-          title = '📦 Order Shipped!';
-          if (trackingIdValue != null && trackingIdValue.isNotEmpty) {
-            message =
-                'Your order #$orderIdStr has been shipped. Tracking ID: $trackingIdValue';
-          } else {
-            message =
-                'Your order #$orderIdStr has been shipped and is on the way!';
-          }
-          statusType = 'order_shipped';
-          break;
-
-        case 'out_for_delivery':
-          title = '🚚 Out for Delivery!';
-          message =
-              'Your order #$orderIdStr is out for delivery and will reach you soon.';
-          statusType = 'order_out_for_delivery';
-          break;
-
-        case 'delivered':
-          title = '🎉 Order Delivered!';
-          message =
-              'Your order #$orderIdStr has been delivered successfully. Thank you for shopping with us!';
-          statusType = 'order_delivered';
-          break;
-
-        case 'cancelled':
-          title = '❌ Order Cancelled';
-          message = 'Your order #$orderIdStr has been cancelled.';
-          statusType = 'order_cancelled';
-          break;
-
-        default:
-          title = '📝 Order Updated';
-          message =
-              'Your order #$orderIdStr status has been updated to: $orderStatus';
-          statusType = 'order_updated';
-      }
-
-      if (title.isNotEmpty) {
-        // Send push notification to customer
-        await NotificationService.notifyCustomerOrderStatus(
-          customerId: customerId,
-          orderId: orderIdStr,
-          status: statusType,
-          title: title,
-          message: message,
-          trackingId: trackingIdValue,
-        );
-
-        // Save notification to database for customer
-        await NotificationService.saveNotificationHistory(
-          userId: customerId,
-          userRole: 'customer',
-          title: title,
-          body: message,
-          type: statusType,
-          data: {'orderId': orderIdStr, 'status': orderStatus},
-        );
-
-        print(
-          '✅ Notification sent to customer: $customerId for status: $orderStatus',
-        );
-      }
+    if (orderItems.isEmpty) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'No items to order'},
+      );
     }
 
-    // ============================================================
-    // ========== END NOTIFICATIONS ===============================
-    // ============================================================
-
-    final Map<String, dynamic> responseData = {
+    // Create order
+    final orderId = generateOrderId();
+    final orderData = {
       'orderId': orderId,
-      'orderStatus': orderStatus,
+      'userId': userId,
+      'shippingAddress': {
+        'fullName': address['fullName'],
+        'addressLine1': address['addressLine1'],
+        'addressLine2': address['addressLine2'],
+        'city': address['city'],
+        'state': address['state'],
+        'pincode': address['pincode'],
+        'mobileNumber': address['mobileNumber'],
+      },
+      'items': orderItems,
+      'subtotal': totalAmount,
+      'discountAmount': discountAmount,
+      'shippingCharge': 0.0,
+      'taxAmount': 0.0,
+      'totalAmount': finalAmount,
+      'paymentMethod': paymentMethod,
+      'paymentStatus': paymentMethod == 'cod' ? 'pending' : 'awaiting',
+      'orderStatus': 'pending',
+      'orderDate': DateTime.now(),
+      'createdAt': DateTime.now(),
+      'updatedAt': DateTime.now(),
     };
 
-    if (updateData.containsKey('trackingId')) {
-      responseData['trackingId'] = updateData['trackingId'] as String;
+    await MongoService.orders!.insert(orderData);
+    print('✅ Order created successfully: $orderId');
+
+    // Prepare response
+    Map<String, dynamic> responseData = {
+      'orderId': orderId,
+      'totalAmount': finalAmount,
+      'paymentMethod': paymentMethod,
+    };
+
+    // For online payments, add dummy payment intent
+    if (paymentMethod == 'online') {
+      responseData['paymentIntentId'] =
+          'pi_${DateTime.now().millisecondsSinceEpoch}';
+      responseData['clientSecret'] =
+          'secret_${DateTime.now().millisecondsSinceEpoch}';
     }
 
     return Response.json(
       statusCode: 200,
+      headers: {'Access-Control-Allow-Origin': '*'},
       body: {
         'success': true,
-        'message': 'Order status updated successfully',
+        'message': 'Order created successfully',
         'data': responseData,
       },
     );
   } catch (e, stackTrace) {
-    print('❌ ERROR: $e');
+    print('❌ ERROR in /order/create: $e');
     print('Stack trace: $stackTrace');
     return Response.json(
       statusCode: 500,

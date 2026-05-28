@@ -1,7 +1,9 @@
+import 'package:app_frontend/service/fcm_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_table_view/material_table_view.dart';
 import 'package:material_table_view/table_view_typedefs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../bloc/seller_order_bloc.dart';
 import '../bloc/seller_order_event.dart';
 import '../bloc/seller_order_state.dart';
@@ -28,6 +30,16 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     _orderBloc = SellerOrderBloc(orderService: SellerOrderService());
     _orderBloc.add(const FetchSellerOrders());
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('seller_web_token_saved');
+      print('🔍 Web FCM Token Saved: ${token != null ? "Yes" : "No"}');
+      if (token != null) {
+        print(
+          '🔍 Token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...',
+        );
+      }
+    });
   }
 
   void _onScroll() {
@@ -118,6 +130,20 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                 Text(
                   'Track and manage all customer orders',
                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Color(0xFF7C3AED)),
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    final token = prefs.getString('auth_token');
+                    if (token != null) {
+                      await FCMNotificationService.saveTokenToBackend(token);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('FCM token refreshed!')),
+                      );
+                    }
+                  },
+                  tooltip: 'Refresh Notifications',
                 ),
               ],
             ),
