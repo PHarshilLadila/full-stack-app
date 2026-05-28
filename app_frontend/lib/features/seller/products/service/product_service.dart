@@ -10,25 +10,34 @@ class ProductService {
   final ApiClient apiClient = ApiClient();
   final String baseUrl = 'https://full-stack-app-1-4iqk.onrender.com';
 
-  Future<List<ProductModel>> fetchSellerProducts() async {
+    Future<PaginatedProductResponse> fetchSellerProducts({
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
 
+      log("Fetching products - Page: $page, Limit: $limit");
+
       final response = await apiClient.get(
         '/product/seller_products',
         token: token,
+        queryParams: {'page': page, 'limit': limit},
       );
 
       final data = jsonDecode(response.body);
 
+      log("Products Response Status: ${response.statusCode}");
+      log("Products Response: ${response.body}");
+
       if (response.statusCode == 200 && data['success'] == true) {
-        final List products = data['data'];
-        return products.map((e) => ProductModel.fromJson(e)).toList();
+        return PaginatedProductResponse.fromJson(data);
       } else {
         throw Exception(data['message'] ?? 'Failed to fetch products');
       }
     } catch (e) {
+      log("Fetch Products Error: $e");
       throw Exception(e.toString());
     }
   }

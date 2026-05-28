@@ -8,6 +8,7 @@ import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/dash
 import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/edit_product_view.dart';
 import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/product_details_view.dart';
 import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/product_listview.dart';
+import 'package:app_frontend/utils/common/widgets/pagination_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -75,9 +76,10 @@ class _ProductsContentState extends State<ProductsContent> {
   }
 
   List<ProductModel> get filteredProducts {
-    if (productBloc.state is! ProductLoaded) return [];
+    final state = productBloc.state;
+    if (state is! ProductLoaded) return [];
 
-    final products = (productBloc.state as ProductLoaded).products;
+    final products = state.products;
 
     List<ProductModel> filtered =
         products.where((product) {
@@ -163,30 +165,27 @@ class _ProductsContentState extends State<ProductsContent> {
   }
 
   int get totalProducts {
-    if (productBloc.state is! ProductLoaded) return 0;
-    return (productBloc.state as ProductLoaded).products.length;
+    final state = productBloc.state;
+    if (state is! ProductLoaded) return 0;
+    return state.totalItems;
   }
 
   int get lowStockCount {
-    if (productBloc.state is! ProductLoaded) return 0;
-    return (productBloc.state as ProductLoaded).products
-        .where((p) => p.stock > 0 && p.stock <= 10)
-        .length;
+    final state = productBloc.state;
+    if (state is! ProductLoaded) return 0;
+    return state.products.where((p) => p.stock > 0 && p.stock <= 10).length;
   }
 
   int get outOfStockCount {
-    if (productBloc.state is! ProductLoaded) return 0;
-    return (productBloc.state as ProductLoaded).products
-        .where((p) => p.stock == 0)
-        .length;
+    final state = productBloc.state;
+    if (state is! ProductLoaded) return 0;
+    return state.products.where((p) => p.stock == 0).length;
   }
 
   int get totalCategories {
-    if (productBloc.state is! ProductLoaded) return 0;
-    return (productBloc.state as ProductLoaded).products
-        .map((p) => p.category)
-        .toSet()
-        .length;
+    final state = productBloc.state;
+    if (state is! ProductLoaded) return 0;
+    return state.products.map((p) => p.category).toSet().length;
   }
 
   void showProductDetails(ProductModel product) {
@@ -214,7 +213,17 @@ class _ProductsContentState extends State<ProductsContent> {
       _currentView = CurrentView.productList;
       selectedProduct = null;
     });
-    productBloc.add(FetchSellerProductsEvent());
+    final state = productBloc.state;
+    if (state is ProductLoaded) {
+      productBloc.add(
+        FetchSellerProductsEvent(
+          page: state.currentPage,
+          limit: state.itemsPerPage,
+        ),
+      );
+    } else {
+      productBloc.add(FetchSellerProductsEvent(page: 1, limit: 10));
+    }
   }
 
   void deleteProduct(ProductModel product) {
@@ -300,9 +309,11 @@ class _ProductsContentState extends State<ProductsContent> {
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed:
-                                () =>
-                                    productBloc.add(FetchSellerProductsEvent()),
+                            onPressed: () {
+                              productBloc.add(
+                                FetchSellerProductsEvent(page: 1, limit: 10),
+                              );
+                            },
                             child: const Text('Retry'),
                           ),
                         ],
@@ -310,7 +321,7 @@ class _ProductsContentState extends State<ProductsContent> {
                     );
                   } else if (state is ProductLoaded ||
                       _currentView != CurrentView.productList) {
-                    return buildCurrentView();
+                    return buildCurrentView(state as ProductLoaded);
                   }
                   return const SizedBox();
                 },
@@ -322,32 +333,62 @@ class _ProductsContentState extends State<ProductsContent> {
     );
   }
 
-  Widget buildCurrentView() {
+  Widget buildCurrentView(ProductLoaded state) {
     switch (_currentView) {
       case CurrentView.productList:
-        return ProductListView(
-          searchQuery: searchQuery,
-          selectedCategory: selectedCategory,
-          selectedStatus: selectedStatus,
-          selectedFilter: selectedFilter,
-          selectedSortBy: selectedSortBy,
-          categories: _categories,
-          sortOptions: sortOptions,
-          filteredProducts: filteredProducts,
-          productBloc: productBloc,
-          onSearchChanged: (value) => setState(() => searchQuery = value),
-          onCategoryChanged:
-              (value) => setState(() => selectedCategory = value!),
-          onSortByChanged: (value) => setState(() => selectedSortBy = value!),
-          onFilterChanged: (value) => setState(() => selectedFilter = value),
-          onAddProduct: showAddProduct,
-          onProductDetails: showProductDetails,
-          onEditProduct: showEditProduct,
-          onDeleteProduct: deleteProduct,
-          onRefresh: () => productBloc.add(FetchSellerProductsEvent()),
-          getProductStatus: getProductStatus,
-          getStatusColor: getStatusColor,
-          formatPrice: formatPrice,
+        return Column(
+          children: [
+            Expanded(
+              child: ProductListView(
+                searchQuery: searchQuery,
+                selectedCategory: selectedCategory,
+                selectedStatus: selectedStatus,
+                selectedFilter: selectedFilter,
+                selectedSortBy: selectedSortBy,
+                categories: _categories,
+                sortOptions: sortOptions,
+                filteredProducts: filteredProducts,
+                productBloc: productBloc,
+                onSearchChanged: (value) => setState(() => searchQuery = value),
+                onCategoryChanged:
+                    (value) => setState(() => selectedCategory = value!),
+                onSortByChanged:
+                    (value) => setState(() => selectedSortBy = value!),
+                onFilterChanged:
+                    (value) => setState(() => selectedFilter = value),
+                onAddProduct: showAddProduct,
+                onProductDetails: showProductDetails,
+                onEditProduct: showEditProduct,
+                onDeleteProduct: deleteProduct,
+                onRefresh: () {
+                  productBloc.add(
+                    FetchSellerProductsEvent(
+                      page: state.currentPage,
+                      limit: state.itemsPerPage,
+                    ),
+                  );
+                },
+                getProductStatus: getProductStatus,
+                getStatusColor: getStatusColor,
+                formatPrice: formatPrice,
+              ),
+            ),
+            // Pagination Widget
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: PaginationWidget(
+                currentPage: state.currentPage,
+                totalPages: state.totalPages,
+                totalItems: state.totalItems,
+                itemsPerPage: state.itemsPerPage,
+                onPageChanged: (page) {
+                  productBloc.add(
+                    ChangePageEvent(page: page, limit: state.itemsPerPage),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       case CurrentView.productDetails:
         return ProductDetailsView(

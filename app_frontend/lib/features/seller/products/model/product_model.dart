@@ -1,3 +1,5 @@
+// lib/features/seller/products/model/product_model.dart
+
 class ProductModel {
   final String id;
   final String sellerId;
@@ -68,6 +70,36 @@ class ProductModel {
       createdAt: json['createdAt'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
       isActive: json['isActive'] ?? false,
+    );
+  }
+}
+
+// Paginated Response Model
+class PaginatedProductResponse {
+  final List<ProductModel> products;
+  final int currentPage;
+  final int totalPages;
+  final int totalItems;
+  final int itemsPerPage;
+
+  PaginatedProductResponse({
+    required this.products,
+    required this.currentPage,
+    required this.totalPages,
+    required this.totalItems,
+    required this.itemsPerPage,
+  });
+
+  factory PaginatedProductResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
+    final pagination = json['pagination'];
+
+    return PaginatedProductResponse(
+      products: (data as List).map((e) => ProductModel.fromJson(e)).toList(),
+      currentPage: pagination['currentPage'] ?? 1,
+      totalPages: pagination['totalPages'] ?? 1,
+      totalItems: pagination['totalItems'] ?? 0,
+      itemsPerPage: pagination['itemsPerPage'] ?? 10,
     );
   }
 }
