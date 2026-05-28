@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:developer';
+
 import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
 import 'package:app_frontend/features/customer/profile/bloc/user_event.dart';
 import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';
@@ -19,7 +21,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WebDashboardScreen extends StatefulWidget {
-  const WebDashboardScreen({super.key});
+  const WebDashboardScreen({super.key, required String initialToken});
 
   @override
   State<WebDashboardScreen> createState() => _WebDashboardScreenState();
@@ -30,6 +32,7 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
   int _selectedIndex = 0;
   late UserBloc _userBloc;
   Map<String, dynamic>? _sellerStats;
+  String userToken = "";
 
   final List<DrawerItem> _drawerItems = [
     DrawerItem('Dashboard', Icons.dashboard_outlined, Icons.dashboard),
@@ -67,6 +70,10 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
     if (token != null) {
       _userBloc.add(FetchUserProfile(token));
     }
+    setState(() {
+      userToken = token ?? "";
+    });
+    log("THIS IS THE USER LOGIN TOKEN FROM WEB DASHBOARD PAGE => ${userToken}");
   }
 
   Future<void> _loadSellerStats() async {
@@ -147,7 +154,10 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
                               height: 40,
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF7C3AED), Color(0xFFC084FC)],
+                                  colors: [
+                                    Color(0xFF7C3AED),
+                                    Color(0xFFC084FC),
+                                  ],
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -162,6 +172,7 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
                                 ),
                               ),
                             ),
+
                             /// Brand Name
                             if (_isDrawerExpanded) ...[
                               const SizedBox(width: 12),
@@ -205,12 +216,14 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
                             onPressed: _toggleDrawer,
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
-                              backgroundColor: _isDrawerExpanded
-                                  ? const Color(0xFF7C3AED)
-                                  : const Color(0xFFF6F1F9),
-                              foregroundColor: _isDrawerExpanded
-                                  ? Colors.white
-                                  : const Color(0xFF7C3AED),
+                              backgroundColor:
+                                  _isDrawerExpanded
+                                      ? const Color(0xFF7C3AED)
+                                      : const Color(0xFFF6F1F9),
+                              foregroundColor:
+                                  _isDrawerExpanded
+                                      ? Colors.white
+                                      : const Color(0xFF7C3AED),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -246,6 +259,7 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
                     userProfileImage: userProfileImage,
                     userRole: userRole,
                     sellerStats: _sellerStats,
+                    token: userToken,
                   ),
                 ),
               ],
@@ -262,6 +276,7 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
     required String? userProfileImage,
     required String userRole,
     required Map<String, dynamic>? sellerStats,
+    required String token,
   }) {
     switch (_selectedIndex) {
       case 0:
@@ -269,7 +284,8 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
           userName: userName,
           userEmail: userEmail,
           userProfileImage: userProfileImage,
-          sellerStats: sellerStats,
+          // sellerStats: sellerStats,
+          token: userToken,
         );
       case 1:
         return ProductsContent(
@@ -294,6 +310,7 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
           userName: userName,
           userEmail: userEmail,
           userProfileImage: userProfileImage,
+          token: userToken,
         );
       case 5:
         return MarketingContent(
@@ -306,6 +323,7 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
           userName: userName,
           userEmail: userEmail,
           userProfileImage: userProfileImage,
+          token: userToken,
         );
       case 7:
         return PayoutsContent(
@@ -330,7 +348,8 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
           userName: userName,
           userEmail: userEmail,
           userProfileImage: userProfileImage,
-          sellerStats: sellerStats,
+          // sellerStats: sellerStats,
+          token: userToken,
         );
     }
   }
@@ -349,18 +368,20 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: (isSelected && isExpanded)
-                ? const Color(0xFF7C3AED).withOpacity(0.1)
-                : Colors.transparent,
+            color:
+                (isSelected && isExpanded)
+                    ? const Color(0xFF7C3AED).withOpacity(0.1)
+                    : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
               Icon(
                 isSelected ? item.selectedIcon : item.icon,
-                color: isSelected
-                    ? const Color(0xFF7C3AED)
-                    : const Color(0xFF64748B),
+                color:
+                    isSelected
+                        ? const Color(0xFF7C3AED)
+                        : const Color(0xFF64748B),
                 size: 22,
               ),
               if (isExpanded) ...[
@@ -370,10 +391,12 @@ class _WebDashboardScreenState extends State<WebDashboardScreen> {
                     item.title,
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color: isSelected
-                          ? const Color(0xFF7C3AED)
-                          : const Color(0xFF475569),
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color:
+                          isSelected
+                              ? const Color(0xFF7C3AED)
+                              : const Color(0xFF475569),
                     ),
                   ),
                 ),

@@ -840,11 +840,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    print("========== PLACE ORDER ==========");
-    print("Address ID: $_selectedAddressId");
-    print("Payment Method: $_selectedPaymentMethod");
-    print("Is Direct Order: ${widget.isDirectOrder}");
-    print("=================================");
+    debugPrint("========== PLACE ORDER ==========");
+    debugPrint("Address ID: $_selectedAddressId");
+    debugPrint("Payment Method: $_selectedPaymentMethod");
+    debugPrint("Is Direct Order: ${widget.isDirectOrder}");
+    debugPrint("=================================");
 
     context.read<CheckoutBloc>().add(
       CreateOrder(

@@ -64,9 +64,7 @@ class ProductModel {
       totalReviews: json['totalReviews'] ?? 0,
       shortDescription: json['shortDescription'] ?? '',
       detailedDescription: json['detailedDescription'] ?? '',
-      specifications: Map<String, dynamic>.from(
-        json['specifications'] ?? {},
-      ),
+      specifications: Map<String, dynamic>.from(json['specifications'] ?? {}),
       createdAt: json['createdAt'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
       isActive: json['isActive'] ?? false,
