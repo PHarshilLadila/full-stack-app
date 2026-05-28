@@ -318,7 +318,9 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                               0xFF7C3AED,
                             ).withOpacity(0.1),
                             child: Text(
-                              order.customer.fullName[0].toUpperCase(),
+                              (order.customer.fullName.isNotEmpty
+                                  ? order.customer.fullName[0].toUpperCase()
+                                  : "?"),
                               style: const TextStyle(
                                 color: Color(0xFF7C3AED),
                                 fontWeight: FontWeight.bold,

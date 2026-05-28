@@ -23,7 +23,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     Emitter<CheckoutState> emit,
   ) async {
     emit(CheckoutLoading());
-    
+
     try {
       final token = await _getToken();
       if (token == null || token.isEmpty) {
@@ -42,10 +42,12 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
 
       if (response.success) {
         if (event.paymentMethod == 'cod') {
-          emit(CheckoutSuccess(
-            message: response.message,
-            orderId: response.data?.orderId ?? '',
-          ));
+          emit(
+            CheckoutSuccess(
+              message: response.message,
+              orderId: response.data?.orderId ?? '',
+            ),
+          );
         } else if (event.paymentMethod == 'online' && response.data != null) {
           emit(CheckoutOrderCreated(orderData: response.data!));
         } else {
@@ -64,7 +66,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     Emitter<CheckoutState> emit,
   ) async {
     emit(CheckoutLoading());
-    
+
     try {
       final token = await _getToken();
       if (token == null || token.isEmpty) {
@@ -80,23 +82,26 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
 
       if (response['success'] == true) {
         final data = response['data'];
-        emit(CheckoutPaymentConfirmed(
-          orderId: data['orderId'],
-          orderStatus: data['orderStatus'],
-          paymentStatus: data['paymentStatus'],
-        ));
+        emit(
+          CheckoutPaymentConfirmed(
+            orderId: data['orderId'],
+            orderStatus: data['orderStatus'],
+            paymentStatus: data['paymentStatus'],
+          ),
+        );
       } else {
-        emit(CheckoutError(message: response['message'] ?? 'Payment confirmation failed'));
+        emit(
+          CheckoutError(
+            message: response['message'] ?? 'Payment confirmation failed',
+          ),
+        );
       }
     } catch (e) {
       emit(CheckoutError(message: e.toString()));
     }
   }
 
-  void _onResetCheckout(
-    ResetCheckout event,
-    Emitter<CheckoutState> emit,
-  ) {
+  void _onResetCheckout(ResetCheckout event, Emitter<CheckoutState> emit) {
     emit(CheckoutInitial());
   }
 }
