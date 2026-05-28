@@ -1,6 +1,7 @@
 import 'package:app_frontend_customer/features/customer/address/service/address_service.dart';
 import 'package:app_frontend_customer/features/customer/cart/bloc/cart_event.dart';
 import 'package:app_frontend_customer/features/customer/checkout/model/checkout_model.dart';
+import 'package:app_frontend_customer/features/customer/payment/view/payment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_frontend_customer/features/customer/address/bloc/address_bloc.dart';
@@ -839,6 +840,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    print("========== PLACE ORDER ==========");
+    print("Address ID: $_selectedAddressId");
+    print("Payment Method: $_selectedPaymentMethod");
+    print("Is Direct Order: ${widget.isDirectOrder}");
+    print("=================================");
+
     context.read<CheckoutBloc>().add(
       CreateOrder(
         addressId: _selectedAddressId!,
@@ -851,11 +858,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _handleCheckoutState(BuildContext context, CheckoutState state) {
+    print("========== CHECKOUT STATE ==========");
+    print("State: ${state.runtimeType}");
+
     if (state is CheckoutOrderCreated) {
-      if (state.orderData.clientSecret != null) {
-        _showPaymentDialog(state.orderData);
-      }
+      print("Order Created - Navigating to Payment Screen");
+      print("Order ID: ${state.orderData.orderId}");
+      print("Total Amount: ${state.orderData.totalAmount}");
+      print("Payment Method: ${state.orderData.paymentMethod}");
+
+      // Navigate to payment screen for online payment
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => PaymentScreen(
+                orderId: state.orderData.orderId,
+                amount: state.orderData.totalAmount,
+                orderData: state.orderData.orderId,
+              ),
+        ),
+      );
     } else if (state is CheckoutSuccess) {
+      print("Order Success - Order ID: ${state.orderId}");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(state.message),
@@ -868,6 +893,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Navigator.popUntil(context, (route) => route.isFirst);
       });
     } else if (state is CheckoutError) {
+      print("Checkout Error: ${state.message}");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(state.message),
@@ -877,6 +903,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       );
     } else if (state is CheckoutPaymentConfirmed) {
+      print("Payment Confirmed - Order ID: ${state.orderId}");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Payment confirmed! Order placed successfully'),
@@ -892,67 +919,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _showPaymentDialog(OrderData orderData) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => PaymentScreen(
+              orderId: orderData.orderId,
+              amount: orderData.totalAmount,
+              orderData: orderData.orderId,
             ),
-            title: const Text('Complete Payment'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.payment, size: 50, color: Color(0xFFFF6B6B)),
-                const SizedBox(height: 16),
-                Text(
-                  'Order Total: ₹${orderData.totalAmount.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text('Please complete the payment to confirm your order'),
-                const SizedBox(height: 8),
-                const Text(
-                  'Demo: Simulating payment...',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  context.read<CheckoutBloc>().add(ResetCheckout());
-                },
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  context.read<CheckoutBloc>().add(
-                    ConfirmPayment(
-                      orderId: orderData.orderId,
-                      paymentIntentId: orderData.paymentIntentId ?? '',
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B6B),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('Pay Now'),
-              ),
-            ],
-          ),
+      ),
     );
   }
 

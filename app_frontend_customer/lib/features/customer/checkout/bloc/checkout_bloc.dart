@@ -40,15 +40,24 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         directQuantity: event.directQuantity,
       );
 
-      if (response.success) {
+      print("========== CHECKOUT RESPONSE ==========");
+      print("Success: ${response.success}");
+      print("Message: ${response.message}");
+      print("Order Data: ${response.data}");
+      print("Payment Method: ${event.paymentMethod}");
+      print("=======================================");
+
+      if (response.success && response.data != null) {
         if (event.paymentMethod == 'cod') {
+          // For COD, order is directly placed
           emit(
             CheckoutSuccess(
               message: response.message,
-              orderId: response.data?.orderId ?? '',
+              orderId: response.data!.orderId,
             ),
           );
-        } else if (event.paymentMethod == 'online' && response.data != null) {
+        } else if (event.paymentMethod == 'online') {
+          // For online, go to payment screen
           emit(CheckoutOrderCreated(orderData: response.data!));
         } else {
           emit(CheckoutError(message: response.message));
@@ -57,6 +66,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         emit(CheckoutError(message: response.message));
       }
     } catch (e) {
+      print("Checkout Error: $e");
       emit(CheckoutError(message: e.toString()));
     }
   }
@@ -87,6 +97,12 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
             orderId: data['orderId'],
             orderStatus: data['orderStatus'],
             paymentStatus: data['paymentStatus'],
+          ),
+        );
+        emit(
+          CheckoutSuccess(
+            message: 'Order placed successfully!',
+            orderId: event.orderId,
           ),
         );
       } else {

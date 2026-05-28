@@ -101,4 +101,41 @@ class ApiClient {
       body: body != null ? jsonEncode(body) : null,
     );
   }
+
+  Future<http.Response> initiatePayment({
+    required String orderId,
+    required String paymentMethod,
+    required String token,
+  }) async {
+    return await postWithParam('/payment/initiate', {
+      'orderId': orderId,
+      'paymentMethod': paymentMethod,
+    }, token: token);
+  }
+
+  Future<http.Response> verifyPayment({
+    required String orderId,
+    required String razorpayPaymentId,
+    required String razorpayOrderId,
+    required String razorpaySignature,
+    required String token,
+  }) async {
+    return await postWithParam('/payment/verify', {
+      'orderId': orderId,
+      'razorpayPaymentId': razorpayPaymentId,
+      'razorpayOrderId': razorpayOrderId,
+      'razorpaySignature': razorpaySignature,
+    }, token: token);
+  }
+
+  Future<http.Response> getPaymentStatus({
+    required String orderId,
+    required String token,
+  }) async {
+    return await get(
+      '/payment/status',
+      queryParams: {'orderId': orderId},
+      token: token,
+    );
+  }
 }

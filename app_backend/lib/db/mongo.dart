@@ -178,6 +178,7 @@ class MongoService {
   static DbCollection? _favorites;
   static DbCollection? _orders;
   static DbCollection? _notifications;
+  static DbCollection? _payments;
 
   static Timer? _keepAliveTimer;
   static bool _isConnected = false;
@@ -191,6 +192,7 @@ class MongoService {
   static DbCollection? get favorites => _favorites;
   static DbCollection? get orders => _orders;
   static DbCollection? get notifications => _notifications;
+  static DbCollection? get payments => _payments;
 
   /// Initialize connection (call once at startup)
   static Future<bool> init() async {
@@ -285,6 +287,7 @@ class MongoService {
       _favorites = _db!.collection('favorites');
       _orders = _db!.collection('orders');
       _notifications = _db!.collection('notifications');
+      _payments = _db!.collection('payments');
 
       // Create indexes in background (don't wait)
       _createIndexes().catchError((e) {
@@ -400,6 +403,12 @@ class MongoService {
     await _safeCreateIndex(_notifications!, 'type');
     await _safeCreateIndex(_notifications!, 'createdAt');
     await _safeCreateIndex(_notifications!, 'isRead');
+
+    // Payments
+    await _safeCreateIndex(_payments!, 'paymentId', unique: true);
+    await _safeCreateIndex(_payments!, 'orderId');
+    await _safeCreateIndex(_payments!, 'userId');
+    await _safeCreateIndex(_payments!, 'paymentStatus');
 
     print('✅ All indexes verified');
   }
