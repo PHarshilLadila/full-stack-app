@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, unused_local_variable, inference_failure_on_collection_literal
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, unused_local_variable, inference_failure_on_collection_literal, avoid_redundant_argument_values
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
@@ -145,7 +145,7 @@ Future<Response> onRequest(RequestContext context) async {
               ? (item['discountPrice'] as num).toDouble()
               : null;
       final itemEffectivePrice = itemDiscount ?? itemPrice;
-      final itemQuantity = (item['quantity'] as int);
+      final itemQuantity = item['quantity'] as int;
       totalAmount += itemPrice * itemQuantity;
       discountAmount += (itemPrice - itemEffectivePrice) * itemQuantity;
     }
@@ -155,7 +155,7 @@ Future<Response> onRequest(RequestContext context) async {
     final result = await MongoService.carts!.updateOne(
       {'userId': userId},
       {
-        '\$set': {
+        r'$set': {
           'items': items,
           'totalAmount': totalAmount,
           'discountAmount': discountAmount,

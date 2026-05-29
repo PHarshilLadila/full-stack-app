@@ -1,6 +1,8 @@
 // routes/auth/validate_reset_token.dart
 // GET /auth/validate-reset-token?token=xxx
 
+// ignore_for_file: avoid_print, lines_longer_than_80_chars, avoid_redundant_argument_values
+
 import 'package:dart_frog/dart_frog.dart';
 import 'package:my_backend/services/password_reset_service.dart';
 

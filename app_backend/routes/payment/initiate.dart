@@ -1,9 +1,8 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls
+// ignore_for_file: avoid_print, avoid_dynamic_calls, avoid_redundant_argument_values, lines_longer_than_80_chars
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 import 'package:my_backend/config/env.dart';
 import 'package:my_backend/db/mongo.dart';
 import 'package:my_backend/utils/payment_helper.dart';
@@ -121,7 +120,7 @@ Future<Response> onRequest(RequestContext context) async {
       await MongoService.orders!.updateOne(
         {'orderId': orderId},
         {
-          '\$set': {
+          r'$set': {
             'razorpayOrderId': razorpayOrder['id'],
             'paymentStatus': 'pending',
             'updatedAt': DateTime.now(),
@@ -154,7 +153,7 @@ Future<Response> onRequest(RequestContext context) async {
     print('Stack trace: $stackTrace');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+      body: {'success': false, 'message': 'Server error: $e'},
     );
   }
 }

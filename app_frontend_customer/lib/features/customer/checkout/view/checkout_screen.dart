@@ -1,4 +1,3 @@
-import 'package:app_frontend_customer/features/customer/address/service/address_service.dart';
 import 'package:app_frontend_customer/features/customer/cart/bloc/cart_event.dart';
 import 'package:app_frontend_customer/features/customer/checkout/model/checkout_model.dart';
 import 'package:app_frontend_customer/features/customer/payment/view/payment_screen.dart';
@@ -12,7 +11,6 @@ import 'package:app_frontend_customer/features/customer/cart/model/cart_model.da
 import 'package:app_frontend_customer/features/customer/checkout/bloc/checkout_bloc.dart';
 import 'package:app_frontend_customer/features/customer/checkout/bloc/checkout_event.dart';
 import 'package:app_frontend_customer/features/customer/checkout/bloc/checkout_state.dart';
-import 'package:app_frontend_customer/features/customer/checkout/service/checkout_service.dart';
 import 'package:app_frontend_customer/features/customer/home/service/product_details_service.dart';
 import 'package:app_frontend_customer/utils/common/custom_loader.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,12 +22,12 @@ class CheckoutScreen extends StatefulWidget {
   final DirectProductInfo? directProductInfo;
 
   const CheckoutScreen({
-    Key? key,
+    super.key,
     this.isDirectOrder = false,
     this.directProductId,
     this.directQuantity,
     this.directProductInfo,
-  }) : super(key: key);
+  });
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();

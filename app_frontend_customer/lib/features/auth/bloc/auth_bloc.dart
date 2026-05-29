@@ -6,8 +6,6 @@ import 'package:app_frontend_customer/service/fcm_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../model/login_model.dart';
-import '../model/register_model.dart';
 import '../service/auth_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {

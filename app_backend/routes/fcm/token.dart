@@ -1,4 +1,6 @@
 // app_backend/lib/routes/fcm/token.dart
+// ignore_for_file: avoid_dynamic_calls, avoid_print, omit_local_variable_types, avoid_redundant_argument_values
+
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
@@ -126,7 +128,7 @@ Future<Response> _saveToken(RequestContext context) async {
     await MongoService.users!.updateOne(
       {'_id': userObjectId},
       {
-        '\$set': {'fcmTokens': existingTokens},
+        r'$set': {'fcmTokens': existingTokens},
       },
     );
 
@@ -190,7 +192,7 @@ Future<Response> _removeToken(RequestContext context) async {
     await MongoService.users!.updateOne(
       {'_id': userObjectId},
       {
-        '\$set': {'fcmTokens': existingTokens},
+        r'$set': {'fcmTokens': existingTokens},
       },
     );
 

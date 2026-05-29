@@ -1,6 +1,8 @@
 // routes/auth/reset-password.dart
 // Professional UI for password reset
 
+// ignore_for_file: avoid_redundant_argument_values, avoid_print
+
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:my_backend/services/password_reset_service.dart';
@@ -387,7 +389,7 @@ Future<Response> _showResetForm(RequestContext context) async {
                       
                       if (result.success) {
                           // Show success message
-                          resetCard.innerHTML = \`
+                          resetCard.innerHTML = `
                               <div class="success-card">
                                   <div class="success-icon">
                                       <span>✓</span>
@@ -396,7 +398,7 @@ Future<Response> _showResetForm(RequestContext context) async {
                                   <p>\${result.message}</p>
                                   <a href="/auth/login" class="btn" style="display: inline-block; text-decoration: none;">Back to Login</a>
                               </div>
-                          \`;
+                          `;
                       } else {
                           alert(result.message);
                           submitBtn.disabled = false;
