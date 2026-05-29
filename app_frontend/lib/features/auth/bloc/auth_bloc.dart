@@ -48,7 +48,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // ==============================================
         // Add small delay to ensure token is available
         await Future.delayed(const Duration(milliseconds: 500));
-        await FCMNotificationService.saveTokenToBackend(response.token);
+        // await FCMNotificationService.saveTokenToBackend(response.token);
         // ==============================================
 
         emit(
@@ -71,7 +71,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final token = prefs.getString('auth_token');
         
         if (token != null) {
-          await FCMNotificationService.removeTokenFromBackend(token);
+          // await FCMNotificationService.removeTokenFromBackend(token);
         }
         
         await prefs.clear();

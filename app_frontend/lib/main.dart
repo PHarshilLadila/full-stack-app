@@ -41,7 +41,7 @@ void main() async {
   );
 
   // Initialize FCM for Seller
-  await FCMNotificationService.initialize();
+  // await FCMNotificationService.initialize();
 
   runApp(MyApp());
 }

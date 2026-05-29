@@ -1,6 +1,4 @@
 import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/dashboard_appbar.dart';
-import 'package:app_frontend/service/fcm_notification_service.dart';
-import 'package:app_frontend/utils/common/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_table_view/material_table_view.dart';
@@ -16,22 +14,22 @@ import 'widgets/order_status_dialog.dart';
 import 'widgets/order_details_dialog.dart';
 
 class SellerOrdersScreen extends StatefulWidget {
-  const SellerOrdersScreen({Key? key}) : super(key: key);
+  const SellerOrdersScreen({super.key});
 
   @override
   State<SellerOrdersScreen> createState() => _SellerOrdersScreenState();
 }
 
 class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
-  late SellerOrderBloc _orderBloc;
-  final ScrollController _scrollController = ScrollController();
+  late SellerOrderBloc orderBloc;
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _orderBloc = SellerOrderBloc(orderService: SellerOrderService());
-    _orderBloc.add(const FetchSellerOrders());
-    _scrollController.addListener(_onScroll);
+    orderBloc = SellerOrderBloc(orderService: SellerOrderService());
+    orderBloc.add(const FetchSellerOrders());
+    scrollController.addListener(onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('seller_web_token_saved');
@@ -44,13 +42,13 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     });
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      if (_orderBloc.state is SellerOrderLoaded) {
-        final state = _orderBloc.state as SellerOrderLoaded;
+  void onScroll() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
+      if (orderBloc.state is SellerOrderLoaded) {
+        final state = orderBloc.state as SellerOrderLoaded;
         if (!state.hasReachedMax) {
-          _orderBloc.add(
+          orderBloc.add(
             LoadMoreSellerOrders(page: state.pagination.currentPage + 1),
           );
         }
@@ -60,8 +58,8 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
-    _orderBloc.close();
+    scrollController.dispose();
+    orderBloc.close();
     super.dispose();
   }
 
@@ -70,7 +68,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: BlocProvider.value(
-        value: _orderBloc,
+        value: orderBloc,
         child: BlocConsumer<SellerOrderBloc, SellerOrderState>(
           listener: (context, state) {
             if (state is OrderStatusUpdated) {
@@ -98,9 +96,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                   title: 'Orders Management',
                   subtitle: 'Track and manage all customer orders.',
                 ),
-
-                // _buildHeader(),
-                Expanded(child: _buildBody(state)),
+                Expanded(child: buildBody(state)),
               ],
             );
           },
@@ -109,7 +105,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     );
   }
 
-  Widget _buildBody(SellerOrderState state) {
+  Widget buildBody(SellerOrderState state) {
     if (state is SellerOrderLoading && state is! SellerOrderLoaded) {
       return Center(
         child: Padding(
@@ -126,18 +122,18 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
       );
     } else if (state is SellerOrderLoaded) {
       if (state.orders.isEmpty) {
-        return _buildEmptyState();
+        return buildEmptyState();
       }
 
       final stats = OrderStats.fromOrders(state.orders);
 
       return RefreshIndicator(
         onRefresh: () async {
-          _orderBloc.add(RefreshSellerOrders(status: state.currentFilter));
+          orderBloc.add(RefreshSellerOrders(status: state.currentFilter));
         },
         color: const Color(0xFF7C3AED),
         child: SingleChildScrollView(
-          controller: _scrollController,
+          controller: scrollController,
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
@@ -145,22 +141,22 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                 stats: stats,
                 selectedFilter: state.currentFilter,
                 onFilterTap: (filter) {
-                  _orderBloc.add(FilterOrdersByStatus(status: filter));
+                  orderBloc.add(FilterOrdersByStatus(status: filter));
                 },
               ),
               const SizedBox(height: 24),
-              _buildOrdersTable(state),
+              buildOrdersTable(state),
             ],
           ),
         ),
       );
     } else if (state is SellerOrderError) {
-      return _buildErrorState(state.message);
+      return buildErrorState(state.message);
     }
     return const SizedBox.shrink();
   }
 
-  Widget _buildOrdersTable(SellerOrderLoaded state) {
+  Widget buildOrdersTable(SellerOrderLoaded state) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 1000;
     final availableWidth = screenSize.width - 48;
@@ -224,7 +220,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
 
             rowBuilder: (context, row, TableRowContentBuilder contentBuilder) {
               final order = state.orders[row];
-              final statusColor = _getStatusColor(order.orderStatus);
+              final statusColor = getStatusColor(order.orderStatus);
 
               return contentBuilder(context, (context, column) {
                 switch (column) {
@@ -374,7 +370,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          _formatStatus(order.orderStatus),
+                          formatStatus(order.orderStatus),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: isSmallScreen ? 10 : 12,
@@ -393,7 +389,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        _formatDate(order.orderDate),
+                        formatDate(order.orderDate),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: isSmallScreen ? 11 : 12,
@@ -413,16 +409,16 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.visibility_outlined),
-                            onPressed: () => _showOrderDetails(order),
+                            onPressed: () => showOrderDetails(order),
                             tooltip: 'View Details',
                             color: const Color(0xFF3B82F6),
                             iconSize: isSmallScreen ? 18 : 20,
                           ),
 
-                          if (_canUpdateStatus(order.orderStatus))
+                          if (canUpdateStatus(order.orderStatus))
                             IconButton(
                               icon: const Icon(Icons.edit_outlined),
-                              onPressed: () => _showStatusUpdateDialog(order),
+                              onPressed: () => showStatusUpdateDialog(order),
                               tooltip: 'Update Status',
                               color: const Color(0xFF7C3AED),
                               iconSize: isSmallScreen ? 18 : 20,
@@ -483,7 +479,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget buildEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -506,7 +502,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              _orderBloc.add(const RefreshSellerOrders());
+              orderBloc.add(const RefreshSellerOrders());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF7C3AED),
@@ -521,7 +517,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     );
   }
 
-  Widget _buildErrorState(String message) {
+  Widget buildErrorState(String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -537,7 +533,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              _orderBloc.add(const RefreshSellerOrders());
+              orderBloc.add(const RefreshSellerOrders());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF7C3AED),
@@ -552,14 +548,14 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     );
   }
 
-  void _showOrderDetails(SellerOrderModel order) {
+  void showOrderDetails(SellerOrderModel order) {
     showDialog(
       context: context,
       builder: (context) => OrderDetailsDialog(order: order),
     );
   }
 
-  void _showStatusUpdateDialog(SellerOrderModel order) {
+  void showStatusUpdateDialog(SellerOrderModel order) {
     showDialog(
       context: context,
       builder:
@@ -567,7 +563,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
             orderId: order.orderId,
             currentStatus: order.orderStatus,
             onStatusUpdate: (newStatus, trackingId) {
-              _orderBloc.add(
+              orderBloc.add(
                 UpdateOrderStatus(
                   orderId: order.orderId,
                   orderStatus: newStatus,
@@ -579,11 +575,11 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     );
   }
 
-  bool _canUpdateStatus(String status) {
+  bool canUpdateStatus(String status) {
     return !['delivered', 'cancelled'].contains(status);
   }
 
-  Color _getStatusColor(String status) {
+  Color getStatusColor(String status) {
     switch (status) {
       case 'delivered':
         return Colors.green;
@@ -602,14 +598,14 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     }
   }
 
-  String _formatStatus(String status) {
+  String formatStatus(String status) {
     return status
         .split('_')
         .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');
   }
 
-  String _formatDate(DateTime date) {
+  String formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
