@@ -1,4 +1,6 @@
 // app_backend/lib/routes/notifications/list.dart
+// ignore_for_file: avoid_redundant_argument_values, avoid_print
+
 import 'package:dart_frog/dart_frog.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:my_backend/db/mongo.dart';
@@ -82,7 +84,7 @@ Future<Response> onRequest(RequestContext context) async {
     print('Error fetching notifications: $e');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+      body: {'success': false, 'message': 'Server error: $e'},
     );
   }
 }

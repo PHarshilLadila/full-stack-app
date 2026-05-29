@@ -1,4 +1,6 @@
 // app_backend/lib/routes/notifications/unread_count.dart
+// ignore_for_file: avoid_redundant_argument_values, avoid_print, noop_primitive_operations, lines_longer_than_80_chars
+
 import 'package:dart_frog/dart_frog.dart';
 import 'package:my_backend/db/mongo.dart';
 import 'package:my_backend/middleware/auth_middleware.dart';

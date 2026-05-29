@@ -1,5 +1,5 @@
 // app_backend/lib/routes/fcm/token.dart
-// ignore_for_file: avoid_dynamic_calls, avoid_print, omit_local_variable_types, avoid_redundant_argument_values
+// ignore_for_file: avoid_dynamic_calls, avoid_print, omit_local_variable_types, avoid_redundant_argument_values, lines_longer_than_80_chars
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
@@ -140,7 +140,7 @@ Future<Response> _saveToken(RequestContext context) async {
     print('Error saving FCM token: $e');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+      body: {'success': false, 'message': 'Server error: $e'},
     );
   }
 }
@@ -204,7 +204,7 @@ Future<Response> _removeToken(RequestContext context) async {
     print('Error removing FCM token: $e');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+      body: {'success': false, 'message': 'Server error: $e'},
     );
   }
 }

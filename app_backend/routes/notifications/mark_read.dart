@@ -1,4 +1,6 @@
 // app_backend/lib/routes/notifications/mark_read.dart
+// ignore_for_file: lines_longer_than_80_chars, avoid_redundant_argument_values, avoid_print
+
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:my_backend/db/mongo.dart';
@@ -26,7 +28,7 @@ Future<Response> onRequest(RequestContext context) async {
       // Mark all notifications as read for this user
       await MongoService.notifications!.updateMany(
         {'userId': userId, 'isRead': false},
-        {'\$set': {'isRead': true}},
+        {r'$set': {'isRead': true}},
       );
       
       return Response.json(
@@ -47,7 +49,7 @@ Future<Response> onRequest(RequestContext context) async {
       
       await MongoService.notifications!.updateOne(
         {'notificationId': notificationId, 'userId': userId},
-        {'\$set': {'isRead': true}},
+        {r'$set': {'isRead': true}},
       );
       
       return Response.json(
@@ -62,7 +64,7 @@ Future<Response> onRequest(RequestContext context) async {
     print('Error marking notification as read: $e');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+      body: {'success': false, 'message': 'Server error: $e'},
     );
   }
 }

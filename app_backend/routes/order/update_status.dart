@@ -431,7 +431,7 @@
 //   }
 // }
 
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, omit_local_variable_types
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
@@ -444,7 +444,7 @@ import 'package:my_backend/db/mongo.dart';
 String generateTrackingId(String orderId) {
   final timestamp = DateTime.now().millisecondsSinceEpoch;
   final random = DateTime.now().microsecond % 10000;
-  return 'TRK${timestamp}${random.toString().padLeft(4, '0')}';
+  return 'TRK$timestamp${random.toString().padLeft(4, '0')}';
 }
 
 /// PUT /order/update_status

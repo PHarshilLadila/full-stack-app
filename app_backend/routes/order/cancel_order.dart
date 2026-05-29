@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, avoid_redundant_argument_values
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
@@ -92,7 +92,7 @@ Future<Response> onRequest(RequestContext context) async {
         await MongoService.products!.updateOne(
           {'_id': productObjectId},
           {
-            '\$inc': {'stock': quantity},
+            r'$inc': {'stock': quantity},
           },
         );
       } catch (e) {
@@ -111,7 +111,7 @@ Future<Response> onRequest(RequestContext context) async {
 
     final result = await MongoService.orders!.updateOne(
       {'orderId': orderId},
-      {'\$set': updateData},
+      {r'$set': updateData},
     );
 
     if (!result.isSuccess) {
@@ -134,7 +134,7 @@ Future<Response> onRequest(RequestContext context) async {
     print('Stack trace: $stackTrace');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+      body: {'success': false, 'message': 'Server error: $e'},
     );
   }
 }
