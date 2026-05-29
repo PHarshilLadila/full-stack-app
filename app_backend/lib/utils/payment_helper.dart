@@ -1,16 +1,16 @@
-// ignore_for_file: avoid_print, inference_failure_on_collection_literal
+// ignore_for_file: avoid_print, inference_failure_on_collection_literal, public_member_api_docs, constant_identifier_names, lines_longer_than_80_chars
 
 import 'dart:convert';
 import 'dart:math';
 import 'package:uuid/uuid.dart';
 
 class PaymentHelper {
-  static const String RAZORPAY_KEY = "rzp_test_fake_key_12345";
-  static const String RAZORPAY_SECRET = "fake_secret_12345";
+  static const String RAZORPAY_KEY = 'rzp_test_fake_key_12345';
+  static const String RAZORPAY_SECRET = 'fake_secret_12345';
 
   /// Generate a unique payment ID
   static String generatePaymentId() {
-    final uuid = Uuid();
+    const uuid = Uuid();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     return 'PAY_${timestamp}_${uuid.v4().substring(0, 8)}';
   }
@@ -49,7 +49,7 @@ class PaymentHelper {
   /// Generate fake payment signature
   static String generateFakeSignature(String orderId, String paymentId) {
     // This is a fake signature generator for testing
-    final data = '$orderId|$paymentId|${RAZORPAY_SECRET}';
+    final data = '$orderId|$paymentId|$RAZORPAY_SECRET';
     return _fakeHash(data);
   }
 

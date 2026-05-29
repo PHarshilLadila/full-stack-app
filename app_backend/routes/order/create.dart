@@ -646,7 +646,7 @@
 //     );
 //   }
 // }
-// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars
+// ignore_for_file: avoid_print, avoid_dynamic_calls, lines_longer_than_80_chars, inference_failure_on_collection_literal, use_if_null_to_convert_nulls_to_bools
 
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
@@ -659,7 +659,7 @@ import 'package:my_backend/db/mongo.dart';
 String generateOrderId() {
   final timestamp = DateTime.now().millisecondsSinceEpoch;
   final random = DateTime.now().microsecond % 10000;
-  return 'ORD${timestamp}${random.toString().padLeft(4, '0')}';
+  return 'ORD$timestamp${random.toString().padLeft(4, '0')}';
 }
 
 /// POST /order/create
@@ -815,7 +815,7 @@ Future<Response> onRequest(RequestContext context) async {
 
     // Generate order ID
     final shortUserId = userId.length > 4 ? userId.substring(0, 4) : userId;
-    final orderId = 'ORD${DateTime.now().millisecondsSinceEpoch}${shortUserId}';
+    final orderId = 'ORD${DateTime.now().millisecondsSinceEpoch}$shortUserId';
 
     // Prepare order items
     final orderItems = [];
@@ -852,8 +852,8 @@ Future<Response> onRequest(RequestContext context) async {
       await MongoService.products!.updateOne(
         {'_id': productObjectId},
         {
-          '\$inc': {'stock': -quantity},
-          '\$set': {'stockAvailable': (currentStock - quantity) > 0},
+          r'$inc': {'stock': -quantity},
+          r'$set': {'stockAvailable': (currentStock - quantity) > 0},
         },
       );
     }
@@ -861,7 +861,7 @@ Future<Response> onRequest(RequestContext context) async {
     // Calculate totals
     final subtotal = (cart['totalAmount'] as num?)?.toDouble() ?? 0.0;
     final discountAmount = (cart['discountAmount'] as num?)?.toDouble() ?? 0.0;
-    final shippingCharge = 50.0; // Fixed shipping charge
+    const shippingCharge = 50.0; // Fixed shipping charge
     final taxAmount = (subtotal - discountAmount) * 0.05; // 5% tax
     final totalAmount =
         (subtotal - discountAmount) + shippingCharge + taxAmount;
@@ -880,7 +880,7 @@ Future<Response> onRequest(RequestContext context) async {
     };
 
     // Set order status and payment status based on payment method
-    final orderStatus = 'pending';
+    const orderStatus = 'pending';
     final paymentStatus =
         paymentMethod == 'cod' ? 'pending' : 'awaiting_payment';
 
@@ -919,7 +919,7 @@ Future<Response> onRequest(RequestContext context) async {
         await MongoService.products!.updateOne(
           {'_id': productObjectId},
           {
-            '\$inc': {'stock': quantity},
+            r'$inc': {'stock': quantity},
           },
         );
       }
@@ -933,7 +933,7 @@ Future<Response> onRequest(RequestContext context) async {
     await MongoService.carts!.updateOne(
       {'userId': userId},
       {
-        '\$set': {
+        r'$set': {
           'items': [],
           'totalAmount': 0.0,
           'discountAmount': 0.0,
@@ -970,7 +970,7 @@ Future<Response> onRequest(RequestContext context) async {
     print('Stack trace: $stackTrace');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'message': 'Server error: ${e.toString()}'},
+      body: {'success': false, 'message': 'Server error: $e'},
     );
   }
 }
