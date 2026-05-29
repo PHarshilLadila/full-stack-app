@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:app_frontend/core/network/api_client.dart';
-import 'package:app_frontend/features/customer/profile/model/user_model.dart';
-
+import 'package:app_frontend/features/seller/seller_profile/profile/model/user_model.dart';
+ 
 class UserService {
   final ApiClient apiClient = ApiClient();
 

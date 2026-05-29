@@ -1,16 +1,19 @@
-class ProductResponse {
+class SellerProductResponse {
+  final bool success;
   final String message;
   final List<Product> data;
   final Pagination pagination;
 
-  ProductResponse({
+  SellerProductResponse({
+    required this.success,
     required this.message,
     required this.data,
     required this.pagination,
   });
 
-  factory ProductResponse.fromJson(Map<String, dynamic> json) {
-    return ProductResponse(
+  factory SellerProductResponse.fromJson(Map<String, dynamic> json) {
+    return SellerProductResponse(
+      success: json['success'] ?? false,
       message: json['message'] ?? '',
       data: json['data'] != null
           ? List<Product>.from(json['data'].map((x) => Product.fromJson(x)))
@@ -21,6 +24,7 @@ class ProductResponse {
 
   Map<String, dynamic> toJson() {
     return {
+      'success': success,
       'message': message,
       'data': List<dynamic>.from(data.map((x) => x.toJson())),
       'pagination': pagination.toJson(),
@@ -132,7 +136,7 @@ class Product {
   }
 
   double get discountedPrice => discountPrice > 0 ? discountPrice : price;
-  double get discountPercentage => price > 0 
+  double get discountPercentage => price > 0
       ? ((price - discountedPrice) / price * 100).roundToDouble()
       : 0.0;
 }
@@ -155,7 +159,7 @@ class Pagination {
       currentPage: json['currentPage'] ?? 1,
       totalPages: json['totalPages'] ?? 1,
       totalItems: json['totalItems'] ?? 0,
-      itemsPerPage: json['itemsPerPage'] ?? 20,
+      itemsPerPage: json['itemsPerPage'] ?? 10,
     );
   }
 

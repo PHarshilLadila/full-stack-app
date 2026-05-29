@@ -2,12 +2,12 @@
 
 import 'dart:ui';
 
-import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
-import 'package:app_frontend/features/customer/profile/bloc/user_event.dart';
-import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';
-import 'package:app_frontend/features/customer/profile/service/user_service.dart';
-import 'package:app_frontend/features/customer/profile/view/edit_user_screen.dart';
-import 'package:app_frontend/features/customer/profile/view/full_screen_profile_image.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_bloc.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_event.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_state.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/service/user_service.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/view/edit_user_screen.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/view/full_screen_profile_image.dart';
 import 'package:app_frontend/utils/common/app_backround.dart';
 import 'package:app_frontend/utils/common/custom_appbar.dart';
 import 'package:app_frontend/utils/common/custom_loader.dart';

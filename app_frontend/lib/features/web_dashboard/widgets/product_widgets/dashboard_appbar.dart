@@ -2,10 +2,11 @@
 
 import 'dart:developer';
 
-import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
-import 'package:app_frontend/features/customer/profile/bloc/user_event.dart';
-import 'package:app_frontend/features/customer/profile/bloc/user_state.dart';
-import 'package:app_frontend/features/customer/profile/service/user_service.dart';
+
+import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_bloc.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_event.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_state.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/service/user_service.dart';
 import 'package:app_frontend/features/seller/seller_profile/view/seller_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

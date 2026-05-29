@@ -1,6 +1,8 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'dart:io';
+import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_bloc.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/service/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,8 +10,6 @@ import 'package:app_frontend/features/seller/products/bloc/add_product_bloc.dart
 import 'package:app_frontend/features/seller/products/bloc/add_product_event.dart';
 import 'package:app_frontend/features/seller/products/bloc/add_product_state.dart';
 import 'package:app_frontend/features/seller/products/service/product_service.dart';
-import 'package:app_frontend/features/customer/profile/bloc/user_bloc.dart';
-import 'package:app_frontend/features/customer/profile/service/user_service.dart';
 import 'package:app_frontend/utils/common/app_backround.dart';
 import 'package:app_frontend/utils/common/custom_appbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';

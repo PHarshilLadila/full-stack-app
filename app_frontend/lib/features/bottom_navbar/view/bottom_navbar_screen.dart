@@ -1,11 +1,9 @@
 // bottom_navbar_screen.dart
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_event.dart';
-import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_state.dart';
-import 'package:app_frontend/features/customer/categories_screen/view/categories_screen.dart';
-import 'package:app_frontend/features/customer/home/view/home_screen.dart';
-import 'package:app_frontend/features/customer/order/view/order_screen.dart';
-import 'package:app_frontend/features/customer/profile/view/profile_screen.dart';
+import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_state.dart'; 
+import 'package:app_frontend/features/seller/home/view/home_screen.dart';
+import 'package:app_frontend/features/seller/order/view/order_screen.dart';
 import 'package:app_frontend/features/seller/products/view/seller_product_screen.dart';
 import 'package:app_frontend/features/seller/seller_profile/view/seller_profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -44,16 +42,15 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
       return [
         const HomeScreen(), // Seller can have their own home screen
         const SellerProductScreen(),
-        // Seller might not have cart - you can customize
         const OrderScreen(),
         const SellerProfileScreen(),
       ];
     } else {
       return [
         const HomeScreen(),
-        const CategoriesScreen(),
+        const SellerProductScreen(),
         const OrderScreen(),
-        const CustomerProfileScreen(),
+        const SellerProfileScreen(),
       ];
     }
   }

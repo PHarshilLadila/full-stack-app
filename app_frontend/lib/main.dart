@@ -1,24 +1,22 @@
 import 'package:app_frontend/features/analytics/bloc/analytics_bloc.dart';
-import 'package:app_frontend/service/fcm_notification_service.dart';
+import 'package:app_frontend/features/seller/home/bloc/product_bloc.dart';
+import 'package:app_frontend/features/seller/home/service/product_service.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_bloc.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/service/user_service.dart'; 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:app_frontend/features/bottom_navbar/bloc/bottom_navbar_bloc.dart';
-import 'package:app_frontend/features/bottom_navbar/view/bottom_navbar_screen.dart';
-import 'package:app_frontend/features/customer/home/bloc/product_bloc.dart';
-import 'package:app_frontend/features/customer/home/service/product_service.dart';
+import 'package:app_frontend/features/bottom_navbar/view/bottom_navbar_screen.dart'; 
 import 'package:app_frontend/features/web_dashboard/order/bloc/seller_order_bloc.dart';
 import 'package:app_frontend/features/web_dashboard/order/service/seller_order_service.dart';
 import 'package:app_frontend/features/web_dashboard/web_auth/view/web_auth_screen.dart';
 import 'package:app_frontend/features/web_dashboard/web_dashboard.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart'; 
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/service/auth_service.dart';
-import 'features/auth/view/auth_screen.dart';
-import 'features/customer/profile/bloc/user_bloc.dart';
-import 'features/customer/profile/service/user_service.dart';
+import 'features/auth/view/auth_screen.dart'; 
 import 'features/splash/view/splash_screen.dart';
 
 void main() async {
