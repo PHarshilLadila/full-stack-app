@@ -43,42 +43,22 @@ class _CustomersContentState extends State<CustomersContent> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const CommonAppBar(
-            title: 'Customers',
-            subtitle: 'View and manage your customer database',
-          ),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
-              buildWhen: (previous, current) {
-                // Only rebuild when customer analytics related states change
-                return current is CustomerAnalyticsLoaded ||
-                    current is AnalyticsLoading ||
-                    current is AnalyticsError;
-              },
-              builder: (context, state) {
-                if (state is AnalyticsLoading && _isInitialLoad) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(40),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text('Loading customer data...'),
-                        ],
-                      ),
-                    ),
-                  );
-                } else if (state is AnalyticsError) {
-                  return _buildErrorWidget(state.message);
-                } else if (state is CustomerAnalyticsLoaded) {
-                  return _buildCustomersContent(state.customerAnalytics);
-                }
+    return Column(
+      children: [
+        const CommonAppBar(
+          title: 'Customers',
+          subtitle: 'View and manage your customer database',
+        ),
+        Expanded(
+          child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
+            buildWhen: (previous, current) {
+              // Only rebuild when customer analytics related states change
+              return current is CustomerAnalyticsLoaded ||
+                  current is AnalyticsLoading ||
+                  current is AnalyticsError;
+            },
+            builder: (context, state) {
+              if (state is AnalyticsLoading && _isInitialLoad) {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(40),
@@ -92,11 +72,31 @@ class _CustomersContentState extends State<CustomersContent> {
                     ),
                   ),
                 );
-              },
-            ),
+              } else if (state is AnalyticsError) {
+                return _buildErrorWidget(state.message);
+              } else if (state is CustomerAnalyticsLoaded) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: _buildCustomersContent(state.customerAnalytics),
+                );
+              }
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Loading customer data...'),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

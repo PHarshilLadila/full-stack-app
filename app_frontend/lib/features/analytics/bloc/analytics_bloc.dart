@@ -4,12 +4,10 @@ import 'package:app_frontend/features/analytics/bloc/analytics_event.dart';
 import 'package:app_frontend/features/analytics/bloc/analytics_state.dart';
 import 'package:app_frontend/features/analytics/service/analytics_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
   final AnalyticsService _analyticsService = AnalyticsService();
-  String _token;
-
-  String get token => _token;
 
   // Loading flags to prevent duplicate requests
   bool _isLoadingDashboard = false;
@@ -19,9 +17,7 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
   bool _isLoadingCustomers = false;
   bool _isLoadingReport = false;
 
-  AnalyticsBloc({required String token})
-    : _token = token,
-      super(AnalyticsInitial()) {
+  AnalyticsBloc() : super(AnalyticsInitial()) {
     on<FetchDashboardAnalytics>(_onFetchDashboardAnalytics);
     on<FetchOrderAnalytics>(_onFetchOrderAnalytics);
     on<FetchSalesAnalytics>(_onFetchSalesAnalytics);
@@ -31,8 +27,10 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     on<ChangeAnalyticsPeriod>(_onChangeAnalyticsPeriod);
   }
 
-  void updateToken(String newToken) {
-    _token = newToken;
+  // Helper method to get token from SharedPreferences
+  Future<String> _getToken() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    return preferences.getString("auth_token") ?? "";
   }
 
   Future<void> _onFetchDashboardAnalytics(
@@ -46,8 +44,14 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     emit(AnalyticsLoading());
 
     try {
+      final token = await _getToken();
+      if (token.isEmpty) {
+        emit(AnalyticsError("Authentication token not found"));
+        return;
+      }
+
       final data = await _analyticsService.getDashboardAnalytics(
-        token: _token,
+        token: token,
         period: event.period,
         startDate: event.startDate,
         endDate: event.endDate,
@@ -81,8 +85,14 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     emit(AnalyticsLoading());
 
     try {
+      final token = await _getToken();
+      if (token.isEmpty) {
+        emit(AnalyticsError("Authentication token not found"));
+        return;
+      }
+
       final data = await _analyticsService.getOrderAnalytics(
-        token: _token,
+        token: token,
         period: event.period,
       );
 
@@ -114,8 +124,14 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     emit(AnalyticsLoading());
 
     try {
+      final token = await _getToken();
+      if (token.isEmpty) {
+        emit(AnalyticsError("Authentication token not found"));
+        return;
+      }
+
       final data = await _analyticsService.getSalesAnalytics(
-        token: _token,
+        token: token,
         period: event.period,
       );
 
@@ -147,8 +163,14 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     emit(AnalyticsLoading());
 
     try {
+      final token = await _getToken();
+      if (token.isEmpty) {
+        emit(AnalyticsError("Authentication token not found"));
+        return;
+      }
+
       final data = await _analyticsService.getProductAnalytics(
-        token: _token,
+        token: token,
         sortBy: event.sortBy,
         limit: event.limit,
       );
@@ -181,7 +203,13 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     emit(AnalyticsLoading());
 
     try {
-      final data = await _analyticsService.getCustomerAnalytics(token: _token);
+      final token = await _getToken();
+      if (token.isEmpty) {
+        emit(AnalyticsError("Authentication token not found"));
+        return;
+      }
+
+      final data = await _analyticsService.getCustomerAnalytics(token: token);
 
       if (!isClosed) {
         emit(CustomerAnalyticsLoaded(customerAnalytics: data));
@@ -206,8 +234,14 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     emit(AnalyticsLoading());
 
     try {
+      final token = await _getToken();
+      if (token.isEmpty) {
+        emit(AnalyticsError("Authentication token not found"));
+        return;
+      }
+
       final data = await _analyticsService.getReport(
-        token: _token,
+        token: token,
         type: event.type,
         date: event.date,
       );

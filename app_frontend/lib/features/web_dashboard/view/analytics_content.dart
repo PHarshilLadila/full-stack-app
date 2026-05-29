@@ -8,7 +8,7 @@ import 'package:app_frontend/features/analytics/service/analytics_service.dart';
 import 'package:app_frontend/features/analytics/widgets/analytics_charts.dart';
 import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/dashboard_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; 
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AnalyticsContent extends StatefulWidget {
   final String userName;
@@ -45,70 +45,113 @@ class _AnalyticsContentState extends State<AnalyticsContent> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          CommonAppBar(
-            title: 'Analytics Dashboard',
-            subtitle: 'View detailed reports and insights for your store',
-          ),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPeriodSelector(),
-                const SizedBox(height: 24),
-                BlocBuilder<AnalyticsBloc, AnalyticsState>(
-                  builder: (context, state) {
-                    if (state is AnalyticsLoading) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(40),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    } else if (state is AnalyticsError) {
-                      return _buildErrorWidget(state.message);
-                    } else if (state is DashboardAnalyticsLoaded) {
-                      return _buildDashboardContent(state.dashboardAnalytics);
-                    } else if (state is OrderAnalyticsLoaded) {
-                      return _buildOrderAnalyticsContent(state.orderAnalytics);
-                    } else if (state is SalesAnalyticsLoaded) {
-                      return _buildSalesAnalyticsContent(state.salesAnalytics);
-                    } else if (state is ProductAnalyticsLoaded) {
-                      return _buildProductAnalyticsContent(
-                        state.productAnalytics,
-                      );
-                    } else if (state is CustomerAnalyticsLoaded) {
-                      return _buildCustomerAnalyticsContent(
-                        state.customerAnalytics,
-                      );
-                    }
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.analytics_outlined,
-                            size: 80,
-                            color: Color(0xFF94A3B8),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Select an analytics view',
-                            style: TextStyle(color: Colors.grey.shade600),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+    return Column(
+      children: [
+        CommonAppBar(
+          title: 'Analytics Dashboard',
+          subtitle: 'View detailed reports and insights for your store',
+        ),
+        Expanded(
+          child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
+            builder: (context, state) {
+              if (state is AnalyticsLoading) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Loading analytics data...'),
+                      ],
+                    ),
+                  ),
+                );
+              } else if (state is AnalyticsError) {
+                return _buildErrorWidget(state.message);
+              } else if (state is DashboardAnalyticsLoaded) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPeriodSelector(),
+                      const SizedBox(height: 24),
+                      _buildDashboardContent(state.dashboardAnalytics),
+                    ],
+                  ),
+                );
+              } else if (state is OrderAnalyticsLoaded) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPeriodSelector(),
+                      const SizedBox(height: 24),
+                      _buildOrderAnalyticsContent(state.orderAnalytics),
+                    ],
+                  ),
+                );
+              } else if (state is SalesAnalyticsLoaded) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPeriodSelector(),
+                      const SizedBox(height: 24),
+                      _buildSalesAnalyticsContent(state.salesAnalytics),
+                    ],
+                  ),
+                );
+              } else if (state is ProductAnalyticsLoaded) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPeriodSelector(),
+                      const SizedBox(height: 24),
+                      _buildProductAnalyticsContent(state.productAnalytics),
+                    ],
+                  ),
+                );
+              } else if (state is CustomerAnalyticsLoaded) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPeriodSelector(),
+                      const SizedBox(height: 24),
+                      _buildCustomerAnalyticsContent(state.customerAnalytics),
+                    ],
+                  ),
+                );
+              }
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.analytics_outlined,
+                      size: 80,
+                      color: Color(0xFF94A3B8),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Select an analytics view',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

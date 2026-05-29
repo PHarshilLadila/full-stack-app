@@ -49,67 +49,22 @@ class _DashboardContentState extends State<DashboardContent> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // AppBar always visible
-          CommonAppBar(
-            title: 'Welcome back, ${widget.userName}! 🚀',
-            subtitle: 'Here\'s what\'s happening with your store today.',
-          ),
-          // Content area with loader in center
-          BlocBuilder<AnalyticsBloc, AnalyticsState>(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // AppBar always visible at top
+        CommonAppBar(
+          title: 'Welcome back, ${widget.userName}! 🚀',
+          subtitle: 'Here\'s what\'s happening with your store today.',
+        ),
+        // Expanded content area that takes remaining space
+        Expanded(
+          child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
             builder: (context, state) {
               // Show loader only when loading and data not yet loaded
               if (state is AnalyticsLoading && !_isDataLoaded) {
-                return SizedBox(
-                  height: MediaQuery.of(context).size.height - 200,
-                  child: const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFF7C3AED),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Loading dashboard data...',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              // Show error widget
-              if (state is AnalyticsError) {
-                return SizedBox(
-                  height: MediaQuery.of(context).size.height - 200,
-                  child: _buildErrorWidget(state.message),
-                );
-              }
-
-              // Show dashboard content when data is loaded
-              if (state is DashboardAnalyticsLoaded) {
-                _isDataLoaded = true;
-                return Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: _buildDashboardContent(state.dashboardAnalytics),
-                );
-              }
-
-              // Show loader for other states
-              return SizedBox(
-                height: MediaQuery.of(context).size.height - 200,
-                child: const Center(
+                return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -128,12 +83,45 @@ class _DashboardContentState extends State<DashboardContent> {
                       ),
                     ],
                   ),
+                );
+              }
+
+              // Show error widget
+              if (state is AnalyticsError) {
+                return _buildErrorWidget(state.message);
+              }
+
+              // Show dashboard content when data is loaded
+              if (state is DashboardAnalyticsLoaded) {
+                _isDataLoaded = true;
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: _buildDashboardContent(state.dashboardAnalytics),
+                );
+              }
+
+              // Show loader for other states
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFF7C3AED),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading dashboard data...',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                    ),
+                  ],
                 ),
               );
             },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

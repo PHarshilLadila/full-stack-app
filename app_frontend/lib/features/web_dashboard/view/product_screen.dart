@@ -279,7 +279,19 @@ class _ProductsContentState extends State<ProductsContent> {
                 builder: (context, state) {
                   if (state is ProductLoading &&
                       _currentView == CurrentView.productList) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text('Loading products data...'),
+                          ],
+                        ),
+                      ),
+                    );
                   } else if (state is ProductError &&
                       _currentView == CurrentView.productList) {
                     return Center(

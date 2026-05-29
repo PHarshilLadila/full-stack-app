@@ -1,4 +1,6 @@
+import 'package:app_frontend/features/web_dashboard/widgets/product_widgets/dashboard_appbar.dart';
 import 'package:app_frontend/service/fcm_notification_service.dart';
+import 'package:app_frontend/utils/common/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_table_view/material_table_view.dart';
@@ -91,7 +93,15 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
           },
           builder: (context, state) {
             return Column(
-              children: [_buildHeader(), Expanded(child: _buildBody(state))],
+              children: [
+                CommonAppBar(
+                  title: 'Orders Management',
+                  subtitle: 'Track and manage all customer orders.',
+                ),
+
+                // _buildHeader(),
+                Expanded(child: _buildBody(state)),
+              ],
             );
           },
         ),
@@ -99,65 +109,19 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Orders Management',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Track and manage all customer orders',
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: Color(0xFF7C3AED)),
-                  onPressed: () async {
-                    final prefs = await SharedPreferences.getInstance();
-                    final token = prefs.getString('auth_token');
-                    if (token != null) {
-                      await FCMNotificationService.saveTokenToBackend(token);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('FCM token refreshed!')),
-                      );
-                    }
-                  },
-                  tooltip: 'Refresh Notifications',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBody(SellerOrderState state) {
     if (state is SellerOrderLoading && state is! SellerOrderLoaded) {
-      return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Loading orders data...'),
+            ],
+          ),
         ),
       );
     } else if (state is SellerOrderLoaded) {

@@ -26,57 +26,28 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(
-    options: kIsWeb
-        ? const FirebaseOptions(
-            apiKey: "AIzaSyCT7twkCGudSOiePsgsSlsDZgWKHT3gxG8",
-            authDomain: "full-stack-app-92e61.firebaseapp.com",
-            projectId: "full-stack-app-92e61",
-            storageBucket: "full-stack-app-92e61.firebasestorage.app",
-            messagingSenderId: "33258933921",
-            appId: "1:33258933921:web:ebf26cb174cc3f4f7ceae0",
-            measurementId: "G-ZEBW21S3KF",
-          )
-        : null,
+    options:
+        kIsWeb
+            ? const FirebaseOptions(
+              apiKey: "AIzaSyCT7twkCGudSOiePsgsSlsDZgWKHT3gxG8",
+              authDomain: "full-stack-app-92e61.firebaseapp.com",
+              projectId: "full-stack-app-92e61",
+              storageBucket: "full-stack-app-92e61.firebasestorage.app",
+              messagingSenderId: "33258933921",
+              appId: "1:33258933921:web:ebf26cb174cc3f4f7ceae0",
+              measurementId: "G-ZEBW21S3KF",
+            )
+            : null,
   );
 
   // Initialize FCM for Seller
   await FCMNotificationService.initialize();
 
-  // Get token before running the app
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  String token = preferences.getString("auth_token") ?? "";
-
-  runApp(MyApp(initialToken: token));
+  runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  final String initialToken;
-
-  const MyApp({super.key, required this.initialToken});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  late String userToken;
-
-  @override
-  void initState() {
-    super.initState();
-    userToken = widget.initialToken;
-    _loadUpdatedToken();
-  }
-
-  Future<void> _loadUpdatedToken() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String token = preferences.getString("auth_token") ?? "";
-    if (token != userToken) {
-      setState(() {
-        userToken = token;
-      });
-    }
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -89,19 +60,19 @@ class _MyAppState extends State<MyApp> {
           create: (context) => ProductBloc(productService: ProductService()),
         ),
         BlocProvider(
-          create: (context) => SellerOrderBloc(orderService: SellerOrderService()),
+          create:
+              (context) => SellerOrderBloc(orderService: SellerOrderService()),
         ),
-        BlocProvider(
-          create: (context) => AnalyticsBloc(token: userToken),
-        ),
+        BlocProvider(create: (context) => AnalyticsBloc()),
       ],
       child: MaterialApp(
         title: 'Velmora Vendor',
         debugShowCheckedModeBanner: false,
         theme: ThemeData.light().copyWith(
-          textTheme: kIsWeb
-              ? GoogleFonts.interTextTheme(ThemeData.light().textTheme)
-              : GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),
+          textTheme:
+              kIsWeb
+                  ? GoogleFonts.interTextTheme(ThemeData.light().textTheme)
+                  : GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),
           scaffoldBackgroundColor: Colors.white,
           useMaterial3: false,
         ),
@@ -112,9 +83,7 @@ class _MyAppState extends State<MyApp> {
               (context) => kIsWeb ? const WebAuthScreen() : const AuthScreen(),
           '/home':
               (context) =>
-                  kIsWeb
-                      ? WebDashboardScreen(initialToken: userToken)
-                      : const BottomNavBarScreen(),
+                  kIsWeb ? WebDashboardScreen() : const BottomNavBarScreen(),
         },
       ),
     );

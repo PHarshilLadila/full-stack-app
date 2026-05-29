@@ -21,7 +21,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WebDashboardScreen extends StatefulWidget {
-  const WebDashboardScreen({super.key, required String initialToken});
+  const WebDashboardScreen({super.key});
 
   @override
   State<WebDashboardScreen> createState() => _WebDashboardScreenState();
