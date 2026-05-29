@@ -1,4 +1,6 @@
 // app_backend/lib/config/firebase.dart
+// ignore_for_file: public_member_api_docs, avoid_slow_async_io, avoid_print
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:googleapis_auth/auth_io.dart';
@@ -18,9 +20,8 @@ class FirebaseConfig {
       if (_projectId == null || _projectId!.isEmpty) {
         final file = File('firebase-adminsdk.json');
         if (await file.exists()) {
-          final String jsonString = await file.readAsString();
-          final Map<String, dynamic> jsonData =
-              jsonDecode(jsonString) as Map<String, dynamic>;
+          final jsonString = await file.readAsString();
+          final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
           _projectId = jsonData['project_id'] as String?;
         }
       }
@@ -46,19 +47,19 @@ class FirebaseConfig {
 
     try {
       // Try environment variables first
-      final String? clientEmail = Platform.environment['FIREBASE_CLIENT_EMAIL'];
-      final String? privateKey = Platform.environment['FIREBASE_PRIVATE_KEY'];
+      final clientEmail = Platform.environment['FIREBASE_CLIENT_EMAIL'];
+      final privateKey = Platform.environment['FIREBASE_PRIVATE_KEY'];
 
       if (clientEmail != null &&
           clientEmail.isNotEmpty &&
           privateKey != null &&
           privateKey.isNotEmpty) {
-        final String cleanedPrivateKey = privateKey.replaceAll('\\n', '\n');
+        final cleanedPrivateKey = privateKey.replaceAll(r'\n', '\n');
 
-        final credentials = ServiceAccountCredentials.fromJson(
-          {'client_email': clientEmail, 'private_key': cleanedPrivateKey}
-              as Map<String, String>,
-        );
+        final credentials = ServiceAccountCredentials.fromJson({
+          'client_email': clientEmail,
+          'private_key': cleanedPrivateKey,
+        });
 
         final client = await clientViaServiceAccount(credentials, [
           'https://www.googleapis.com/auth/firebase.messaging',
@@ -73,12 +74,11 @@ class FirebaseConfig {
       // Fallback to file
       final file = File('firebase-adminsdk.json');
       if (await file.exists()) {
-        final String jsonString = await file.readAsString();
-        final Map<String, dynamic> jsonData =
-            jsonDecode(jsonString) as Map<String, dynamic>;
+        final jsonString = await file.readAsString();
+        final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
 
-        final String clientEmailFromFile = jsonData['client_email'] as String;
-        final String privateKeyFromFile = jsonData['private_key'] as String;
+        final clientEmailFromFile = jsonData['client_email'] as String;
+        final privateKeyFromFile = jsonData['private_key'] as String;
 
         final credentials = ServiceAccountCredentials.fromJson({
           'client_email': clientEmailFromFile,
@@ -118,12 +118,12 @@ class FirebaseConfig {
         return false;
       }
 
-      final String accessToken = await getAccessToken();
+      final accessToken = await getAccessToken();
 
-      final String url =
-          'https://fcm.googleapis.com/v1/projects/${_projectId}/messages:send';
+      final url =
+          'https://fcm.googleapis.com/v1/projects/$_projectId/messages:send';
 
-      final Map<String, dynamic> payload = {
+      final payload = <String, dynamic>{
         'message': {
           'token': fcmToken,
           'notification': {'title': title, 'body': body},
@@ -143,7 +143,7 @@ class FirebaseConfig {
         },
       };
 
-      final http.Response response = await http.post(
+      final response = await http.post(
         Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $accessToken',

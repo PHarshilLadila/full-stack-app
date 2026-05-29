@@ -162,7 +162,7 @@
 //     return url.length > 50 ? '${url.substring(0, 50)}...' : url;
 //   }
 // }
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, inference_failure_on_untyped_parameter, public_member_api_docs
 
 import 'dart:async';
 import 'package:mongo_dart/mongo_dart.dart';
@@ -293,7 +293,7 @@ class MongoService {
       _passwordResets = _db!.collection('password_resets');
 
       // Create indexes in background (don't wait)
-      _createIndexes().catchError((e) {
+      await _createIndexes().catchError((e) {
         print('⚠️ Index creation warning: ${e.toString().substring(0, 100)}');
       });
 

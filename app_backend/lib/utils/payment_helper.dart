@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, inference_failure_on_collection_literal
 
 import 'dart:convert';
 import 'dart:math';

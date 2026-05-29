@@ -2,8 +2,8 @@
 
 import 'package:app_frontend/features/analytics/model/analytics_models.dart';
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class RevenueLineChart extends StatelessWidget {
   final Map<String, double> data;
@@ -17,7 +17,7 @@ class RevenueLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chartData = _getChartData();
+    final chartData = getChartData();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -66,7 +66,7 @@ class RevenueLineChart extends StatelessWidget {
                   fontSize: 10,
                   color: Color(0xFF94A3B8),
                 ),
-                axisLine: const AxisLine(width: 0),
+                axisLine:   AxisLine(width: 0),
                 numberFormat: NumberFormat.compactCurrency(
                   symbol: '₹',
                   decimalDigits: 0,
@@ -110,7 +110,7 @@ class RevenueLineChart extends StatelessWidget {
     );
   }
 
-  List<ChartData> _getChartData() {
+  List<ChartData> getChartData() {
     return data.entries.map((entry) {
       return ChartData(entry.key, entry.value);
     }).toList();
@@ -368,7 +368,7 @@ class ProductPerformanceTable extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            '${product?.stockAvailable}',
+                            '${product.stockAvailable}',
                             style: TextStyle(
                               fontSize: 12,
                               color: product.isLowStock
