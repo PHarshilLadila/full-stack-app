@@ -1,371 +1,564 @@
-// app_backend/lib/services/password_reset_service.dart
-// ignore_for_file: avoid_print
+// routes/auth/reset-password.dart
+// Professional UI for password reset
+
+// ignore_for_file: avoid_redundant_argument_values, avoid_print
 
 import 'dart:convert';
-import 'dart:math';
-import 'package:crypto/crypto.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:my_backend/config/env.dart';
-import 'package:my_backend/db/mongo.dart';
+import 'package:dart_frog/dart_frog.dart';
+import 'package:my_backend/services/password_reset_service.dart';
 
-class PasswordResetService {
-  // Generate a secure reset token
-  static String generateResetToken(String userId, String email) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = Random.secure();
-    final randomBytes = List<int>.generate(32, (_) => random.nextInt(256));
-    final randomString = base64Url.encode(randomBytes);
+Future<Response> onRequest(RequestContext context) async {
+  final method = context.request.method;
 
-    final data = '$userId:$email:$timestamp:$randomString';
-    final bytes = utf8.encode(data);
-    final digest = sha256.convert(bytes);
-
-    return digest.toString();
+  if (method == HttpMethod.get) {
+    return _showResetForm(context);
   }
 
-  // Create password reset request in database
-  static Future<Map<String, dynamic>?> createResetRequest({
-    required String identifier,
-    required String userAgent,
-    required String ipAddress,
-  }) async {
+  if (method == HttpMethod.post) {
+    return _processResetPassword(context);
+  }
+
+  return Response.json(
+    statusCode: 405,
+    body: {'success': false, 'message': 'Method not allowed'},
+  );
+}
+
+Future<Response> _showResetForm(RequestContext context) async {
+  try {
+    final uri = context.request.uri;
+    final token = uri.queryParameters['token'] ?? '';
+
+    final validation = await PasswordResetService.validateToken(token);
+
+    if (validation == null) {
+      return Response(
+        statusCode: 200,
+        body: '''
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Invalid Reset Link - E-Shop</title>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                body {
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: #f5f5f5;
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 20px;
+                }
+                .card {
+                    background: white;
+                    border-radius: 16px;
+                    padding: 48px;
+                    max-width: 500px;
+                    width: 100%;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    text-align: center;
+                }
+                .icon {
+                    width: 64px;
+                    height: 64px;
+                    background: #fee2e2;
+                    border-radius: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 24px;
+                }
+                .icon span {
+                    font-size: 32px;
+                }
+                h1 {
+                    font-size: 24px;
+                    font-weight: 600;
+                    color: #1a1a1a;
+                    margin-bottom: 12px;
+                }
+                p {
+                    color: #666;
+                    line-height: 1.6;
+                    margin-bottom: 32px;
+                }
+                .btn {
+                    display: inline-block;
+                    background: #1a1a1a;
+                    color: white;
+                    padding: 12px 24px;
+                    text-decoration: none;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    transition: background 0.2s;
+                }
+                .btn:hover {
+                    background: #333;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div class="icon">
+                    <span>🔒</span>
+                </div>
+                <h1>Invalid Reset Link</h1>
+                <p>This password reset link is invalid or has already been used. Please request a new reset link.</p>
+                <a href="/auth/login" class="btn">Back to Login</a>
+            </div>
+        </body>
+        </html>
+        ''',
+        headers: {'Content-Type': 'text/html'},
+      );
+    }
+
+    final email = validation['email'] as String;
+
+    return Response(
+      statusCode: 200,
+      body: '''
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Reset Password - E-Shop</title>
+          <style>
+              * {
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+              }
+              body {
+                  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  background: #f5f5f5;
+                  min-height: 100vh;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  padding: 20px;
+              }
+              .container {
+                  max-width: 450px;
+                  width: 100%;
+              }
+              .card {
+                  background: white;
+                  border-radius: 16px;
+                  padding: 40px;
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              }
+              .logo {
+                  text-align: center;
+                  margin-bottom: 32px;
+              }
+              .logo h1 {
+                  font-size: 24px;
+                  font-weight: 600;
+                  color: #1a1a1a;
+              }
+              .logo p {
+                  color: #666;
+                  font-size: 14px;
+                  margin-top: 8px;
+              }
+              .email-badge {
+                  background: #f0f0f0;
+                  padding: 12px;
+                  border-radius: 8px;
+                  text-align: center;
+                  margin-bottom: 32px;
+              }
+              .email-badge span {
+                  color: #1a1a1a;
+                  font-weight: 500;
+              }
+              .form-group {
+                  margin-bottom: 24px;
+              }
+              label {
+                  display: block;
+                  margin-bottom: 8px;
+                  font-weight: 500;
+                  color: #1a1a1a;
+                  font-size: 14px;
+              }
+              input {
+                  width: 100%;
+                  padding: 12px 16px;
+                  border: 1px solid #e0e0e0;
+                  border-radius: 8px;
+                  font-size: 16px;
+                  transition: border-color 0.2s, box-shadow 0.2s;
+                  font-family: inherit;
+              }
+              input:focus {
+                  outline: none;
+                  border-color: #1a1a1a;
+                  box-shadow: 0 0 0 3px rgba(26,26,26,0.1);
+              }
+              .requirements {
+                  font-size: 12px;
+                  color: #999;
+                  margin-top: 6px;
+              }
+              .error {
+                  color: #dc2626;
+                  font-size: 13px;
+                  margin-top: 6px;
+                  display: none;
+              }
+              .btn {
+                  width: 100%;
+                  padding: 14px;
+                  background: #1a1a1a;
+                  color: white;
+                  border: none;
+                  border-radius: 8px;
+                  font-size: 16px;
+                  font-weight: 500;
+                  cursor: pointer;
+                  transition: background 0.2s;
+                  font-family: inherit;
+              }
+              .btn:hover {
+                  background: #333;
+              }
+              .btn:disabled {
+                  background: #ccc;
+                  cursor: not-allowed;
+              }
+              .loading {
+                  display: none;
+                  text-align: center;
+                  margin-top: 24px;
+              }
+              .spinner {
+                  width: 32px;
+                  height: 32px;
+                  border: 3px solid #f0f0f0;
+                  border-top: 3px solid #1a1a1a;
+                  border-radius: 50%;
+                  animation: spin 0.8s linear infinite;
+                  margin: 0 auto 12px;
+              }
+              @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+              }
+              .footer {
+                  text-align: center;
+                  margin-top: 24px;
+                  font-size: 12px;
+                  color: #999;
+              }
+              .success-card {
+                  background: white;
+                  border-radius: 16px;
+                  padding: 48px;
+                  text-align: center;
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              }
+              .success-icon {
+                  width: 64px;
+                  height: 64px;
+                  background: #e6f7e6;
+                  border-radius: 32px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  margin: 0 auto 24px;
+              }
+              .success-icon span {
+                  font-size: 32px;
+              }
+              .success-card h2 {
+                  font-size: 24px;
+                  font-weight: 600;
+                  color: #1a1a1a;
+                  margin-bottom: 12px;
+              }
+              .success-card p {
+                  color: #666;
+                  margin-bottom: 32px;
+                  line-height: 1.6;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="card" id="resetCard">
+                  <div class="logo">
+                      <h1>E-Shop</h1>
+                      <p>Reset your password</p>
+                  </div>
+                  
+                  <div class="email-badge">
+                      <span>$email</span>
+                  </div>
+                  
+                  <form id="resetForm">
+                      <div class="form-group">
+                          <label>New Password</label>
+                          <input type="password" id="newPassword" placeholder="Enter new password" required>
+                          <div class="requirements">• Minimum 6 characters</div>
+                          <div class="error" id="passwordError"></div>
+                      </div>
+                      
+                      <div class="form-group">
+                          <label>Confirm New Password</label>
+                          <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+                          <div class="error" id="confirmError"></div>
+                      </div>
+                      
+                      <button type="submit" class="btn" id="submitBtn">Reset Password</button>
+                  </form>
+                  
+                  <div class="loading" id="loading">
+                      <div class="spinner"></div>
+                      <p>Resetting password...</p>
+                  </div>
+                  
+                  <div class="footer">
+                      <p>Secure password reset</p>
+                  </div>
+              </div>
+          </div>
+          
+          <script>
+              const form = document.getElementById('resetForm');
+              const newPassword = document.getElementById('newPassword');
+              const confirmPassword = document.getElementById('confirmPassword');
+              const passwordError = document.getElementById('passwordError');
+              const confirmError = document.getElementById('confirmError');
+              const submitBtn = document.getElementById('submitBtn');
+              const loading = document.getElementById('loading');
+              const resetCard = document.getElementById('resetCard');
+              
+              form.addEventListener('submit', async (e) => {
+                  e.preventDefault();
+                  
+                  // Reset errors
+                  passwordError.style.display = 'none';
+                  confirmError.style.display = 'none';
+                  
+                  // Validation
+                  let isValid = true;
+                  
+                  if (newPassword.value.length < 6) {
+                      passwordError.textContent = 'Password must be at least 6 characters';
+                      passwordError.style.display = 'block';
+                      isValid = false;
+                  }
+                  
+                  if (newPassword.value !== confirmPassword.value) {
+                      confirmError.textContent = 'Passwords do not match';
+                      confirmError.style.display = 'block';
+                      isValid = false;
+                  }
+                  
+                  if (!isValid) return;
+                  
+                  // Show loading
+                  submitBtn.disabled = true;
+                  loading.style.display = 'block';
+                  form.style.display = 'none';
+                  
+                  try {
+                      const response = await fetch(window.location.href, {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                              token: '$token',
+                              newPassword: newPassword.value,
+                              confirmPassword: confirmPassword.value,
+                          }),
+                      });
+                      
+                      const result = await response.json();
+                      
+                      if (result.success) {
+                          // Show success message
+                          resetCard.innerHTML = `
+                              <div class="success-card">
+                                  <div class="success-icon">
+                                      <span>✓</span>
+                                  </div>
+                                  <h2>Password Reset Successful</h2>
+                                  <p>\${result.message}</p>
+                                  <a href="/auth/login" class="btn" style="display: inline-block; text-decoration: none;">Back to Login</a>
+                              </div>
+                          `;
+                      } else {
+                          alert(result.message);
+                          submitBtn.disabled = false;
+                          loading.style.display = 'none';
+                          form.style.display = 'block';
+                      }
+                  } catch (error) {
+                      alert('Something went wrong. Please try again.');
+                      submitBtn.disabled = false;
+                      loading.style.display = 'none';
+                      form.style.display = 'block';
+                  }
+              });
+          </script>
+      </body>
+      </html>
+      ''',
+      headers: {'Content-Type': 'text/html'},
+    );
+  } catch (e) {
+    print('❌ Error showing reset form: $e');
+    return Response(
+      statusCode: 200,
+      body: '''
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <title>Error - E-Shop</title>
+          <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body {
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  background: #f5f5f5;
+                  min-height: 100vh;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  padding: 20px;
+              }
+              .card {
+                  background: white;
+                  border-radius: 16px;
+                  padding: 48px;
+                  max-width: 450px;
+                  text-align: center;
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              }
+              h2 { margin-bottom: 16px; color: #1a1a1a; }
+              p { color: #666; margin-bottom: 24px; }
+              .btn {
+                  display: inline-block;
+                  background: #1a1a1a;
+                  color: white;
+                  padding: 12px 24px;
+                  text-decoration: none;
+                  border-radius: 8px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="card">
+              <h2>Something went wrong</h2>
+              <p>Please try again or request a new reset link.</p>
+              <a href="/auth/login" class="btn">Back to Login</a>
+          </div>
+      </body>
+      </html>
+      ''',
+      headers: {'Content-Type': 'text/html'},
+    );
+  }
+}
+
+Future<Response> _processResetPassword(RequestContext context) async {
+  try {
+    print('🔥 RESET PASSWORD API HIT');
+
+    final bodyString = await context.request.body();
+
+    if (bodyString.isEmpty) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'Request body is empty'},
+      );
+    }
+
+    Map<String, dynamic> body;
     try {
-      // Find user by identifier
-      final user = await MongoService.users!.findOne({
-        r'$or': [
-          {'email': identifier},
-          {'username': identifier},
-          {'mobile': identifier},
-        ],
-      });
-
-      if (user == null) {
-        print('❌ User not found with identifier: $identifier');
-        return null;
-      }
-
-      final userId = (user['_id'] as ObjectId).oid;
-      final email = user['email'] as String;
-      final fullName = user['fullName'] as String? ?? 'User';
-
-      // Generate token
-      final token = generateResetToken(userId, email);
-
-      // Calculate expiry (24 hours from now)
-      final expiresAt = DateTime.now().add(const Duration(hours: 24));
-
-      // Check if there's an existing valid reset request
-      final existingRequest = await MongoService.passwordResets!.findOne({
-        'userId': userId,
-        'isUsed': false,
-        'expiresAt': {'\$gt': DateTime.now()},
-      });
-
-      // If exists and not expired, delete it (create new one)
-      if (existingRequest != null) {
-        await MongoService.passwordResets!.deleteOne({
-          '_id': existingRequest['_id'],
-        });
-      }
-
-      // Create new reset request
-      final resetRequest = {
-        'userId': userId,
-        'email': email,
-        'token': token,
-        'createdAt': DateTime.now(),
-        'expiresAt': expiresAt,
-        'isUsed': false,
-        'userAgent': userAgent,
-        'ipAddress': ipAddress,
-      };
-
-      await MongoService.passwordResets!.insertOne(resetRequest);
-
-      print('✅ Password reset request created for: $email');
-
-      return {
-        'userId': userId,
-        'email': email,
-        'token': token,
-        'fullName': fullName,
-      };
+      body = jsonDecode(bodyString) as Map<String, dynamic>;
     } catch (e) {
-      print('❌ Error creating reset request: $e');
-      return null;
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'Invalid JSON format'},
+      );
     }
-  }
 
-  // FIXED: Send password reset email with better error handling
-  static Future<bool> sendResetEmail({
-    required String email,
-    required String token,
-    required String fullName,
-  }) async {
-    try {
-      print('📧 Attempting to send email to: $email');
-      print('🔑 Using email user: ${Env.emailUser}');
-      print('🔑 Email password length: ${Env.emailPassword.length}');
-      print('🌐 APP_URL: ${Env.appUrl}');
+    final token = body['token']?.toString().trim() ?? '';
+    final newPassword = body['newPassword']?.toString().trim() ?? '';
+    final confirmPassword = body['confirmPassword']?.toString().trim() ?? '';
 
-      final resetLink = '${Env.appUrl}/auth/reset-password?token=$token';
-      print('🔗 Reset link: $resetLink');
-
-      // HTML email template
-      final htmlContent = '''
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Password</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
+    if (token.isEmpty) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'Reset token is required'},
+      );
     }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+    if (newPassword.isEmpty) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'New password is required'},
+      );
     }
-    .header {
-      text-align: center;
-      padding: 20px 0;
-      border-bottom: 2px solid #f0f0f0;
-    }
-    .header h1 {
-      color: #2563eb;
-      margin: 0;
-    }
-    .content {
-      padding: 30px 20px;
-    }
-    .button {
-      display: inline-block;
-      background-color: #2563eb;
-      color: #ffffff !important;
-      text-decoration: none;
-      padding: 12px 30px;
-      border-radius: 8px;
-      margin: 20px 0;
-      font-weight: bold;
-      text-align: center;
-    }
-    .button:hover {
-      background-color: #1d4ed8;
-    }
-    .footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 12px;
-      color: #666;
-      border-top: 1px solid #f0f0f0;
-    }
-    .warning {
-      background-color: #fef3c7;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 20px 0;
-      font-size: 14px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🛍️ E-Shop</h1>
-      <p>Password Reset Request</p>
-    </div>
-    <div class="content">
-      <p>Hello <strong>$fullName</strong>,</p>
-      <p>We received a request to reset your password for your E-Shop account.</p>
-      <p>Click the button below to create a new password:</p>
-      <div style="text-align: center;">
-        <a href="$resetLink" class="button">Reset Password</a>
-      </div>
-      <p>Or copy and paste this link in your browser:</p>
-      <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 6px; font-size: 12px;">
-        $resetLink
-      </p>
-      <div class="warning">
-        ⚠️ <strong>Important:</strong> This link will expire in <strong>24 hours</strong>. 
-        If you didn't request a password reset, please ignore this email or contact support.
-      </div>
-    </div>
-    <div class="footer">
-      <p>© ${DateTime.now().year} E-Shop. All rights reserved.</p>
-      <p>This is an automated message, please do not reply to this email.</p>
-    </div>
-  </div>
-</body>
-</html>
-      ''';
 
-      // Plain text version
-      final textContent = '''
-Hello $fullName,
-
-We received a request to reset your password for your E-Shop account.
-
-Click the link below to create a new password:
-$resetLink
-
-Important: This link will expire in 24 hours.
-
-If you didn't request a password reset, please ignore this email or contact support.
-
----
-E-Shop Team
-${DateTime.now().year} E-Shop. All rights reserved.
-      ''';
-
-      // FIXED: Use Gmail SMTP with correct configuration
-      final smtpServer = gmail(Env.emailUser, Env.emailPassword);
-
-      // Create email message
-      final message =
-          Message()
-            ..from = Address(Env.emailFrom, 'E-Shop Support')
-            ..recipients.add(email)
-            ..subject = 'Reset Your E-Shop Password'
-            ..text = textContent
-            ..html = htmlContent;
-
-      print('📨 Sending email via Gmail SMTP...');
-
-      // Send email with timeout
-      final sendReport = await send(message, smtpServer).timeout(
-        const Duration(seconds: 45),
-        onTimeout: () {
-          print('❌ Email sending timeout after 45 seconds');
-          throw Exception('Email sending timeout');
+    if (newPassword.length < 6) {
+      return Response.json(
+        statusCode: 400,
+        body: {
+          'success': false,
+          'message': 'Password must be at least 6 characters long',
         },
       );
-
-      print('✅ Email sent successfully!');
-      print('📬 Send report: $sendReport');
-      return true;
-    } catch (e) {
-      print('❌ Error sending reset email: $e');
-      print('📚 Stack trace: ${StackTrace.current}');
-
-      // Check for specific Gmail errors
-      if (e.toString().contains('535')) {
-        print(
-          '🔑 Gmail authentication failed - Your App Password may be invalid or expired',
-        );
-        print(
-          '💡 Solution: Generate a new App Password at https://myaccount.google.com/apppasswords',
-        );
-      } else if (e.toString().contains('534')) {
-        print('🔑 App password expired - Please generate a new one');
-      } else if (e.toString().contains('connection refused')) {
-        print('🌐 Network issue - Render may be blocking SMTP port 587');
-      }
-
-      return false;
     }
-  }
 
-  // Validate reset token
-  static Future<Map<String, dynamic>?> validateToken(String token) async {
-    try {
-      final resetRequest = await MongoService.passwordResets!.findOne({
-        'token': token,
-        'isUsed': false,
-        'expiresAt': {'\$gt': DateTime.now()},
-      });
-
-      if (resetRequest == null) {
-        print('❌ Invalid or expired token');
-        return null;
-      }
-
-      return {
-        'userId': resetRequest['userId'] as String,
-        'email': resetRequest['email'] as String,
-        'token': resetRequest['token'] as String,
-      };
-    } catch (e) {
-      print('❌ Error validating token: $e');
-      return null;
-    }
-  }
-
-  // Reset password
-  static Future<bool> resetPassword({
-    required String token,
-    required String newPassword,
-  }) async {
-    try {
-      // Validate token
-      final validation = await validateToken(token);
-      if (validation == null) {
-        return false;
-      }
-
-      final userId = validation['userId'] as String;
-
-      // Hash new password
-      final hashedPassword = _hashPassword(newPassword);
-
-      // Update user password
-      final updateResult = await MongoService.users!.updateOne(
-        where.id(ObjectId.fromHexString(userId)),
-        modify
-            .set('passwordHash', hashedPassword)
-            .set('updatedAt', DateTime.now())
-            .set('passwordUpdatedAt', DateTime.now()),
+    if (newPassword != confirmPassword) {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'Passwords do not match'},
       );
-
-      // Check if update was successful
-      if (updateResult.isSuccess && updateResult.nModified == 1) {
-        // Mark reset token as used
-        await MongoService.passwordResets!.updateOne(
-          where.eq('token', token),
-          modify.set('isUsed', true).set('usedAt', DateTime.now()),
-        );
-
-        // Invalidate all existing user sessions (optional)
-        await _invalidateUserSessions(userId);
-
-        print('✅ Password reset successful for user: $userId');
-        return true;
-      }
-
-      print('❌ Password reset failed - no document modified');
-      return false;
-    } catch (e) {
-      print('❌ Error resetting password: $e');
-      return false;
     }
-  }
 
-  // Helper: Hash password using SHA-256
-  static String _hashPassword(String password) {
-    final bytes = utf8.encode(password);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
+    final resetSuccess = await PasswordResetService.resetPassword(
+      token: token,
+      newPassword: newPassword,
+    );
 
-  // Helper: Invalidate user sessions
-  static Future<void> _invalidateUserSessions(String userId) async {
-    try {
-      // If you have a sessions collection, delete all sessions for this user
-      // await MongoService.sessions!.deleteMany({'userId': userId});
-      print('✅ User sessions invalidated for: $userId');
-    } catch (e) {
-      print('⚠️ Error invalidating sessions: $e');
+    if (resetSuccess) {
+      return Response.json(
+        statusCode: 200,
+        body: {
+          'success': true,
+          'message': 'Your password has been changed successfully.',
+        },
+      );
+    } else {
+      return Response.json(
+        statusCode: 400,
+        body: {'success': false, 'message': 'Invalid or expired reset token.'},
+      );
     }
+  } catch (e, stackTrace) {
+    print('❌ RESET PASSWORD ERROR: $e');
+    print('STACK TRACE: $stackTrace');
+
+    return Response.json(
+      statusCode: 500,
+      body: {
+        'success': false,
+        'message': 'Internal server error. Please try again later.',
+      },
+    );
   }
 }
