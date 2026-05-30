@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:app_frontend/core/network/api_client.dart';
 import 'package:app_frontend/features/seller/seller_profile/profile/model/user_model.dart';
- 
+
 class UserService {
   final ApiClient apiClient = ApiClient();
 
   // user_service.dart - Update getUserProfile method
+  // In user_service.dart
   Future<UserModel> getUserProfile(String token) async {
     try {
       log("Fetching user profile with token: $token");
@@ -32,7 +33,9 @@ class UserService {
         log("User parsed successfully: ${user.fullName}, Role: ${user.role}");
         return user;
       } else {
-        throw Exception(data['message'] ?? 'Failed to fetch user data');
+        throw Exception(
+          data['message'] ?? data['error'] ?? 'Failed to fetch user data',
+        );
       }
     } catch (e) {
       log("Get User Profile Error: $e");

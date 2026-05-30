@@ -87,7 +87,6 @@
 //     );
 //   }
 // }
-
 import 'package:dart_frog/dart_frog.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:my_backend/db/mongo.dart';
@@ -128,35 +127,40 @@ Future<Response> onRequest(RequestContext context) async {
     // Remove sensitive data
     user.remove('passwordHash');
 
-    // Convert ObjectId → String
-    user['_id'] = (user['_id'] as ObjectId).oid;
+    // Create a clean map with properly serialized values
+    final Map<String, dynamic> cleanUser = {};
 
-    // Convert DateTime → String
-    if (user['createdAt'] is DateTime) {
-      user['createdAt'] = (user['createdAt'] as DateTime).toIso8601String();
-    }
-
-    if (user['updatedAt'] is DateTime) {
-      user['updatedAt'] = (user['updatedAt'] as DateTime).toIso8601String();
-    }
+    user.forEach((key, value) {
+      if (key == '_id') {
+        cleanUser[key] = (value as ObjectId).oid;
+      } else if (value is DateTime) {
+        cleanUser[key] = value.toIso8601String();
+      } else if (value is ObjectId) {
+        cleanUser[key] = value.oid;
+      } else {
+        cleanUser[key] = value;
+      }
+    });
 
     // Ensure role field exists (for backward compatibility)
-    if (user['role'] == null) {
-      user['role'] = userRole;
+    if (cleanUser['role'] == null) {
+      cleanUser['role'] = userRole;
     }
 
     print('✅ User fetched successfully');
+    print('📦 User data: ${cleanUser.keys}');
 
     return Response.json(
       body: {
         'success': true,
         'message': 'User fetched successfully',
-        'data': user,
-        'role': user['role'],
+        'data': cleanUser,
+        'role': cleanUser['role'],
       },
     );
-  } catch (e) {
+  } catch (e, stackTrace) {
     print('❌ ERROR fetching user: $e');
+    print('Stack trace: $stackTrace');
     return Response.json(
       statusCode: 500,
       body: {'success': false, 'error': 'Failed to fetch user: $e'},
