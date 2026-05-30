@@ -62,6 +62,7 @@ Handler authMiddleware(Handler handler) {
     final publicRoutes = [
       '/auth/login',
       '/auth/register',
+      '/auth/forgot-password',
       '/product/list',
       '/product/details',
     ];
