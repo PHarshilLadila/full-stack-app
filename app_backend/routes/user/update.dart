@@ -948,7 +948,6 @@
 //     return '';
 //   }
 // }
-
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -966,6 +965,9 @@ Future<Response> onRequest(RequestContext context) async {
   final userId = authData.userId;
   final currentRole = authData.userRole;
 
+  print('📝 User ID: $userId');
+  print('📝 Current Role: $currentRole');
+
   if (MongoService.users == null) {
     return Response.json(
       statusCode: 500,
@@ -974,9 +976,10 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final contentType = context.request.headers['content-type'] ?? '';
+  print('📝 Content-Type: $contentType');
 
   // ==========================================
-  // MULTIPART REQUEST
+  // MULTIPART REQUEST (with file upload)
   // ==========================================
 
   if (contentType.contains('multipart/form-data')) {
@@ -991,7 +994,7 @@ Future<Response> onRequest(RequestContext context) async {
 }
 
 // =======================================================
-// MULTIPART UPDATE
+// MULTIPART UPDATE (Handles file upload)
 // =======================================================
 
 Future<Response> _handleMultipartUpdate(
@@ -1008,13 +1011,21 @@ Future<Response> _handleMultipartUpdate(
 
     final updateData = <String, dynamic>{};
 
+    // ==========================================
+    // TEXT FIELDS
+    // ==========================================
+
+    // Full Name
     final fullName = formData['fullName']?.trim();
     if (fullName != null && fullName.isNotEmpty) {
       updateData['fullName'] = fullName;
+      print('✅ Updating fullName: $fullName');
     }
 
+    // Username
     final username = formData['username']?.trim();
     if (username != null && username.isNotEmpty) {
+      // Check if username already exists
       final existingUser = await MongoService.users!.findOne({
         'username': username,
         '_id': {r'$ne': ObjectId.parse(userId)},
@@ -1028,10 +1039,13 @@ Future<Response> _handleMultipartUpdate(
       }
 
       updateData['username'] = username;
+      print('✅ Updating username: $username');
     }
 
+    // Email
     final email = formData['email']?.trim();
     if (email != null && email.isNotEmpty) {
+      // Check if email already exists
       final existingUser = await MongoService.users!.findOne({
         'email': email,
         '_id': {r'$ne': ObjectId.parse(userId)},
@@ -1045,10 +1059,13 @@ Future<Response> _handleMultipartUpdate(
       }
 
       updateData['email'] = email;
+      print('✅ Updating email: $email');
     }
 
+    // Mobile
     final mobile = formData['mobile']?.trim();
     if (mobile != null && mobile.isNotEmpty) {
+      // Check if mobile already exists
       final existingUser = await MongoService.users!.findOne({
         'mobile': mobile,
         '_id': {r'$ne': ObjectId.parse(userId)},
@@ -1062,10 +1079,12 @@ Future<Response> _handleMultipartUpdate(
       }
 
       updateData['mobile'] = mobile;
+      print('✅ Updating mobile: $mobile');
     }
 
+    // Role
     final role = formData['role']?.trim();
-    if (role != null) {
+    if (role != null && role.isNotEmpty) {
       if (role == 'customer' || role == 'seller') {
         updateData['role'] = role;
         print('⚠️ ROLE CHANGED FROM $currentRole TO $role');
@@ -1077,19 +1096,40 @@ Future<Response> _handleMultipartUpdate(
       }
     }
 
+    // ==========================================
+    // FILE UPLOAD (Profile Image)
+    // ==========================================
+
     final profileImageFile = formData.files['profileImage'];
+    String? uploadedImageUrl;
+
     if (profileImageFile != null) {
       print('📸 Uploading profile image: ${profileImageFile.name}');
-      final imageUrl = await _uploadToCloudinary(profileImageFile);
-      if (imageUrl.isEmpty) {
+      // print('📸 File size: ${profileImageFile.length} bytes');
+
+      try {
+        final imageUrl = await _uploadToCloudinary(profileImageFile);
+        if (imageUrl.isNotEmpty) {
+          uploadedImageUrl = imageUrl;
+          updateData['profileImage'] = uploadedImageUrl;
+          print('✅ Profile image uploaded successfully: $uploadedImageUrl');
+        } else {
+          print('❌ Failed to upload profile image');
+          return Response.json(
+            statusCode: 400,
+            body: {'success': false, 'error': 'Failed to upload profile image'},
+          );
+        }
+      } catch (e) {
+        print('❌ Image upload error: $e');
         return Response.json(
-          statusCode: 400,
-          body: {'success': false, 'error': 'Failed to upload profile image'},
+          statusCode: 500,
+          body: {'success': false, 'error': 'Image upload failed: $e'},
         );
       }
-      updateData['profileImage'] = imageUrl;
     }
 
+    // Check if there's any data to update
     if (updateData.isEmpty) {
       return Response.json(
         statusCode: 400,
@@ -1097,8 +1137,10 @@ Future<Response> _handleMultipartUpdate(
       );
     }
 
+    // Add updated timestamp
     updateData['updatedAt'] = DateTime.now();
 
+    // Update user in database
     final result = await MongoService.users!.updateOne(
       {'_id': ObjectId.parse(userId)},
       {r'$set': updateData},
@@ -1111,43 +1153,37 @@ Future<Response> _handleMultipartUpdate(
       );
     }
 
+    print('✅ Database update successful');
+
+    // Fetch updated user
     final updatedUser = await MongoService.users!.findOne({
       '_id': ObjectId.parse(userId),
     });
 
-    // Create a clean map with properly serialized values
-    Map<String, dynamic>? cleanUser;
+    // Create clean response object
+    Map<String, dynamic> cleanUser = {};
     if (updatedUser != null) {
-      cleanUser = {};
       updatedUser.remove('passwordHash');
 
       updatedUser.forEach((key, value) {
         if (key == '_id') {
-          cleanUser![key] = (value as ObjectId).oid;
+          cleanUser[key] = (value as ObjectId).oid;
         } else if (value is DateTime) {
-          cleanUser![key] = value.toIso8601String();
+          cleanUser[key] = value.toIso8601String();
         } else if (value is ObjectId) {
-          cleanUser![key] = value.oid;
+          cleanUser[key] = value.oid;
         } else {
-          cleanUser![key] = value;
+          cleanUser[key] = value;
         }
       });
-    }
-
-    print('✅ USER UPDATED SUCCESSFULLY');
-
-    final responseUpdateData = Map<String, dynamic>.from(updateData);
-    if (responseUpdateData['updatedAt'] is DateTime) {
-      responseUpdateData['updatedAt'] =
-          (responseUpdateData['updatedAt'] as DateTime).toIso8601String();
     }
 
     return Response.json(
       body: {
         'success': true,
-        'message': 'User updated successfully',
-        'updatedFields': responseUpdateData,
+        'message': 'Profile updated successfully',
         'data': cleanUser,
+        'updatedFields': updateData.keys.toList(),
       },
     );
   } catch (e, stackTrace) {
@@ -1155,10 +1191,14 @@ Future<Response> _handleMultipartUpdate(
     print('STACK TRACE: $stackTrace');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'error': 'Server error: $e'},
+      body: {'success': false, 'error': 'Server error: ${e.toString()}'},
     );
   }
 }
+
+// =======================================================
+// JSON UPDATE (Without file upload)
+// =======================================================
 
 Future<Response> _handleJsonUpdate(
   RequestContext context,
@@ -1170,10 +1210,15 @@ Future<Response> _handleJsonUpdate(
         jsonDecode(await context.request.body()) as Map<String, dynamic>;
     final updateData = <String, dynamic>{};
 
+    print('📋 JSON BODY: $body');
+
+    // Full Name
     if (body['fullName'] != null) {
       updateData['fullName'] = body['fullName'].toString();
+      print('✅ Updating fullName: ${body['fullName']}');
     }
 
+    // Username
     if (body['username'] != null) {
       final existingUser = await MongoService.users!.findOne({
         'username': body['username'].toString(),
@@ -1187,8 +1232,10 @@ Future<Response> _handleJsonUpdate(
         );
       }
       updateData['username'] = body['username'].toString();
+      print('✅ Updating username: ${body['username']}');
     }
 
+    // Email
     if (body['email'] != null) {
       final existingUser = await MongoService.users!.findOne({
         'email': body['email'].toString(),
@@ -1202,8 +1249,10 @@ Future<Response> _handleJsonUpdate(
         );
       }
       updateData['email'] = body['email'].toString();
+      print('✅ Updating email: ${body['email']}');
     }
 
+    // Mobile
     if (body['mobile'] != null) {
       final existingUser = await MongoService.users!.findOne({
         'mobile': body['mobile'].toString(),
@@ -1217,12 +1266,17 @@ Future<Response> _handleJsonUpdate(
         );
       }
       updateData['mobile'] = body['mobile'].toString();
+      print('✅ Updating mobile: ${body['mobile']}');
     }
 
-    if (body['profileImage'] != null) {
+    // Profile Image URL (if provided directly)
+    if (body['profileImage'] != null &&
+        body['profileImage'].toString().isNotEmpty) {
       updateData['profileImage'] = body['profileImage'].toString();
+      print('✅ Updating profileImage URL: ${body['profileImage']}');
     }
 
+    // Role
     if (body['role'] != null) {
       final newRole = body['role'].toString();
       if (newRole == 'customer' || newRole == 'seller') {
@@ -1236,6 +1290,7 @@ Future<Response> _handleJsonUpdate(
       }
     }
 
+    // Check if there's any data to update
     if (updateData.isEmpty) {
       return Response.json(
         statusCode: 400,
@@ -1243,8 +1298,10 @@ Future<Response> _handleJsonUpdate(
       );
     }
 
+    // Add updated timestamp
     updateData['updatedAt'] = DateTime.now();
 
+    // Update user in database
     final result = await MongoService.users!.updateOne(
       {'_id': ObjectId.parse(userId)},
       {r'$set': updateData},
@@ -1257,25 +1314,27 @@ Future<Response> _handleJsonUpdate(
       );
     }
 
+    print('✅ Database update successful');
+
+    // Fetch updated user
     final updatedUser = await MongoService.users!.findOne({
       '_id': ObjectId.parse(userId),
     });
 
-    // Create a clean map with properly serialized values
-    Map<String, dynamic>? cleanUser;
+    // Create clean response object
+    Map<String, dynamic> cleanUser = {};
     if (updatedUser != null) {
-      cleanUser = {};
       updatedUser.remove('passwordHash');
 
       updatedUser.forEach((key, value) {
         if (key == '_id') {
-          cleanUser![key] = (value as ObjectId).oid;
+          cleanUser[key] = (value as ObjectId).oid;
         } else if (value is DateTime) {
-          cleanUser![key] = value.toIso8601String();
+          cleanUser[key] = value.toIso8601String();
         } else if (value is ObjectId) {
-          cleanUser![key] = value.oid;
+          cleanUser[key] = value.oid;
         } else {
-          cleanUser![key] = value;
+          cleanUser[key] = value;
         }
       });
     }
@@ -1283,45 +1342,61 @@ Future<Response> _handleJsonUpdate(
     return Response.json(
       body: {
         'success': true,
-        'message': 'User updated successfully',
+        'message': 'Profile updated successfully',
         'data': cleanUser,
       },
     );
-  } catch (e) {
+  } catch (e, stackTrace) {
     print('❌ JSON UPDATE ERROR: $e');
+    print('STACK TRACE: $stackTrace');
     return Response.json(
       statusCode: 500,
-      body: {'success': false, 'error': 'Server error: $e'},
+      body: {'success': false, 'error': 'Server error: ${e.toString()}'},
     );
   }
 }
 
+// =======================================================
+// CLOUDINARY UPLOAD FUNCTION
+// =======================================================
+
 Future<String> _uploadToCloudinary(UploadedFile file) async {
   try {
-    print('📸 Processing image: ${file.name}');
+    print('📸 Starting Cloudinary upload...');
+    print('📸 File name: ${file.name}');
+
     final bytes = await file.readAsBytes();
     if (bytes.isEmpty) {
-      print('❌ Empty image');
+      print('❌ File is empty');
       return '';
     }
+
+    print('📸 File size: ${bytes.length} bytes');
     final imageBytes = Uint8List.fromList(bytes);
+
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final extension =
         file.name.contains('.') ? file.name.split('.').last : 'jpg';
-    final fileName = '${timestamp}_user.$extension';
+    final fileName = '${timestamp}_profile.$extension';
+
+    print('📸 Uploading to Cloudinary with filename: $fileName');
+
     final imageUrl = await CloudinarySetup.uploadImageDirect(
       bytes: imageBytes,
       fileName: fileName,
       folder: 'ecommerce/users',
     );
+
     if (imageUrl == null || imageUrl.isEmpty) {
-      print('❌ Upload failed');
+      print('❌ Cloudinary returned null or empty URL');
       return '';
     }
-    print('✅ IMAGE UPLOADED: $imageUrl');
+
+    print('✅ Cloudinary upload successful');
+    print('✅ Image URL: $imageUrl');
     return imageUrl;
   } catch (e, stackTrace) {
-    print('❌ IMAGE UPLOAD ERROR: $e');
+    print('❌ CLOUDINARY ERROR: $e');
     print('STACK TRACE: $stackTrace');
     return '';
   }

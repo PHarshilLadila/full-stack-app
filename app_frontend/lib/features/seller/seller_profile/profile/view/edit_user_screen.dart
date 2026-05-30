@@ -1,4 +1,4 @@
-// lib/features/home/view/edit_user_screen.dart
+// lib/features/seller/seller_profile/profile/view/edit_user_screen.dart
 
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
 
@@ -7,6 +7,7 @@ import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_bl
 import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_event.dart';
 import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_state.dart';
 import 'package:app_frontend/features/seller/seller_profile/profile/model/user_model.dart';
+import 'package:app_frontend/features/seller/seller_profile/profile/service/image_upload_service';
 import 'package:app_frontend/utils/common/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,10 +28,11 @@ class _EditUserScreenState extends State<EditUserScreen> {
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
   late TextEditingController _mobileController;
-  late TextEditingController _profileImageController;
 
-  String? _selectedImagePath;
+  File? _selectedImageFile;
+  String? _uploadedImageUrl;
   bool _isLoading = false;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -39,29 +41,76 @@ class _EditUserScreenState extends State<EditUserScreen> {
     _usernameController = TextEditingController(text: widget.user.username);
     _emailController = TextEditingController(text: widget.user.email);
     _mobileController = TextEditingController(text: widget.user.mobile);
-    _profileImageController = TextEditingController(
-      text: widget.user.profileImage ?? '',
-    );
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickAndUploadImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
 
     if (pickedFile != null) {
       setState(() {
-        _selectedImagePath = pickedFile.path;
+        _selectedImageFile = File(pickedFile.path);
+        _isUploading = true;
       });
 
-      // Here you would upload the image to a server and get the URL
-      // For now, we'll just use the local path or you can implement image upload
+      // Show uploading progress
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Image selected! You would need to upload this to a server first.',
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              SizedBox(width: 12),
+              Text('Uploading image...'),
+            ],
           ),
+          backgroundColor: Colors.amber,
+          duration: Duration(seconds: 2),
         ),
       );
+
+      try {
+        // Upload image to server
+        final imageUrl = await ImageUploadService.uploadProfileImage(
+          _selectedImageFile!,
+        );
+
+        if (imageUrl != null) {
+          setState(() {
+            _uploadedImageUrl = imageUrl;
+            _isUploading = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Image uploaded successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          throw Exception('Upload failed');
+        }
+      } catch (e) {
+        setState(() {
+          _isUploading = false;
+          _selectedImageFile = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -71,28 +120,21 @@ class _EditUserScreenState extends State<EditUserScreen> {
       final token = prefs.getString('auth_token');
 
       if (token != null) {
-        // If you have image upload functionality, upload image first and get URL
-        // For now, we'll use the existing profile image or a new URL from text field
-        final profileImageUrl =
-            _profileImageController.text.isNotEmpty
-                ? _profileImageController.text
-                : widget.user.profileImage;
+        setState(() => _isLoading = true);
+
+        // Use uploaded image URL if available, otherwise keep existing
+        final profileImageUrl = _uploadedImageUrl ?? widget.user.profileImage;
 
         context.read<UserBloc>().add(
           UpdateUserProfile(
             token: token,
-            fullName: _fullNameController.text,
-            username: _usernameController.text,
-            email: _emailController.text,
-            mobile: _mobileController.text,
+            fullName: _fullNameController.text.trim(),
+            username: _usernameController.text.trim(),
+            email: _emailController.text.trim(),
+            mobile: _mobileController.text.trim(),
             profileImage: profileImageUrl,
           ),
         );
-
-        // Show success and go back
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Updating profile...')));
       }
     }
   }
@@ -101,21 +143,25 @@ class _EditUserScreenState extends State<EditUserScreen> {
   Widget build(BuildContext context) {
     return BlocListener<UserBloc, UserState>(
       listener: (context, state) {
+        setState(() => _isLoading = false);
+
         if (state is UserUpdated) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
-          Navigator.pop(context, true); // Return true to indicate update
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          Navigator.pop(context, true);
         } else if (state is UserError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error: ${state.error}'),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
             ),
           );
-          setState(() => _isLoading = false);
-        } else if (state is UserUpdating) {
-          setState(() => _isLoading = true);
         }
       },
       child: Scaffold(
@@ -131,27 +177,35 @@ class _EditUserScreenState extends State<EditUserScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
-          // actions: [
-          //   TextButton(
-          //     onPressed: _isLoading ? null : _updateProfile,
-          //     child: Text(
-          //       'Save',
-          //       style: TextStyle(
-          //         color: _isLoading ? Colors.grey : Colors.amber,
-          //         fontWeight: FontWeight.bold,
-          //         fontSize: 16,
-          //       ),
-          //     ),
-          //   ),
-          // ],
+          actions: [
+            TextButton(
+              onPressed: _isLoading ? null : _updateProfile,
+              child: Text(
+                'Save',
+                style: TextStyle(
+                  color: _isLoading ? Colors.grey : Colors.amber,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
         ),
         body:
             _isLoading
                 ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFFFFD700)),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: Color(0xFFFFD700)),
+                      SizedBox(height: 16),
+                      Text('Updating profile...'),
+                    ],
+                  ),
                 )
                 : Stack(
                   children: [
+                    // Background decorative elements
                     Positioned(
                       top: 0,
                       left: 0,
@@ -225,6 +279,8 @@ class _EditUserScreenState extends State<EditUserScreen> {
                         ),
                       ),
                     ),
+
+                    // Main content
                     SingleChildScrollView(
                       padding: const EdgeInsets.all(20.0),
                       child: Form(
@@ -233,7 +289,7 @@ class _EditUserScreenState extends State<EditUserScreen> {
                           children: [
                             // Profile Image Section
                             GestureDetector(
-                              onTap: _pickImage,
+                              onTap: _isUploading ? null : _pickAndUploadImage,
                               child: Stack(
                                 children: [
                                   Container(
@@ -243,25 +299,10 @@ class _EditUserScreenState extends State<EditUserScreen> {
                                       shape: BoxShape.circle,
                                       border: Border.all(
                                         color: Colors.amber,
-                                        width: 2,
+                                        width: 3,
                                       ),
                                       image: DecorationImage(
-                                        image:
-                                            _selectedImagePath != null
-                                                ? FileImage(
-                                                  File(_selectedImagePath!),
-                                                )
-                                                : (_profileImageController
-                                                            .text
-                                                            .isNotEmpty
-                                                        ? NetworkImage(
-                                                          _profileImageController
-                                                              .text,
-                                                        )
-                                                        : const NetworkImage(
-                                                          "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
-                                                        ))
-                                                    as ImageProvider,
+                                        image: _getProfileImage(),
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -275,21 +316,35 @@ class _EditUserScreenState extends State<EditUserScreen> {
                                         color: Colors.amber,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(
-                                        Icons.camera_alt,
-                                        color: Colors.black,
-                                        size: 20,
-                                      ),
+                                      child:
+                                          _isUploading
+                                              ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.black,
+                                                    ),
+                                              )
+                                              : const Icon(
+                                                Icons.camera_alt,
+                                                color: Colors.black,
+                                                size: 20,
+                                              ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             const SizedBox(height: 16),
-                            const Text(
-                              'Tap to change profile picture',
+                            Text(
+                              _isUploading
+                                  ? 'Uploading image...'
+                                  : 'Tap to change profile picture',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color:
+                                    _isUploading ? Colors.amber : Colors.grey,
                                 fontSize: 12,
                               ),
                             ),
@@ -351,25 +406,15 @@ class _EditUserScreenState extends State<EditUserScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter mobile number';
                                 }
-                                if (value.length < 10) {
-                                  return 'Please enter valid mobile number';
+                                if (value.length != 10) {
+                                  return 'Please enter valid 10-digit mobile number';
                                 }
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 32),
 
-                            // Profile Image URL Field (Optional)
-                            AppTextField(
-                              controller: _profileImageController,
-                              hintText: 'Profile Image URL (Optional)',
-                              icon: Icons.link,
-                              keyboardType: TextInputType.url,
-                              validator: (value) {
-                                return null; // Optional field
-                              },
-                            ),
-                            const SizedBox(height: 24),
+                            // Save Button
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -380,26 +425,32 @@ class _EditUserScreenState extends State<EditUserScreen> {
                                   disabledBackgroundColor: Colors.grey,
                                   disabledForegroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      30,
-                                    ), // Full radius border
+                                    borderRadius: BorderRadius.circular(30),
                                   ),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 24,
-                                    vertical: 12,
+                                    vertical: 14,
                                   ),
                                 ),
-                                child: const Text(
-                                  'Save',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
+                                child:
+                                    _isLoading
+                                        ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.black,
+                                          ),
+                                        )
+                                        : const Text(
+                                          'Save Changes',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
                               ),
                             ),
-
-                            // Preview Card (Same as Home Screen)
                           ],
                         ),
                       ),
@@ -410,13 +461,29 @@ class _EditUserScreenState extends State<EditUserScreen> {
     );
   }
 
+  ImageProvider _getProfileImage() {
+    // Priority: Newly uploaded image > Selected local file > Existing profile image > Default
+    if (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty) {
+      return NetworkImage(_uploadedImageUrl!);
+    }
+    if (_selectedImageFile != null) {
+      return FileImage(_selectedImageFile!);
+    }
+    if (widget.user.profileImage != null &&
+        widget.user.profileImage!.isNotEmpty) {
+      return NetworkImage(widget.user.profileImage!);
+    }
+    return const NetworkImage(
+      "https://tse1.mm.bing.net/th/id/OET.7252da000e8341b2ba1fb61c275c1f30?w=594&h=594&c=7&rs=1&o=5&pid=1.9",
+    );
+  }
+
   @override
   void dispose() {
     _fullNameController.dispose();
     _usernameController.dispose();
     _emailController.dispose();
     _mobileController.dispose();
-    _profileImageController.dispose();
     super.dispose();
   }
 }
