@@ -7,7 +7,7 @@ import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_bl
 import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_event.dart';
 import 'package:app_frontend/features/seller/seller_profile/profile/bloc/user_state.dart';
 import 'package:app_frontend/features/seller/seller_profile/profile/model/user_model.dart';
-import 'package:app_frontend/features/seller/seller_profile/profile/service/image_upload_service';
+import 'package:app_frontend/service/image_upload_service.dart';
 import 'package:app_frontend/utils/common/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

@@ -76,4 +76,27 @@ class ApiClient {
 
     return await http.post(url, headers: headers, body: jsonEncode({}));
   }
+
+  Future<http.Response> uploadImage(
+    String endpoint,
+    String filePath, {
+    required String token,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl$endpoint');
+
+      final request = http.MultipartRequest('POST', url);
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(
+        await http.MultipartFile.fromPath('profileImage', filePath),
+      );
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to upload image: $e');
+    }
+  }
 }
