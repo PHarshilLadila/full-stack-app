@@ -15,3 +15,9 @@ class LoginEvent extends AuthEvent {
   LoginEvent(this.loginModel);
 }
 class LogoutEvent extends AuthEvent {}
+
+class ForgotPasswordEvent extends AuthEvent {
+  final String identifier;
+
+  ForgotPasswordEvent(this.identifier);
+}

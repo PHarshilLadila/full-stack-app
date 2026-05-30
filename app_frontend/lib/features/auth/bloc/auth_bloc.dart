@@ -69,15 +69,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final prefs = await SharedPreferences.getInstance();
         final token = prefs.getString('auth_token');
-        
+
         if (token != null) {
           // await FCMNotificationService.removeTokenFromBackend(token);
         }
-        
+
         await prefs.clear();
         emit(AuthInitial());
       } catch (e) {
         log("Logout Error: $e");
+        emit(AuthError(e.toString()));
+      }
+    });
+    on<ForgotPasswordEvent>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        final response = await service.forgotPassword(event.identifier);
+        log("Forgot Password Success: ${response.message}");
+        emit(ForgotPasswordSuccess(response.message));
+      } catch (e) {
+        log("Forgot Password Error: $e");
         emit(AuthError(e.toString()));
       }
     });

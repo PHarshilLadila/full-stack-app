@@ -4,6 +4,7 @@ import 'package:app_frontend/features/auth/bloc/auth_bloc.dart';
 import 'package:app_frontend/features/auth/bloc/auth_event.dart';
 import 'package:app_frontend/features/auth/bloc/auth_state.dart';
 import 'package:app_frontend/features/auth/model/login_model.dart';
+import 'package:app_frontend/features/auth/view/forgot_password_screen.dart';
 import 'package:app_frontend/utils/common/custom_text_field.dart';
 import 'package:app_frontend/utils/common/role_selector.dart';
 import 'package:flutter/material.dart';
@@ -98,9 +99,10 @@ class _LoginFormState extends State<LoginForm> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Reset password link sent!'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen(),
                       ),
                     );
                   },

@@ -16,3 +16,8 @@ class AuthSuccess extends AuthState {
   final String? role;
   AuthSuccess(this.message, {this.token, this.role});
 }
+class ForgotPasswordSuccess extends AuthState {
+  final String message;
+
+  ForgotPasswordSuccess(this.message);
+}

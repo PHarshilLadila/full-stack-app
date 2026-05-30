@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:app_frontend/core/network/api_client.dart';
+import 'package:app_frontend/features/auth/model/forgot_password_model.dart';
 import 'package:app_frontend/features/auth/model/login_model.dart';
 import 'package:app_frontend/features/auth/model/register_model.dart';
 
@@ -10,9 +11,9 @@ class AuthService {
 
   Future<String> register(RegisterModel model) async {
     log("Register Request: ${jsonEncode(model.toJson())}");
-    
+
     final response = await apiClient.post("/auth/register", model.toJson());
-    
+
     log("Register Response Status: ${response.statusCode}");
     log("Register Response Body: ${response.body}");
 
@@ -23,15 +24,17 @@ class AuthService {
       return data['message'];
     } else {
       log("Registration Error: ${data['error'] ?? data['message']}");
-      throw Exception(data['error'] ?? data['message'] ?? "Registration failed");
+      throw Exception(
+        data['error'] ?? data['message'] ?? "Registration failed",
+      );
     }
   }
 
   Future<LoginResponseModel> login(LoginModel model) async {
     log("Login Request: ${jsonEncode(model.toJson())}");
-    
+
     final response = await apiClient.post("/auth/login", model.toJson());
-    
+
     log("Login Response Status: ${response.statusCode}");
     log("Login Response Body: ${response.body}");
 
@@ -45,6 +48,29 @@ class AuthService {
     } else {
       log("Login Error: ${data['error'] ?? data['message']}");
       throw Exception(data['error'] ?? data['message'] ?? "Login failed");
+    }
+  }
+
+  Future<ForgotPasswordResponse> forgotPassword(String identifier) async {
+    log("Forgot Password Request: $identifier");
+
+    final response = await apiClient.post("/auth/forgot-password", {
+      "identifier": identifier,
+    });
+
+    log("Forgot Password Response Status: ${response.statusCode}");
+    log("Forgot Password Response Body: ${response.body}");
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      log("Forgot Password Success: ${data['message']}");
+      return ForgotPasswordResponse.fromJson(data);
+    } else {
+      log("Forgot Password Error: ${data['error'] ?? data['message']}");
+      throw Exception(
+        data['error'] ?? data['message'] ?? "Failed to send reset email",
+      );
     }
   }
 }
