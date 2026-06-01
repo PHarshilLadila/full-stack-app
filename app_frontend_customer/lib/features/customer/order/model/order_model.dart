@@ -1,3 +1,5 @@
+// lib/features/customer/order/model/order_model.dart
+
 import 'package:equatable/equatable.dart';
 
 class OrderModel extends Equatable {
@@ -17,6 +19,7 @@ class OrderModel extends Equatable {
   final DateTime orderDate;
   final DateTime? deliveredDate;
   final DateTime createdAt;
+  final String? orderType; // Add this field for direct/cart orders
 
   const OrderModel({
     required this.id,
@@ -35,38 +38,66 @@ class OrderModel extends Equatable {
     required this.orderDate,
     this.deliveredDate,
     required this.createdAt,
+    this.orderType,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    // Handle different response structures
+    print("========== ORDER MODEL FROM JSON ==========");
+    print("Raw JSON: $json");
+
     List<OrderItem> itemsList = [];
-    
-    if (json['items'] != null) {
-      itemsList = (json['items'] as List)
-          .map((item) => OrderItem.fromJson(item))
-          .toList();
-    } else if (json['product'] != null) {
-      // Handle single product direct order response
+
+    // Handle items array from API
+    if (json['items'] != null && json['items'] is List) {
+      itemsList =
+          (json['items'] as List)
+              .map((item) => OrderItem.fromJson(item))
+              .toList();
+      print("Items loaded from items array: ${itemsList.length}");
+    }
+    // Handle direct order without items array
+    else if (json['product'] != null) {
       itemsList = [OrderItem.fromJson(json['product'])];
+      print("Items loaded from product object: ${itemsList.length}");
+    }
+    // Handle if items are directly in the order object
+    else {
+      // Try to find any product-related fields
+      if (json['productId'] != null || json['productName'] != null) {
+        itemsList = [OrderItem.fromJson(json)];
+        print("Items loaded from direct order fields");
+      }
+    }
+
+    // Debug print each item
+    for (var item in itemsList) {
+      print("Item: ${item.productName} - ${item.productImage}");
+    }
+
+    // Handle shipping address
+    ShippingAddress shippingAddr;
+    if (json['shippingAddress'] != null) {
+      shippingAddr = ShippingAddress.fromJson(json['shippingAddress']);
+    } else {
+      // Create default shipping address if not present
+      shippingAddr = const ShippingAddress(
+        fullName: '',
+        mobileNumber: '',
+        pincode: '',
+        addressLine1: '',
+        addressLine2: '',
+        landmark: '',
+        city: '',
+        state: '',
+        country: '',
+      );
     }
 
     return OrderModel(
       id: json['_id'] ?? json['id'] ?? '',
       orderId: json['orderId'] ?? json['order_id'] ?? '',
       items: itemsList,
-      shippingAddress: json['shippingAddress'] != null
-          ? ShippingAddress.fromJson(json['shippingAddress'])
-          : ShippingAddress(
-              fullName: '',
-              mobileNumber: '',
-              pincode: '',
-              addressLine1: '',
-              addressLine2: '',
-              landmark: '',
-              city: '',
-              state: '',
-              country: '',
-            ),
+      shippingAddress: shippingAddr,
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
       shippingCharge: (json['shippingCharge'] as num?)?.toDouble() ?? 0.0,
       discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0.0,
@@ -76,15 +107,19 @@ class OrderModel extends Equatable {
       paymentStatus: json['paymentStatus'] ?? json['payment_status'] ?? '',
       orderStatus: json['orderStatus'] ?? json['order_status'] ?? '',
       trackingId: json['trackingId'] ?? json['tracking_id'],
-      orderDate: json['orderDate'] != null
-          ? DateTime.parse(json['orderDate'])
-          : DateTime.now(),
-      deliveredDate: json['deliveredDate'] != null
-          ? DateTime.parse(json['deliveredDate'])
-          : null,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : DateTime.now(),
+      orderDate:
+          json['orderDate'] != null
+              ? DateTime.parse(json['orderDate'])
+              : DateTime.now(),
+      deliveredDate:
+          json['deliveredDate'] != null
+              ? DateTime.parse(json['deliveredDate'])
+              : null,
+      createdAt:
+          json['createdAt'] != null
+              ? DateTime.parse(json['createdAt'])
+              : DateTime.now(),
+      orderType: json['orderType'] ?? json['order_type'] ?? 'cart',
     );
   }
 
@@ -106,28 +141,30 @@ class OrderModel extends Equatable {
       'orderDate': orderDate.toIso8601String(),
       'deliveredDate': deliveredDate?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
+      'orderType': orderType,
     };
   }
 
   @override
   List<Object?> get props => [
-        id,
-        orderId,
-        items,
-        shippingAddress,
-        subtotal,
-        shippingCharge,
-        discountAmount,
-        taxAmount,
-        totalAmount,
-        paymentMethod,
-        paymentStatus,
-        orderStatus,
-        trackingId,
-        orderDate,
-        deliveredDate,
-        createdAt,
-      ];
+    id,
+    orderId,
+    items,
+    shippingAddress,
+    subtotal,
+    shippingCharge,
+    discountAmount,
+    taxAmount,
+    totalAmount,
+    paymentMethod,
+    paymentStatus,
+    orderStatus,
+    trackingId,
+    orderDate,
+    deliveredDate,
+    createdAt,
+    orderType,
+  ];
 }
 
 class OrderItem extends Equatable {
@@ -154,15 +191,46 @@ class OrderItem extends Equatable {
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
-    // Handle different key names that might come from API
+    print("========== ORDER ITEM FROM JSON ==========");
+    print("Item JSON: $json");
+
+    // Get product image from various possible keys
+    String productImage = '';
+    if (json['productImage'] != null &&
+        json['productImage'].toString().isNotEmpty) {
+      productImage = json['productImage'].toString();
+    } else if (json['product_image'] != null &&
+        json['product_image'].toString().isNotEmpty) {
+      productImage = json['product_image'].toString();
+    } else if (json['mainBannerImage'] != null &&
+        json['mainBannerImage'].toString().isNotEmpty) {
+      productImage = json['mainBannerImage'].toString();
+    } else if (json['image'] != null && json['image'].toString().isNotEmpty) {
+      productImage = json['image'].toString();
+    } else if (json['images'] != null && (json['images'] as List).isNotEmpty) {
+      productImage = (json['images'] as List)[0].toString();
+    }
+
+    print("Product Image found: $productImage");
+
     return OrderItem(
       productId: json['productId'] ?? json['product_id'] ?? json['_id'] ?? '',
-      productName: json['productName'] ?? json['product_name'] ?? json['name'] ?? 'Product',
-      productImage: json['productImage'] ?? json['product_image'] ?? json['mainBannerImage'] ?? '',
+      productName:
+          json['productName'] ??
+          json['product_name'] ??
+          json['name'] ??
+          'Product',
+      productImage: productImage,
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      discountPrice: (json['discountPrice'] as num?)?.toDouble() ?? (json['discount_price'] as num?)?.toDouble() ?? 0.0,
+      discountPrice:
+          (json['discountPrice'] as num?)?.toDouble() ??
+          (json['discount_price'] as num?)?.toDouble() ??
+          0.0,
       quantity: json['quantity'] ?? json['qty'] ?? 1,
-      totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? (json['total_price'] as num?)?.toDouble() ?? 0.0,
+      totalPrice:
+          (json['totalPrice'] as num?)?.toDouble() ??
+          (json['total_price'] as num?)?.toDouble() ??
+          0.0,
       sellerId: json['sellerId'] ?? json['seller_id'] ?? '',
       sellerName: json['sellerName'] ?? json['seller_name'] ?? 'Seller',
     );
@@ -184,16 +252,16 @@ class OrderItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        productId,
-        productName,
-        productImage,
-        price,
-        discountPrice,
-        quantity,
-        totalPrice,
-        sellerId,
-        sellerName,
-      ];
+    productId,
+    productName,
+    productImage,
+    price,
+    discountPrice,
+    quantity,
+    totalPrice,
+    sellerId,
+    sellerName,
+  ];
 }
 
 class ShippingAddress extends Equatable {
@@ -249,16 +317,16 @@ class ShippingAddress extends Equatable {
 
   @override
   List<Object?> get props => [
-        fullName,
-        mobileNumber,
-        pincode,
-        addressLine1,
-        addressLine2,
-        landmark,
-        city,
-        state,
-        country,
-      ];
+    fullName,
+    mobileNumber,
+    pincode,
+    addressLine1,
+    addressLine2,
+    landmark,
+    city,
+    state,
+    country,
+  ];
 }
 
 class PaginationInfo extends Equatable {
@@ -284,5 +352,10 @@ class PaginationInfo extends Equatable {
   }
 
   @override
-  List<Object?> get props => [currentPage, totalPages, totalItems, itemsPerPage];
+  List<Object?> get props => [
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+  ];
 }

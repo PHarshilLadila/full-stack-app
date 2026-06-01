@@ -1,6 +1,7 @@
 // lib/features/customer/home/screen/product_details_screen.dart
 
 import 'dart:async';
+import 'package:app_frontend_customer/features/customer/checkout/model/checkout_model.dart';
 import 'package:app_frontend_customer/features/customer/checkout/view/checkout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -159,7 +160,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
     super.dispose();
   }
 
-  // Helper method to get token from SharedPreferences
   Future<String?> _getToken() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     final token = preferences.getString("auth_token");
@@ -283,14 +283,12 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
     }
   }
 
-  // Add to Cart Method with SharedPreferences
   Future<void> _addToCart() async {
     setState(() {
       _isAddingToCart = true;
     });
 
     try {
-      // Get token from SharedPreferences
       final token = await _getToken();
 
       if (token == null || token.isEmpty) {
@@ -308,10 +306,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
         return;
       }
 
-      // Create cart service instance
       final cartService = CartService();
-
-      // Call add to cart API
       final response = await cartService.addToCart(
         productId: widget.product.id,
         quantity: _quantity,
@@ -319,7 +314,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
       );
 
       if (response.success) {
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -337,9 +331,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
             ),
           ),
         );
-
-        // Optional: Update cart count badge if you have one
-        // You can add a callback to update cart badge here
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -374,7 +365,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
     }
   }
 
-  // Buy Now Method
+  // ** UPDATED: Buy Now Method with proper direct order navigation **
   Future<void> _buyNow() async {
     final token = await _getToken();
 
@@ -389,7 +380,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
       return;
     }
 
-    // Navigate directly to checkout with product details
+    // Navigate to checkout with direct order parameters
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -398,6 +389,16 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
               isDirectOrder: true,
               directProductId: widget.product.id,
               directQuantity: _quantity,
+              directProductInfo: DirectProductInfo(
+                productId: widget.product.id,
+                productName: widget.product.productName,
+                productImage: widget.product.mainBannerImage,
+                price: widget.product.price,
+                discountPrice: widget.product.discountPrice,
+                quantity: _quantity,
+                finalPrice: widget.product.discountedPrice,
+                sellerName: widget.product.sellerName,
+              ),
             ),
       ),
     );
@@ -409,7 +410,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
       children: [
         CustomScrollView(
           slivers: [
-            // App Bar with Back Button and Actions
             SliverAppBar(
               expandedHeight: MediaQuery.of(context).size.height * 0.45,
               floating: false,
@@ -506,8 +506,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
               ],
               flexibleSpace: FlexibleSpaceBar(background: _buildImageGallery()),
             ),
-
-            // Product Details Content
             SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,7 +547,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
             ),
           ],
         ),
-        // Bottom Bar
         Positioned(
           bottom: 0,
           left: 0,
@@ -574,7 +571,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
 
     return Column(
       children: [
-        // Main Image
         Expanded(
           flex: 4,
           child: InteractiveViewer(
@@ -596,8 +592,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
             ),
           ),
         ),
-
-        // Thumbnails
         if (allImages.length > 1)
           Container(
             height: 80,
@@ -667,7 +661,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Category & Subcategory
           Row(
             children: [
               Container(
@@ -1149,7 +1142,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
   }
 }
 
-// Updated ProductDetailsBottomBar
 class ProductDetailsBottomBar extends StatelessWidget {
   final ProductDetails product;
   final int quantity;
@@ -1182,7 +1174,6 @@ class ProductDetailsBottomBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Total Price
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1214,7 +1205,6 @@ class ProductDetailsBottomBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          // Add to Cart Button
           Expanded(
             child: ElevatedButton(
               onPressed:
@@ -1251,7 +1241,6 @@ class ProductDetailsBottomBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Buy Now Button
           Expanded(
             child: ElevatedButton(
               onPressed:

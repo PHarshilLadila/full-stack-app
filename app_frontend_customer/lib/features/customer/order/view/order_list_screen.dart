@@ -225,6 +225,11 @@ class _OrderListScreenState extends State<OrderListScreen> {
   }
 
   Widget _buildOrderCard(OrderModel order) {
+    print("Building order card for: ${order.orderId}");
+    print("Items count: ${order.items.length}");
+    for (var item in order.items) {
+      print("Item: ${item.productName}, Image: ${item.productImage}");
+    }
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(

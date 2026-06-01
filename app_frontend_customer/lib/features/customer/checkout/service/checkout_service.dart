@@ -114,6 +114,8 @@
 //   }
 // }
 
+// lib/features/customer/checkout/service/checkout_service.dart
+
 import 'dart:convert';
 import 'package:app_frontend_customer/core/network/api_client.dart';
 import '../model/checkout_model.dart';
@@ -137,6 +139,7 @@ class CheckoutService {
       print("Direct Product ID: $directProductId");
       print("Direct Quantity: $directQuantity");
 
+      // ** FIXED: Proper request body format matching backend API **
       final Map<String, dynamic> requestBody = {
         'addressId': addressId,
         'paymentMethod': paymentMethod,
@@ -144,10 +147,10 @@ class CheckoutService {
 
       if (isDirectOrder) {
         requestBody['isDirectOrder'] = true;
-        requestBody['directProduct'] = {
-          'productId': directProductId,
-          'quantity': directQuantity ?? 1,
-        };
+        requestBody['productId'] =
+            directProductId; // Changed from directProduct object
+        requestBody['quantity'] =
+            directQuantity ?? 1; // Added quantity directly
       }
 
       print("Request Body: ${json.encode(requestBody)}");

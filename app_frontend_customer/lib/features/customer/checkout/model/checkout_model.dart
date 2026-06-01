@@ -1,5 +1,8 @@
+// lib/features/customer/checkout/model/checkout_model.dart
+
 import 'package:equatable/equatable.dart';
 
+// Add this class if not already present
 class DirectProductInfo extends Equatable {
   final String productId;
   final String productName;
@@ -50,6 +53,7 @@ class DirectProductInfo extends Equatable {
   ];
 }
 
+// Rest of your existing model classes (CreateOrderRequest, DirectProduct, OrderResponse, OrderData, ConfirmPaymentRequest)
 class CreateOrderRequest extends Equatable {
   final String addressId;
   final String paymentMethod;
