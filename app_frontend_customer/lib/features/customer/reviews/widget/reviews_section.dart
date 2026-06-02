@@ -54,6 +54,13 @@ class _ReviewsSectionState extends State<ReviewsSection> {
     }
   }
 
+  // Method to refresh reviews
+  void _refreshReviews() {
+    context.read<ReviewBloc>().add(
+      LoadProductReviews(productId: widget.productId),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -74,29 +81,11 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                   'Customer Reviews',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                TextButton.icon(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => AddReviewScreen(
-                              productId: widget.productId,
-                              productName: widget.productName,
-                            ),
-                      ),
-                    );
-                    if (result == true) {
-                      context.read<ReviewBloc>().add(
-                        LoadProductReviews(productId: widget.productId),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.rate_review, color: Color(0xFFFF6B6B)),
-                  label: const Text(
-                    'Write a Review',
-                    style: TextStyle(color: Color(0xFFFF6B6B)),
-                  ),
+                IconButton(
+                  onPressed: _refreshReviews,
+                  icon: const Icon(Icons.refresh_rounded),
+                  color: Colors.grey.shade600,
+                  tooltip: 'Refresh reviews',
                 ),
               ],
             ),
@@ -104,47 +93,111 @@ class _ReviewsSectionState extends State<ReviewsSection> {
           const SizedBox(height: 12),
 
           // Rating Summary
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  widget.averageRating.toStringAsFixed(1),
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          BlocBuilder<ReviewBloc, ReviewState>(
+            builder: (context, state) {
+              final avgRating =
+                  (state is ReviewsLoaded)
+                      ? state.reviewData.averageRating
+                      : widget.averageRating;
+              final totalRev =
+                  (state is ReviewsLoaded)
+                      ? state.reviewData.totalReviews
+                      : widget.totalReviews;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
                   children: [
-                    Row(
-                      children: List.generate(5, (index) {
-                        return Icon(
-                          index < widget.averageRating.round()
-                              ? Icons.star_rounded
-                              : Icons.star_border_rounded,
-                          size: 18,
-                          color: Colors.amber,
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 4),
                     Text(
-                      '${widget.totalReviews} reviews',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
+                      avgRating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: List.generate(5, (index) {
+                            return Icon(
+                              index < avgRating.round()
+                                  ? Icons.star_rounded
+                                  : Icons.star_border_rounded,
+                              size: 18,
+                              color: Colors.amber,
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$totalRev reviews',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final shouldRefresh = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => AddReviewScreen(
+                          productId: widget.productId,
+                          productName: widget.productName,
+                        ),
+                  ),
+                );
 
+                if (shouldRefresh == true) {
+                  _refreshReviews();
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Review added successfully!'),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF6B6B),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.rate_review, color: Colors.white),
+              label: const Text(
+                'Write a Review',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
           // Rating Filters
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -167,7 +220,6 @@ class _ReviewsSectionState extends State<ReviewsSection> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
 
           // Reviews List
           BlocBuilder<ReviewBloc, ReviewState>(
@@ -324,8 +376,6 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                   ],
                 ),
               ),
-              // Delete/Edit buttons (only for user's own reviews)
-              // Add logic to check if review.userId == currentUserId
               PopupMenuButton(
                 icon: Icon(
                   Icons.more_vert,
@@ -423,7 +473,7 @@ class _ReviewsSectionState extends State<ReviewsSection> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () async {
-              final result = await Navigator.push(
+              final shouldRefresh = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder:
@@ -433,7 +483,7 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                       ),
                 ),
               );
-              if (result == true) {
+              if (shouldRefresh == true) {
                 context.read<ReviewBloc>().add(
                   LoadProductReviews(productId: widget.productId),
                 );
@@ -542,7 +592,6 @@ class _ReviewsSectionState extends State<ReviewsSection> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Rating Stars
                 ValueListenableBuilder(
                   valueListenable: ratingController,
                   builder: (context, rating, _) {
@@ -567,7 +616,6 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                   },
                 ),
                 const SizedBox(height: 12),
-                // Comment Field
                 TextField(
                   controller: commentController,
                   maxLines: 4,

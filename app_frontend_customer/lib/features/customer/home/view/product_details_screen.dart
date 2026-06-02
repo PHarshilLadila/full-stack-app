@@ -1137,7 +1137,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
               },
             ),
           ),
-          const SizedBox(height: 24),
           // Add Reviews Section here
           ReviewsSection(
             productId: widget.product.id,
