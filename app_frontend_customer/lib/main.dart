@@ -1,5 +1,7 @@
 // main.dart
 import 'package:app_frontend_customer/features/auth/view/auth_screen.dart';
+import 'package:app_frontend_customer/features/customer/reviews/bloc/review_bloc.dart';
+import 'package:app_frontend_customer/features/customer/reviews/service/review_service.dart';
 import 'package:app_frontend_customer/service/fcm_notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -23,16 +25,16 @@ import 'features/customer/order/service/order_service.dart';
 import 'features/customer/profile/bloc/user_bloc.dart';
 import 'features/customer/profile/service/user_service.dart';
 import 'features/splash/view/splash_screen.dart';
- 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp();
-  
+
   // Initialize FCM Notifications
   await FCMNotificationService.initialize();
-  
+
   runApp(const MyApp());
 }
 
@@ -70,17 +72,22 @@ class _MyAppState extends State<MyApp> {
           create: (context) => ProductBloc(productService: ProductService()),
         ),
         BlocProvider(
-          create: (context) => FavoritesBloc(favoritesService: FavoritesService()),
+          create:
+              (context) => FavoritesBloc(favoritesService: FavoritesService()),
         ),
         BlocProvider(create: (context) => CartBloc(cartService: CartService())),
         BlocProvider(
           create: (context) => AddressBloc(addressService: AddressService()),
         ),
         BlocProvider(
-          create: (context) => OrderBloc(orderService: OrderService(token: token)),
+          create:
+              (context) => OrderBloc(orderService: OrderService(token: token)),
         ),
         BlocProvider(
           create: (context) => CheckoutBloc(checkoutService: CheckoutService()),
+        ),
+        BlocProvider(
+          create: (context) => ReviewBloc(reviewService: ReviewService()),
         ),
       ],
       child: MaterialApp(

@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'package:app_frontend_customer/features/customer/checkout/model/checkout_model.dart';
 import 'package:app_frontend_customer/features/customer/checkout/view/checkout_screen.dart';
+import 'package:app_frontend_customer/features/customer/reviews/widget/reviews_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1136,6 +1137,15 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
               },
             ),
           ),
+          const SizedBox(height: 24),
+          // Add Reviews Section here
+          ReviewsSection(
+            productId: widget.product.id,
+            productName: widget.product.productName,
+            averageRating: widget.product.rating,
+            totalReviews: widget.product.totalReviews,
+          ),
+          const SizedBox(height: 60),
         ],
       ),
     );
