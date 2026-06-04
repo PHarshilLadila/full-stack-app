@@ -9,6 +9,7 @@ import 'package:app_frontend_customer/features/customer/home/view/product_detail
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_frontend_customer/utils/common/custom_loader.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -95,7 +96,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                 SnackBar(
                   content: Text(state.message),
                   duration: const Duration(seconds: 2),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.amber,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -107,7 +108,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                 SnackBar(
                   content: Text(state.message),
                   duration: const Duration(seconds: 2),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.amber,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -207,8 +208,8 @@ class _FavoritesScreenState extends State<FavoritesScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFFF6B6B).withOpacity(0.1),
-                const Color(0xFFFF8E53).withOpacity(0.1),
+                Colors.amber.withOpacity(0.1),
+                Colors.amber.withOpacity(0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
@@ -218,7 +219,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B6B),
+                  color: Colors.amber,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
@@ -236,7 +237,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFFF6B6B),
+                      color: Colors.amber,
                     ),
                   ),
                   Text(
@@ -254,16 +255,14 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFFF6B6B).withOpacity(0.3),
-                  ),
+                  border: Border.all(color: Colors.amber.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.local_offer_rounded,
                       size: 14,
-                      color: Color(0xFFFF6B6B),
+                      color: Colors.amber,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -271,7 +270,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFFFF6B6B),
+                        color: Colors.amber,
                       ),
                     ),
                   ],
@@ -286,7 +285,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
             onRefresh: () async {
               context.read<FavoritesBloc>().add(const RefreshFavorites());
             },
-            color: const Color(0xFFFF6B6B),
+            color: Colors.amber,
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -296,9 +295,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 32),
                     child: Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFFF6B6B),
-                      ),
+                      child: CircularProgressIndicator(color: Colors.amber),
                     ),
                   );
                 }
@@ -385,17 +382,15 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFFFF6B6B),
-                                    Color(0xFFFF8E53),
+                                    Color(0xFFFFA000),
+                                    Color(0xFFFFC107),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(
-                                      0xFFFF6B6B,
-                                    ).withOpacity(0.3),
-                                    blurRadius: 8,
+                                    color: Colors.amber.withOpacity(0.3),
+                                    blurRadius: 15,
                                   ),
                                 ],
                               ),
@@ -442,7 +437,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                               height: 20,
                                               child: CircularProgressIndicator(
                                                 strokeWidth: 2,
-                                                color: Color(0xFFFF6B6B),
+                                                color: Colors.amber,
                                               ),
                                             ),
                                           ),
@@ -558,7 +553,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                 style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFF6B6B),
+                                  color: Colors.amber,
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -612,9 +607,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                       vertical: 12,
                                     ),
                                     side: BorderSide(
-                                      color: const Color(
-                                        0xFFFF6B6B,
-                                      ).withOpacity(0.5),
+                                      color: Colors.amber.withOpacity(0.5),
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -623,7 +616,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                   child: const Text(
                                     'Remove',
                                     style: TextStyle(
-                                      color: Color(0xFFFF6B6B),
+                                      color: Colors.amber,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -645,7 +638,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
-                                    backgroundColor: const Color(0xFFFF6B6B),
+                                    backgroundColor: Colors.amber,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -679,31 +672,22 @@ class _FavoritesScreenState extends State<FavoritesScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Animated Empty Icon
-          TweenAnimationBuilder(
-            tween: Tween<double>(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 600),
-            builder: (context, value, child) {
-              return Transform.scale(
-                scale: value,
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFFFF6B6B).withOpacity(0.1),
-                        const Color(0xFFFF8E53).withOpacity(0.1),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.favorite_border_rounded,
-                    size: 80,
-                    color: Color(0xFFFF6B6B),
-                  ),
-                ),
-              );
-            },
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.amber.withOpacity(0.1),
+                  Colors.amber.withOpacity(0.1),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedHeartRemove,
+              size: 40,
+              color: Colors.black,
+            ),
           ),
 
           const SizedBox(height: 24),
@@ -731,23 +715,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
               ),
             ),
           ),
-
-          const SizedBox(height: 32),
-
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.shopping_bag_outlined),
-            label: const Text('Start Shopping'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6B6B),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -767,7 +734,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
             child: Icon(
               Icons.error_outline_rounded,
               size: 64,
-              color: Colors.red.shade300,
+              color: Colors.amber.shade300,
             ),
           ),
           const SizedBox(height: 24),
@@ -796,7 +763,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
             icon: const Icon(Icons.refresh_rounded),
             label: const Text('Try Again'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6B6B),
+              backgroundColor: Colors.amber,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

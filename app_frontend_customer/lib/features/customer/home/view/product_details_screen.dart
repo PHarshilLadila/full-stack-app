@@ -616,10 +616,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color:
-                            isSelected
-                                ? const Color(0xFFFF6B6B)
-                                : Colors.grey.shade300,
+                        color: isSelected ? Colors.amber : Colors.grey.shade300,
                         width: isSelected ? 2 : 1,
                       ),
                       boxShadow:
@@ -670,14 +667,14 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B6B).withOpacity(0.1),
+                  color: Colors.amber.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   widget.product.category,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFFFF6B6B),
+                    color: Colors.orange,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -812,7 +809,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
                 style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFFFF6B6B),
+                  color: Colors.amber,
                 ),
               ),
               const SizedBox(width: 12),
@@ -1003,21 +1000,19 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFFFF6B6B).withOpacity(0.1),
-                          const Color(0xFFFF8E53).withOpacity(0.1),
+                          const Color(0xFFFFB300).withOpacity(0.1),
+                          const Color(0xFFFFCA28).withOpacity(0.1),
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: const Color(0xFFFF6B6B).withOpacity(0.3),
-                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.amber.withOpacity(0.3)),
                     ),
                     child: Text(
                       tag,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFFFF6B6B),
+                        color: Colors.black,
                       ),
                     ),
                   );
@@ -1137,12 +1132,19 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent>
               },
             ),
           ),
-          // Add Reviews Section here
-          ReviewsSection(
-            productId: widget.product.id,
-            productName: widget.product.productName,
-            averageRating: widget.product.rating,
-            totalReviews: widget.product.totalReviews,
+          SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(16),
+            ),
+
+            child: ReviewsSection(
+              productId: widget.product.id,
+              productName: widget.product.productName,
+              averageRating: widget.product.rating,
+              totalReviews: widget.product.totalReviews,
+            ),
           ),
           const SizedBox(height: 60),
         ],
@@ -1205,7 +1207,7 @@ class ProductDetailsBottomBar extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFFF6B6B),
+                        color: Colors.amber,
                       ),
                     );
                   },
@@ -1227,7 +1229,7 @@ class ProductDetailsBottomBar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Color(0xFFFF6B6B), width: 1.5),
+                  side: const BorderSide(color: Colors.amber, width: 1.5),
                 ),
               ),
               child:
@@ -1237,7 +1239,7 @@ class ProductDetailsBottomBar extends StatelessWidget {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Color(0xFFFF6B6B),
+                          color: Colors.amber,
                         ),
                       )
                       : const Text(
@@ -1245,6 +1247,7 @@ class ProductDetailsBottomBar extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: Colors.amber,
                         ),
                       ),
             ),
@@ -1255,7 +1258,7 @@ class ProductDetailsBottomBar extends StatelessWidget {
               onPressed:
                   product.stockAvailable && !isAddingToCart ? onBuyNow : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF6B6B),
+                backgroundColor: Colors.amber,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1265,7 +1268,11 @@ class ProductDetailsBottomBar extends StatelessWidget {
               ),
               child: const Text(
                 'Buy Now',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
               ),
             ),
           ),

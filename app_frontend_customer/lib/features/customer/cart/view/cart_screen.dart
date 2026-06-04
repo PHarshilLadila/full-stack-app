@@ -8,6 +8,7 @@ import 'package:app_frontend_customer/features/customer/home/view/product_detail
 import 'package:app_frontend_customer/utils/common/custom_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -78,7 +79,7 @@ class CartScreen extends StatelessWidget {
                 SnackBar(
                   content: Text(state.message),
                   duration: const Duration(seconds: 2),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.amber,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -200,31 +201,22 @@ class _EmptyCartState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TweenAnimationBuilder(
-            tween: Tween<double>(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 600),
-            builder: (context, value, child) {
-              return Transform.scale(
-                scale: value,
-                child: Container(
-                  padding: const EdgeInsets.all(40),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFFFF6B6B).withOpacity(0.1),
-                        const Color(0xFFFF8E53).withOpacity(0.1),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 80,
-                    color: Color(0xFFFF6B6B),
-                  ),
-                ),
-              );
-            },
+          Container(
+            padding: const EdgeInsets.all(30),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.amber.withOpacity(0.1),
+                  Colors.amberAccent.withOpacity(0.1),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedShoppingBasket02,
+              size: 40,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -248,19 +240,6 @@ class _EmptyCartState extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.shopping_bag_outlined),
-            label: const Text('Start Shopping'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6B6B),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -280,13 +259,13 @@ class _ErrorState extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.red.shade50,
+              color: Colors.amber.shade50,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.error_outline_rounded,
               size: 64,
-              color: Colors.red.shade300,
+              color: Colors.amber.shade300,
             ),
           ),
           const SizedBox(height: 24),

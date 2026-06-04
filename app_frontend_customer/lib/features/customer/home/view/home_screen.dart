@@ -385,7 +385,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: AppTextField(
           controller: _searchController,
           hintText: "Search products...",
-          hugeIcon: HugeIcons.strokeRoundedAppleFinder,
+          hugeIcon: HugeIcons.strokeRoundedSearch01,
           contentPadding: const EdgeInsets.only(top: 12),
           onFieldSubmitted: (value) {
             if (value.trim().isNotEmpty) {
@@ -495,13 +495,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: Colors.amber,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         '${product.discountPercentage.toStringAsFixed(0)}% OFF',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),

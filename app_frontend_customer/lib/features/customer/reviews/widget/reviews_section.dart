@@ -73,7 +73,7 @@ class _ReviewsSectionState extends State<ReviewsSection> {
         children: [
           // Header Section
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -175,8 +175,8 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF6B6B),
-                foregroundColor: Colors.white,
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.black,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -186,11 +186,11 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              icon: const Icon(Icons.rate_review, color: Colors.white),
+              icon: const Icon(Icons.rate_review, color: Colors.black),
               label: const Text(
                 'Write a Review',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -271,15 +271,22 @@ class _ReviewsSectionState extends State<ReviewsSection> {
           FilterReviewsByRating(rating: _selectedRatingFilter),
         );
       },
-      selectedColor: const Color(0xFFFF6B6B).withOpacity(0.2),
-      checkmarkColor: const Color(0xFFFF6B6B),
+      selectedColor: Colors.amber.withOpacity(0.1),
+      backgroundColor:
+          _selectedRatingFilter == rating
+              ? Colors.amber.withOpacity(0.1)
+              : Colors.grey.shade200,
+      checkmarkColor: Colors.black,
       labelStyle: TextStyle(
         color:
             _selectedRatingFilter == rating
-                ? const Color(0xFFFF6B6B)
+                ? Colors.black
                 : Colors.grey.shade700,
       ),
-      side: BorderSide(color: Colors.grey.shade300),
+      side: BorderSide(
+        color:
+            _selectedRatingFilter == rating ? Colors.amber : Colors.transparent,
+      ),
     );
   }
 
