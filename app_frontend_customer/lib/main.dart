@@ -1,9 +1,11 @@
 // main.dart
 import 'package:app_frontend_customer/features/auth/view/auth_screen.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/customer_web_home_screen.dart';
 import 'package:app_frontend_customer/features/customer/reviews/bloc/review_bloc.dart';
 import 'package:app_frontend_customer/features/customer/reviews/service/review_service.dart';
 import 'package:app_frontend_customer/service/fcm_notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,11 +31,25 @@ import 'features/splash/view/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  try {
+    // Initialize Firebase
+    await Firebase.initializeApp();
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization error: $e');
+  }
 
-  // Initialize FCM Notifications
-  await FCMNotificationService.initialize();
+  // Only initialize FCM on mobile platforms
+  if (!kIsWeb) {
+    try {
+      await FCMNotificationService.initialize();
+      debugPrint('✅ FCM initialized on mobile');
+    } catch (e) {
+      debugPrint('⚠️ FCM initialization skipped: $e');
+    }
+  } else {
+    debugPrint('🌐 Running on web - FCM disabled');
+  }
 
   runApp(const MyApp());
 }
@@ -49,11 +65,15 @@ class _MyAppState extends State<MyApp> {
   String token = "";
 
   void getToken() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String userToken = preferences.getString("auth_token") ?? "";
-    setState(() {
-      token = userToken;
-    });
+    try {
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      String userToken = preferences.getString("auth_token") ?? "";
+      setState(() {
+        token = userToken;
+      });
+    } catch (e) {
+      debugPrint('Error getting token: $e');
+    }
   }
 
   @override
@@ -109,7 +129,9 @@ class _MyAppState extends State<MyApp> {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => const SplashScreen(),
+          '/':
+              (context) =>
+                  kIsWeb ? const CustomerHomeScreen() : const SplashScreen(),
           '/auth': (context) => const AuthScreen(),
           '/home': (context) => const BottomNavBarScreen(),
         },

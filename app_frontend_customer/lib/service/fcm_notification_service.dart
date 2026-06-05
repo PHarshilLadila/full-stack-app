@@ -1,112 +1,95 @@
-// lib/services/fcm_notification_service.dart
+// lib/service/fcm_notification_service.dart
 import 'dart:convert';
 import 'dart:developer';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class FCMNotificationService {
-  static final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-  static final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
+  static bool get _isWeb => kIsWeb;
+  static bool _initialized = false;
 
-  static bool _fcmSupported = true;
-
-  /// Initialize FCM and Local Notifications
+  /// Initialize FCM - SKIP ON WEB
   static Future<void> initialize() async {
-    // Initialize local notifications (always works)
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
-    const InitializationSettings settings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await _localNotifications.initialize(
-      settings,
-      onDidReceiveNotificationResponse: _onNotificationTap,
-    );
-
-    // Check if Google Play Services is available
-    try {
-      await _checkGooglePlayServices();
-    } catch (e) {
-      log('⚠️ Google Play Services not available: $e');
-      _fcmSupported = false;
+    if (_isWeb) {
+      log('🌐 Web platform - FCM notifications disabled');
       return;
     }
 
-    // Try to initialize FCM
+    if (_initialized) return;
+
     try {
-      NotificationSettings notificationSettings = await _fcm.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
+      await _initializeMobile();
+      _initialized = true;
+    } catch (e) {
+      log('⚠️ FCM initialization failed: $e');
+    }
+  }
+
+  static Future<void> _initializeMobile() async {
+    log('📱 Initializing FCM for mobile...');
+
+    try {
+      // Initialize local notifications
+      final FlutterLocalNotificationsPlugin localNotifications =
+          FlutterLocalNotificationsPlugin();
+
+      const AndroidInitializationSettings androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const DarwinInitializationSettings iosSettings =
+          DarwinInitializationSettings(
+            requestAlertPermission: true,
+            requestBadgePermission: true,
+            requestSoundPermission: true,
+          );
+      const InitializationSettings settings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
       );
+
+      await localNotifications.initialize(settings);
+
+      // Initialize Firebase Messaging
+      final fcm = FirebaseMessaging.instance;
+      final NotificationSettings notificationSettings = await fcm
+          .requestPermission(alert: true, badge: true, sound: true);
 
       if (notificationSettings.authorizationStatus ==
           AuthorizationStatus.authorized) {
         log('✅ User granted notification permission');
 
-        final String? token = await _fcm.getToken();
-        if (token != null) {
-          log('📱 FCM Token: $token');
+        final String? token = await fcm.getToken();
+        if (token != null && token.isNotEmpty) {
+          log('📱 FCM Token obtained');
         } else {
-          log('⚠️ FCM token is null');
-          _fcmSupported = false;
-        }
-
-        if (_fcmSupported) {
-          FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-          FirebaseMessaging.onBackgroundMessage(
-            _firebaseMessagingBackgroundHandler,
-          );
-          FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
+          log('⚠️ FCM token is empty');
         }
       } else {
         log('⚠️ User denied notification permission');
-        _fcmSupported = false;
       }
     } catch (e) {
-      log('⚠️ FCM initialization failed: $e');
-      _fcmSupported = false;
-    }
-  }
-
-  /// Check if Google Play Services is available
-  static Future<void> _checkGooglePlayServices() async {
-    try {
-      final String? token = await _fcm.getToken();
-      if (token == null) {
-        throw Exception('FCM token is null');
-      }
-    } catch (e) {
-      if (e.toString().contains('MISSING_INSTANCEID_SERVICE')) {
-        throw Exception('Google Play Services missing');
-      }
+      log('⚠️ FCM initialization error: $e');
       rethrow;
     }
   }
 
-  /// Save FCM token to backend
-  // Update the saveTokenToBackend method
+  /// Save FCM token to backend - SKIP ON WEB
   static Future<void> saveTokenToBackend(String authToken) async {
-    if (!_fcmSupported) {
-      log('⚠️ FCM not supported, skipping token save');
+    if (_isWeb) {
+      log('🌐 Web platform - skipping token save');
       return;
     }
 
+    if (!_initialized) {
+      log('⚠️ FCM not initialized, attempting to initialize...');
+      await initialize();
+    }
+
     try {
-      final String? fcmToken = await _fcm.getToken();
+      final fcm = FirebaseMessaging.instance;
+      final String? fcmToken = await fcm.getToken();
 
       if (fcmToken == null || fcmToken.isEmpty) {
         log('❌ No FCM token available');
@@ -117,11 +100,11 @@ class FCMNotificationService {
       final savedToken = prefs.getString('fcm_token_saved');
 
       if (savedToken == fcmToken) {
-        log('✅ Customer FCM token already saved');
+        log('✅ FCM token already saved');
         return;
       }
 
-      log('📤 Saving customer token...');
+      log('📤 Saving FCM token to backend...');
 
       final response = await http.post(
         Uri.parse('https://full-stack-app-1-4iqk.onrender.com/fcm/token'),
@@ -131,31 +114,32 @@ class FCMNotificationService {
         },
         body: jsonEncode({
           'fcmToken': fcmToken,
-          'deviceType': 'android',
-          'appType': 'customer_mobile',
+          'deviceType': 'mobile',
+          'appType': 'customer',
         }),
       );
 
-      log('📤 Response status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         await prefs.setString('fcm_token_saved', fcmToken);
-        log('✅ Customer FCM token saved to backend');
+        log('✅ FCM token saved to backend');
       } else {
-        log('❌ Failed to save customer token: ${response.body}');
+        log(
+          '❌ Failed to save token: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
-      log('❌ Error saving customer token: $e');
+      log('❌ Error saving token: $e');
     }
   }
 
-  /// Remove FCM token
+  /// Remove FCM token - SKIP ON WEB
   static Future<void> removeTokenFromBackend(String authToken) async {
-    if (!_fcmSupported) return;
+    if (_isWeb) return;
 
     try {
-      final String? fcmToken = await _fcm.getToken();
-      if (fcmToken == null) return;
+      final fcm = FirebaseMessaging.instance;
+      final String? fcmToken = await fcm.getToken();
+      if (fcmToken == null || fcmToken.isEmpty) return;
 
       final response = await http.delete(
         Uri.parse('https://full-stack-app-1-4iqk.onrender.com/fcm/token'),
@@ -169,78 +153,57 @@ class FCMNotificationService {
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('fcm_token_saved');
-        log('✅ Token removed');
+        log('✅ Token removed from backend');
       }
     } catch (e) {
       log('❌ Error removing token: $e');
     }
   }
 
-  /// Show local notification (always works)
+  /// Show local notification - SKIP ON WEB
   static Future<void> showLocalNotification({
     required String title,
     required String body,
     String? payload,
   }) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'customer_orders_channel',
-          'Customer Order Notifications',
-          channelDescription: 'Notifications for order updates',
-          importance: Importance.high,
-          priority: Priority.high,
-          showWhen: true,
-          enableVibration: true,
-          playSound: true,
-        );
-
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _localNotifications.show(
-      DateTime.now().millisecond,
-      title,
-      body,
-      details,
-      payload: payload,
-    );
-  }
-
-  static void _handleForegroundMessage(RemoteMessage message) {
-    log('📨 Message: ${message.notification?.title}');
-    showLocalNotification(
-      title: message.notification?.title ?? 'New Update',
-      body: message.notification?.body ?? '',
-      payload: jsonEncode(message.data),
-    );
-  }
-
-  static void _handleMessageOpenedApp(RemoteMessage message) {
-    _handleNavigation(message.data);
-  }
-
-  static void _onNotificationTap(NotificationResponse response) {
-    if (response.payload != null) {
-      _handleNavigation(jsonDecode(response.payload!));
+    if (_isWeb) {
+      log('📢 [WEB] Notification: $title - $body');
+      return;
     }
-  }
 
-  static void _handleNavigation(Map<String, dynamic> data) {
-    log('Navigate to: ${data['type']} - ${data['orderId']}');
-  }
+    try {
+      final FlutterLocalNotificationsPlugin localNotifications =
+          FlutterLocalNotificationsPlugin();
 
-  @pragma('vm:entry-point')
-  static Future<void> _firebaseMessagingBackgroundHandler(
-    RemoteMessage message,
-  ) async {
-    log('Background message received');
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+            'customer_orders_channel',
+            'Customer Order Notifications',
+            channelDescription: 'Notifications for order updates',
+            importance: Importance.high,
+            priority: Priority.high,
+            enableVibration: true,
+            playSound: true,
+          );
+
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
+
+      const NotificationDetails details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await localNotifications.show(
+        DateTime.now().millisecondsSinceEpoch,
+        title,
+        body,
+        details,
+        payload: payload,
+      );
+
+      log('✅ Local notification shown: $title');
+    } catch (e) {
+      log('❌ Error showing notification: $e');
+    }
   }
 }

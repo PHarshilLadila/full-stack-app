@@ -43,9 +43,9 @@ dependencies:
   hugeicons: ^1.1.6
   shimmer: ^3.0.0
   easy_stepper: 
-  firebase_core: ^2.24.2
-  firebase_messaging: ^14.7.10
-  flutter_local_notifications: ^19.4.0
+  firebase_core: ^3.15.2
+  firebase_messaging: ^15.2.10
+  flutter_local_notifications: ^19.5.0
 
 dev_dependencies:
   flutter_test:
