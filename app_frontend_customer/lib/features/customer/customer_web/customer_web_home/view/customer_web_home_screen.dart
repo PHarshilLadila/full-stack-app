@@ -4,6 +4,7 @@ import 'package:app_frontend_customer/features/customer/customer_web/web_widgets
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/flash_deal_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/home_hero_banner.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/shop_categories_section.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/trending_now.dart';
 import 'package:flutter/material.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
@@ -94,6 +95,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
                   FeaturedProductsSection(),
                   FlashDealsSection(),
+                  TrendingNowSection(),
 
                   // Category Section
                   const Padding(
