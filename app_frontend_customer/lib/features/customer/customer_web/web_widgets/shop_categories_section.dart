@@ -1,202 +1,155 @@
-// lib/widgets/category_section.dart
+// lib/features/customer/customer_web/web_widgets/shop_categories_section_simple.dart
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_state.dart';
+import 'package:app_frontend_customer/utils/helper/category_style_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class CategorySection extends StatelessWidget {
+class ShopCategoriesSection extends StatelessWidget {
   final String browseTitle;
   final String mainTitle;
-  final List<CategoryItem> categories;
-  final VoidCallback? onViewAll;
 
-  const CategorySection({
+  const ShopCategoriesSection({
     super.key,
     this.browseTitle = 'Browse By',
     this.mainTitle = 'Shop Categories',
-    required this.categories,
-    this.onViewAll,
   });
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
-    final isTablet = screenWidth >= 600 && screenWidth < 1200;
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal:
-            isMobile
-                ? 20
-                : isTablet
-                ? 40
-                : 60,
-        vertical: isMobile ? 40 : 60,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    browseTitle,
-                    style: GoogleFonts.poppins(
-                      fontSize: isMobile ? 12 : 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xff8882ec),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    mainTitle,
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize:
-                          isMobile
-                              ? 28
-                              : isTablet
-                              ? 36
-                              : 40,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade900,
-                    ),
-                  ),
-                ],
-              ),
-              if (onViewAll != null)
-                TextButton(
-                  onPressed: onViewAll,
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xff4f46e5),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'View All',
-                        style: GoogleFonts.inter(
-                          fontSize: isMobile ? 13 : 14,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xff4f46e5),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 16,
-                        color: Color(0xff4f46e5),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+    return BlocBuilder<CategoryBloc, CategoryState>(
+      builder: (context, state) {
+        if (state is CategoriesLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          const SizedBox(height: 32),
+        if (state is CategoriesLoaded) {
+          return Container(
+            padding: EdgeInsets.all(isMobile ? 20 : 60),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(isMobile),
+                const SizedBox(height: 32),
+                _buildCategoriesGrid(state.categories, isMobile, context),
+              ],
+            ),
+          );
+        }
 
-          // Categories using Wrap - Fully Responsive
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final cardWidth = isMobile ? 160.0 : 220.0;
-              final spacing = isMobile ? 12.0 : 20.0;
+        if (state is CategoriesError) {
+          return Center(child: Text('Error: ${state.message}'));
+        }
 
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                alignment: WrapAlignment.start,
-                children:
-                    categories.map((category) {
-                      return SizedBox(
-                        width: cardWidth,
-                        child: _buildCategoryCard(category, isMobile),
-                      );
-                    }).toList(),
-              );
-            },
-          ),
-        ],
-      ),
+        return const SizedBox.shrink();
+      },
     );
   }
 
-  Widget _buildCategoryCard(CategoryItem category, bool isMobile) {
+  Widget _buildHeader(bool isMobile) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Browse By',
+              style: GoogleFonts.poppins(
+                fontSize: isMobile ? 12 : 14,
+                color: const Color(0xff8882ec),
+              ),
+            ),
+            Text(
+              'Shop Categories',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: isMobile ? 28 : 40,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        TextButton(onPressed: () {}, child: const Text('View All')),
+      ],
+    );
+  }
+
+  Widget _buildCategoriesGrid(
+    List<CategoryData> categories,
+    bool isMobile,
+    BuildContext context,
+  ) {
+    return Wrap(
+      spacing: 20,
+      runSpacing: 20,
+      children:
+          categories.map((category) {
+            return SizedBox(
+              width: isMobile ? 160 : 220,
+              child: _buildCategoryCard(category, isMobile, context),
+            );
+          }).toList(),
+    );
+  }
+
+  Widget _buildCategoryCard(
+    CategoryData category,
+    bool isMobile,
+    BuildContext context,
+  ) {
+    // ⭐⭐⭐ MAGIC HAPPENS HERE - Using Extension Methods ⭐⭐⭐
     return GestureDetector(
-      onTap: category.onTap,
+      onTap: () {
+        context.read<CategoryBloc>().add(
+          LoadProductsByCategory(categoryName: category.name),
+        );
+      },
       child: Container(
-        width: double.infinity,
         padding: EdgeInsets.all(isMobile ? 16 : 20),
         decoration: BoxDecoration(
-          color: category.backgroundColor,
+          // 👈 Automatically gets color based on category name
+          color: category.name.categoryBackgroundColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200, width: 1),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
               child: Icon(
-                category.icon,
+                // 👈 Automatically gets icon based on category name
+                category.name.categoryIcon,
                 size: isMobile ? 28 : 32,
-                color: category.iconColor,
+                // 👈 Automatically gets color based on category name
+                color: category.name.categoryColor,
               ),
             ),
             const SizedBox(height: 12),
             Text(
-              category.title,
-              style: GoogleFonts.poppins(
-                fontSize: isMobile ? 13 : 15,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade800,
-              ),
+              category.name,
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             Text(
-              category.itemsCount,
+              '${category.productCount}+ items',
               style: GoogleFonts.inter(
-                fontSize: isMobile ? 10 : 11,
+                fontSize: 11,
                 color: Colors.grey.shade500,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
     );
   }
-}
-
-class CategoryItem {
-  final IconData icon;
-  final String title;
-  final String itemsCount;
-  final Color backgroundColor;
-  final Color iconColor;
-  final VoidCallback? onTap;
-
-  const CategoryItem({
-    required this.icon,
-    required this.title,
-    required this.itemsCount,
-    required this.backgroundColor,
-    required this.iconColor,
-    this.onTap,
-  });
 }

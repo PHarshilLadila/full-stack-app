@@ -1,0 +1,147 @@
+import 'dart:convert';
+
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
+import 'package:http/http.dart' as http;
+
+class CustomerWebService {
+  static const String baseUrl = 'http://localhost:8080';
+  static const String token =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMDQyMDYwMzUwNTM0NzU0N2Y0YTJlNyIsInJvbGUiOiJzZWxsZXIiLCJpYXQiOjE3Nzk5NTQxMjQsImV4cCI6MTc4MDU1ODkyNH0.9rY4AtwkL-u-oLOGjF7JepOQDSrCHF7zvR2NX-SzJMc';
+
+  Map<String, String> getHeaders() {
+    return {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+  }
+
+  // Get all products (for extracting categories)
+  Future<ProductListResponse> getAllProducts() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/product/list'),
+        headers: getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return ProductListResponse.fromJson(json.decode(response.body));
+      } else {
+        throw Exception('Failed to load products: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Get categories by extracting from products
+  Future<CategoryResponse> getCategories() async {
+    try {
+      final productsResponse = await getAllProducts();
+      final products = productsResponse.data;
+
+      // Extract unique categories with subcategories
+      final Map<String, Set<String>> categoryMap = {};
+      final Map<String, int> productCountMap = {};
+
+      for (var product in products) {
+        final category = product.category;
+        final subCategory = product.subCategory;
+
+        // Add category
+        if (!categoryMap.containsKey(category)) {
+          categoryMap[category] = {};
+          productCountMap[category] = 0;
+        }
+
+        // Add subcategory
+        categoryMap[category]?.add(subCategory);
+
+        // Count products
+        productCountMap[category] = (productCountMap[category] ?? 0) + 1;
+      }
+
+      // Convert to CategoryData list
+      final categoriesList =
+          categoryMap.entries.map((entry) {
+            return CategoryData(
+              name: entry.key,
+              subCategories: entry.value.toList(),
+              productCount: productCountMap[entry.key] ?? 0,
+            );
+          }).toList();
+
+      return CategoryResponse(
+        message: 'Categories fetched successfully',
+        data: categoriesList,
+        totalCategories: categoriesList.length,
+      );
+    } catch (e) {
+      throw Exception('Failed to get categories: $e');
+    }
+  }
+
+  // Get products by category
+  Future<ProductListResponse> getProductsByCategory(String category) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/product/list?category=${Uri.encodeComponent(category)}',
+        ),
+        headers: getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return ProductListResponse.fromJson(json.decode(response.body));
+      } else {
+        throw Exception('Failed to load products by category');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Get products by subcategory
+  Future<ProductListResponse> getProductsBySubCategory(
+    String subCategory,
+  ) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/product/list?subCategory=${Uri.encodeComponent(subCategory)}',
+        ),
+        headers: getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return ProductListResponse.fromJson(json.decode(response.body));
+      } else {
+        throw Exception('Failed to load products by subcategory');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Get products by category and subcategory
+  Future<ProductListResponse> getProductsByCategoryAndSubCategory(
+    String category,
+    String subCategory,
+  ) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/product/list?category=${Uri.encodeComponent(category)}&subCategory=${Uri.encodeComponent(subCategory)}',
+        ),
+        headers: getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return ProductListResponse.fromJson(json.decode(response.body));
+      } else {
+        throw Exception('Failed to load products');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+}

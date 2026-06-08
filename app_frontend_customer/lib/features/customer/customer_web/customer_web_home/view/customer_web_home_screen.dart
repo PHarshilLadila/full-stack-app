@@ -1,5 +1,8 @@
+// lib/features/customer/customer_web/customer_home_screen.dart (Updated)
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_appbar.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_footer.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/best_sellers_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/featured_products_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/flash_deal_section.dart';
@@ -8,103 +11,62 @@ import 'package:app_frontend_customer/features/customer/customer_web/web_widgets
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/recently_viewed_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/shop_categories_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/trending_now.dart';
+import 'package:app_frontend_customer/service/customer_web_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+// ... other imports
 
-class CustomerHomeScreen extends StatefulWidget {
+class CustomerHomeScreen extends StatelessWidget {
   const CustomerHomeScreen({super.key});
 
   @override
-  State<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create:
+              (context) =>
+                  CategoryBloc(customerWebService: CustomerWebService())
+                    ..add(LoadCategories()),
+        ),
+      ],
+      child: const CustomerHomeScreenContent(),
+    );
+  }
 }
 
-class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
+class CustomerHomeScreenContent extends StatefulWidget {
+  const CustomerHomeScreenContent({super.key});
+
+  @override
+  State<CustomerHomeScreenContent> createState() =>
+      _CustomerHomeScreenContentState();
+}
+
+class _CustomerHomeScreenContentState extends State<CustomerHomeScreenContent> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      drawer: const CustomDrawer(), // For mobile drawer
+      drawer: const CustomDrawer(),
       body: Column(
         children: [
-          // Custom Appbar
           VelmoraAppBar(scaffoldKey: _scaffoldKey),
-
-          // Main Content
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Hero Banner
                   const HeroBanner(),
                   const SizedBox(height: 40),
-                  CategorySection(
-                    browseTitle: 'Browse By',
-                    mainTitle: 'Shop Categories',
-                    categories: [
-                      CategoryItem(
-                        icon: Icons.threesixty_rounded,
-                        title: "Women's Fashion",
-                        itemsCount: "2,400+ items",
-                        backgroundColor: Colors.pink.shade50,
-                        iconColor: Colors.pink.shade400,
-                        onTap: () {},
-                      ),
-                      CategoryItem(
-                        icon: Icons.man,
-                        title: "Men's Fashion",
-                        itemsCount: "1,800+ items",
-                        backgroundColor: Colors.blue.shade50,
-                        iconColor: Colors.blue.shade400,
-                        onTap: () {},
-                      ),
-                      CategoryItem(
-                        icon: Icons.shopping_bag,
-                        title: "Footwear",
-                        itemsCount: "900+ items",
-                        backgroundColor: Colors.green.shade50,
-                        iconColor: Colors.green.shade400,
-                        onTap: () {},
-                      ),
-                      CategoryItem(
-                        icon: Icons.spa,
-                        title: "Beauty & Skincare",
-                        itemsCount: "1,000+ items",
-                        backgroundColor: Colors.purple.shade50,
-                        iconColor: Colors.purple.shade400,
-                        onTap: () {},
-                      ),
-                      CategoryItem(
-                        icon: Icons.watch,
-                        title: "Accessories",
-                        itemsCount: "760+ items",
-                        backgroundColor: Colors.orange.shade50,
-                        iconColor: Colors.orange.shade400,
-                        onTap: () {},
-                      ),
-                      CategoryItem(
-                        icon: Icons.home,
-                        title: "Home & Living",
-                        itemsCount: "1,320+ items",
-                        backgroundColor: Colors.teal.shade50,
-                        iconColor: Colors.teal.shade400,
-                        onTap: () {},
-                      ),
-                    ],
-                    onViewAll: () {
-                      // Navigate to all categories
-                    },
-                  ),
-
-                  FeaturedProductsSection(),
-                  FlashDealsSection(),
-                  TrendingNowSection(),
-                  BestSellersSection(),
-                  PromoBannerSection(),
-                  RecentlyViewedSection(),
-                  // Category Section
-
-                  // Footer
+                  const ShopCategoriesSection(),
+                  const FeaturedProductsSection(),
+                  const FlashDealsSection(),
+                  const TrendingNowSection(),
+                  const BestSellersSection(),
+                  const PromoBannerSection(),
+                  const RecentlyViewedSection(),
                   const CommonFooter(),
                 ],
               ),
