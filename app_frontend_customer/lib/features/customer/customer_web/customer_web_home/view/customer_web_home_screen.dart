@@ -7,6 +7,8 @@ import 'package:app_frontend_customer/features/customer/customer_web/customer_we
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_bloc.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/trending_products/trending_products_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/trending_products/trending_products_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/best_sellers_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/featured_products_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/flash_deal_section.dart';
@@ -44,6 +46,12 @@ class CustomerHomeScreen extends StatelessWidget {
               (context) =>
                   FlashDealsBloc(customerWebService: CustomerWebService())
                     ..add(const LoadFlashDeals()),
+        ),
+        BlocProvider(
+          create:
+              (context) =>
+                  TrendingProductsBloc(customerWebService: CustomerWebService())
+                    ..add(const LoadTrendingProducts()),
         ),
       ],
       child: const CustomerHomeScreenContent(),

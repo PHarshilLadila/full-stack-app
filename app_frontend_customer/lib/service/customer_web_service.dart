@@ -1,6 +1,7 @@
 // lib/service/customer_web_service.dart
 import 'dart:convert';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/trending_products/trending_products_model.dart';
 import 'package:http/http.dart' as http;
 import '../features/customer/customer_web/models/product_model.dart';
 import '../features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
@@ -160,21 +161,38 @@ class CustomerWebService {
       throw Exception('Failed to load featured products: $e');
     }
   }
+
   Future<FlashDealsResponse> getFlashDeals() async {
-  try {
-    final allProductsResponse = await getAllProducts();
-    final saleProducts = allProductsResponse.data
-        .where((product) => product.isSale)
-        .toList();
+    try {
+      final allProductsResponse = await getAllProducts();
+      final saleProducts =
+          allProductsResponse.data.where((product) => product.isSale).toList();
 
-    return FlashDealsResponse(
-      message: 'Flash deals fetched successfully',
-      data: saleProducts,
-      pagination: allProductsResponse.pagination,
-    );
-  } catch (e) {
-    throw Exception('Failed to load flash deals: $e');
+      return FlashDealsResponse(
+        message: 'Flash deals fetched successfully',
+        data: saleProducts,
+        pagination: allProductsResponse.pagination,
+      );
+    } catch (e) {
+      throw Exception('Failed to load flash deals: $e');
+    }
   }
-}
 
+  Future<TrendingProductsResponse> getTrendingProducts() async {
+    try {
+      final allProductsResponse = await getAllProducts();
+      final trendingProducts =
+          allProductsResponse.data
+              .where((product) => product.isTrending)
+              .toList();
+
+      return TrendingProductsResponse(
+        message: 'Trending products fetched successfully',
+        data: trendingProducts,
+        pagination: allProductsResponse.pagination,
+      );
+    } catch (e) {
+      throw Exception('Failed to load trending products: $e');
+    }
+  }
 }

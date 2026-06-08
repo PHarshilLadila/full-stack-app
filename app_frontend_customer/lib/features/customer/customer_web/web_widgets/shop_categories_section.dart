@@ -74,7 +74,17 @@ class ShopCategoriesSection extends StatelessWidget {
             ),
           ],
         ),
-        TextButton(onPressed: () {}, child: const Text('View All')),
+        TextButton(
+          onPressed: () {},
+          child: Text(
+            'View All',
+            style: GoogleFonts.inter(
+              fontSize: isMobile ? 13 : 14,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xff4f46e5),
+            ),
+          ),
+        ),
       ],
     );
   }
