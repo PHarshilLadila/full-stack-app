@@ -1,6 +1,7 @@
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_appbar.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_footer.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/featured_products_section.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/flash_deal_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/home_hero_banner.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/shop_categories_section.dart';
 import 'package:flutter/material.dart';
@@ -92,6 +93,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   ),
 
                   FeaturedProductsSection(),
+                  FlashDealsSection(),
 
                   // Category Section
                   const Padding(

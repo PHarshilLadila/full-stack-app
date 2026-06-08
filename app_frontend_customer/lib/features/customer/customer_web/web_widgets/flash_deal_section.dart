@@ -1,137 +1,8 @@
-// lib/widgets/featured_products_section.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class FeaturedProductsSection extends StatefulWidget {
-  const FeaturedProductsSection({super.key});
-
-  @override
-  State<FeaturedProductsSection> createState() =>
-      _FeaturedProductsSectionState();
-}
-
-class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
-  String selectedFilter = 'All';
-
-  final List<String> filters = ['All', 'Women', 'Men', 'Accessories'];
-
-  final List<ProductData> allProducts = [
-    ProductData(
-      imageUrl: "https://www.motiwalaperfumes.com/cdn/shop/files/veluro-4.png",
-      brandName: "The Label Life",
-      productName: "Oversized Linen Blazer",
-      rating: 4.5,
-      reviewCount: 234,
-      currentPrice: 3299,
-      originalPrice: 4999,
-      tag: "Premium",
-      discountPercentage: 34,
-    ),
-    ProductData(
-      imageUrl:
-          "https://www.motiwalaperfumes.com/cdn/shop/files/Fanatic-attire-blue-12_5f594cc0-9473-401c-bec2-b29e50b91aed.png",
-      brandName: "Urbano Fashion",
-      productName: "Slim Fit Chinos",
-      rating: 4.3,
-      reviewCount: 189,
-      currentPrice: 1599,
-      originalPrice: 2299,
-      tag: "",
-      discountPercentage: 30,
-    ),
-    ProductData(
-      imageUrl:
-          "https://res.cloudinary.com/dyorzq6ir/image/upload/v1780501149/ecommerce/products/fk53ydxeoxchqygcuko1.webp",
-      brandName: "Accessorize",
-      productName: "Pearl Drop Earrings",
-      rating: 4.7,
-      reviewCount: 412,
-      currentPrice: 799,
-      originalPrice: 1999,
-      tag: "Bestseller",
-      discountPercentage: 33,
-    ),
-    ProductData(
-      imageUrl: "https://www.motiwalaperfumes.com/cdn/shop/files/veluro-4.png",
-      brandName: "Velmora Studio",
-      productName: "Floral Midi Dress",
-      rating: 4.6,
-      reviewCount: 316,
-      currentPrice: 2199,
-      originalPrice: 2999,
-      tag: "",
-      discountPercentage: 26,
-    ),
-    ProductData(
-      imageUrl:
-          "https://www.motiwalaperfumes.com/cdn/shop/files/Fanatic-attire-blue-12_5f594cc0-9473-401c-bec2-b29e50b91aed.png",
-      brandName: "The Label Life",
-      productName: "Wool Blend Coat",
-      rating: 4.8,
-      reviewCount: 567,
-      currentPrice: 4599,
-      originalPrice: 6999,
-      tag: "Premium",
-      discountPercentage: 34,
-    ),
-    ProductData(
-      imageUrl:
-          "https://res.cloudinary.com/dyorzq6ir/image/upload/v1780501149/ecommerce/products/fk53ydxeoxchqygcuko1.webp",
-      brandName: "Urbano Fashion",
-      productName: "Leather Jacket",
-      rating: 4.4,
-      reviewCount: 278,
-      currentPrice: 3499,
-      originalPrice: 5499,
-      tag: "Trending",
-      discountPercentage: 36,
-    ),
-    ProductData(
-      imageUrl: "https://www.motiwalaperfumes.com/cdn/shop/files/veluro-4.png",
-      brandName: "Accessorize",
-      productName: "Designer Handbag",
-      rating: 4.9,
-      reviewCount: 892,
-      currentPrice: 2899,
-      originalPrice: 3999,
-      tag: "Bestseller",
-      discountPercentage: 27,
-    ),
-    ProductData(
-      imageUrl:
-          "https://www.motiwalaperfumes.com/cdn/shop/files/Fanatic-attire-blue-12_5f594cc0-9473-401c-bec2-b29e50b91aed.png",
-      brandName: "Velmora Studio",
-      productName: "Silk Scarf",
-      rating: 4.2,
-      reviewCount: 145,
-      currentPrice: 599,
-      originalPrice: 1299,
-      tag: "",
-      discountPercentage: 54,
-    ),
-  ];
-
-  List<ProductData> get filteredProducts {
-    if (selectedFilter == 'All') {
-      return allProducts;
-    }
-    return allProducts.where((product) {
-      if (selectedFilter == 'Women') {
-        return product.productName.contains('Dress') ||
-            product.productName.contains('Blazer') ||
-            product.productName.contains('Scarf');
-      } else if (selectedFilter == 'Men') {
-        return product.productName.contains('Chinos') ||
-            product.productName.contains('Jacket') ||
-            product.productName.contains('Coat');
-      } else if (selectedFilter == 'Accessories') {
-        return product.productName.contains('Earrings') ||
-            product.productName.contains('Handbag') ||
-            product.productName.contains('Scarf');
-      }
-      return true;
-    }).toList();
-  }
+class FlashDealsSection extends StatelessWidget {
+  const FlashDealsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +11,7 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
     final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.symmetric(
         horizontal:
             isMobile
@@ -147,192 +19,252 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
                 : isTablet
                 ? 40
                 : 60,
-        vertical: isMobile ? 40 : 60,
+        vertical: isMobile ? 30 : 40,
       ),
-      color: Color(0xfff1f5f9),
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Section
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          // Header Section with Flash Deals and Timer (Exactly as in image)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Handpicked For You',
-                style: GoogleFonts.poppins(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 4),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  const Icon(Icons.flash_on, color: Colors.red, size: 16),
                   Text(
-                    'Featured Products',
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize:
-                          isMobile
-                              ? 28
-                              : isTablet
-                              ? 36
-                              : 40,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade900,
-                    ),
-                  ),
-                  // Ultra Clean Filter Chips - Minimalist Design
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      child: Row(
-                        children:
-                            filters.map((filter) {
-                              final isSelected = selectedFilter == filter;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedFilter = filter;
-                                  });
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(right: 12),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isSelected
-                                            ? const Color(0xff4f46e5)
-                                            : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(30),
-                                    border: Border.all(
-                                      color:
-                                          isSelected
-                                              ? const Color(0xff4f46e5)
-                                              : Colors.grey.shade300,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    filter,
-                                    style: GoogleFonts.inter(
-                                      fontSize: isMobile ? 11 : 13,
-                                      fontWeight:
-                                          isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.w500,
-                                      color:
-                                          isSelected
-                                              ? Colors.white
-                                              : Colors.grey.shade700,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                      ),
+                    'Limited Time',
+                    style: TextStyle(
+                      fontSize: isMobile ? 12 : 14,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5,
+                      color: Colors.red,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Filter Chips
-          const SizedBox(height: 32),
-
-          // Products using Wrap (No GridView)
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final cardWidth =
-                  isMobile
-                      ? 280.0
-                      : isTablet
-                      ? 260.0
-                      : 280.0;
-              final spacing = isMobile ? 16.0 : 24.0;
-
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                alignment: WrapAlignment.start,
-                children:
-                    filteredProducts.map((product) {
-                      return SizedBox(
-                        width: cardWidth,
-                        child: ProductCard(
-                          imageUrl: product.imageUrl,
-                          brandName: product.brandName,
-                          productName: product.productName,
-                          rating: product.rating,
-                          reviewCount: product.reviewCount,
-                          currentPrice: product.currentPrice,
-                          originalPrice: product.originalPrice,
-                          tag: product.tag,
-                          discountPercentage: product.discountPercentage,
-                          onTap: () {},
-                          onShopTap: () {},
-                        ),
-                      );
-                    }).toList(),
-              );
-            },
-          ),
-
-          const SizedBox(height: 48),
-
-          // View All Products Button
-          Center(
-            child: GestureDetector(
-              onTap: () {},
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xff4f46e5), Color(0xff6366f1)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xff4f46e5).withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+              // Container(
+              //   padding: const EdgeInsets.symmetric(
+              //     horizontal: 12,
+              //     vertical: 6,
+              //   ),
+              //   decoration: BoxDecoration(
+              //     color: const Color(0xFFFDF1F0),
+              //     borderRadius: BorderRadius.circular(30),
+              //   ),
+              //   child: Row(
+              //     children: [
+              //       const Icon(
+              //         Icons.flash_on,
+              //         color: Color(0xFFE67E22),
+              //         size: 16,
+              //       ),
+              //       const SizedBox(width: 6),
+              //       Text(
+              //         'Flash Deals',
+              //         style: GoogleFonts.inter(
+              //           fontWeight: FontWeight.bold,
+              //           fontSize: 13,
+              //           color: const Color(0xFFE67E22),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xff4f46e5),
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'View All Products',
+                      'View All Deals',
                       style: GoogleFonts.inter(
-                        fontSize: isMobile ? 14 : 16,
+                        fontSize: isMobile ? 13 : 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: const Color(0xff4f46e5),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
                     const Icon(
                       Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 18,
+                      size: 16,
+                      color: Color(0xff4f46e5),
                     ),
                   ],
                 ),
               ),
-            ),
+            ],
+          ),
+          // Timer Row (Exactly as in image)
+          Row(
+            children: [
+              Text(
+                'Flash Deals',
+                style: GoogleFonts.playfairDisplay(
+                  fontSize:
+                      isMobile
+                          ? 24
+                          : isTablet
+                          ? 28
+                          : 36,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(width: 24),
+              Row(
+                children: [
+                  TimerDigit(digit: '02'),
+                  const SizedBox(width: 4),
+                  const ColonDot(),
+                  const SizedBox(width: 4),
+                  TimerDigit(digit: '14'),
+                  const SizedBox(width: 4),
+                  const ColonDot(),
+                  const SizedBox(width: 4),
+                  TimerDigit(digit: '38'),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Hrs',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Min',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          // Product Cards Layout - Fully Responsive, No GridView, Using ProductCard UI from FeaturedProducts
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Determine number of columns based on width
+              int crossAxisCount = 1;
+              if (constraints.maxWidth >= 1200) {
+                crossAxisCount = 4;
+              } else if (constraints.maxWidth >= 800) {
+                crossAxisCount = 3;
+              } else if (constraints.maxWidth >= 550) {
+                crossAxisCount = 2;
+              } else {
+                crossAxisCount = 1;
+              }
+
+              // Product data matching the image exactly
+              final flashDealProducts = [
+                FlashProductData(
+                  imageUrl:
+                      "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=400&h=400&fit=crop", // Sneakers
+                  brandName: "Puma",
+                  productName: "Cloud Comfort Sneakers",
+                  rating: 4.0,
+                  reviewCount: 538,
+                  currentPrice: 2999,
+                  originalPrice: 5499,
+                  tag: "",
+                  discountPercentage: 45,
+                ),
+                FlashProductData(
+                  imageUrl:
+                      "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=400&h=400&fit=crop", // Canvas Tote Bag
+                  brandName: "Velmora Studio",
+                  productName: "Canvas Tote Bag",
+                  rating: 4.0,
+                  reviewCount: 21,
+                  currentPrice: 899,
+                  originalPrice: 1499,
+                  tag: "",
+                  discountPercentage: 40,
+                ),
+                FlashProductData(
+                  imageUrl:
+                      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=400&fit=crop", // Structured Mini Bag
+                  brandName: "Caprese",
+                  productName: "Structured Mini Bag",
+                  rating: 4.0,
+                  reviewCount: 187,
+                  currentPrice: 2499,
+                  originalPrice: 3999,
+                  tag: "",
+                  discountPercentage: 37,
+                ),
+                FlashProductData(
+                  imageUrl:
+                      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=400&fit=crop", // High-Rise Skinny Jeans
+                  brandName: "Levi's",
+                  productName: "High-Rise Skinny Jeans",
+                  rating: 4.0,
+                  reviewCount: 629,
+                  currentPrice: 1999,
+                  originalPrice: 3499,
+                  tag: "",
+                  discountPercentage: 42,
+                ),
+              ];
+
+              return Column(
+                children: [
+                  for (
+                    int i = 0;
+                    i < flashDealProducts.length;
+                    i += crossAxisCount
+                  )
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: List.generate(
+                          (i + crossAxisCount <= flashDealProducts.length)
+                              ? crossAxisCount
+                              : flashDealProducts.length - i,
+                          (index) {
+                            final product = flashDealProducts[i + index];
+                            final itemWidth =
+                                (constraints.maxWidth -
+                                    (crossAxisCount - 1) * 24) /
+                                crossAxisCount;
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                right: index != crossAxisCount - 1 ? 24 : 0,
+                              ),
+                              child: SizedBox(
+                                width: itemWidth,
+                                child: FlashProductCard(
+                                  imageUrl: product.imageUrl,
+                                  brandName: product.brandName,
+                                  productName: product.productName,
+                                  rating: product.rating,
+                                  reviewCount: product.reviewCount,
+                                  currentPrice: product.currentPrice,
+                                  originalPrice: product.originalPrice,
+                                  tag: product.tag,
+                                  discountPercentage:
+                                      product.discountPercentage,
+                                  onTap: () {},
+                                  onShopTap: () {},
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -340,7 +272,7 @@ class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
   }
 }
 
-class ProductData {
+class FlashProductData {
   final String imageUrl;
   final String brandName;
   final String productName;
@@ -351,7 +283,7 @@ class ProductData {
   final String tag;
   final int discountPercentage;
 
-  ProductData({
+  FlashProductData({
     required this.imageUrl,
     required this.brandName,
     required this.productName,
@@ -364,8 +296,8 @@ class ProductData {
   });
 }
 
-// Your existing ProductCard widget here (keep as is)
-class ProductCard extends StatelessWidget {
+// Product Card matching the style from your FeaturedProductsSection (exactly same UI)
+class FlashProductCard extends StatelessWidget {
   final String imageUrl;
   final String brandName;
   final String productName;
@@ -378,7 +310,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onShopTap;
 
-  const ProductCard({
+  const FlashProductCard({
     super.key,
     required this.imageUrl,
     required this.brandName,
@@ -451,7 +383,7 @@ class ProductCard extends StatelessWidget {
                 if (displayDiscount > 0)
                   Positioned(
                     top: 8,
-                    right: 8,
+                    left: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -480,7 +412,7 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                // Tag Badge - Top Left
+                // Tag Badge - Top Left (if any)
                 if (tag.isNotEmpty)
                   Positioned(
                     top: 8,
@@ -513,7 +445,6 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-
                 Positioned(
                   bottom: 8,
                   right: 8,
@@ -671,6 +602,48 @@ class ProductCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class TimerDigit extends StatelessWidget {
+  final String digit;
+  const TimerDigit({super.key, required this.digit});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        digit,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+}
+
+class ColonDot extends StatelessWidget {
+  const ColonDot({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      ':',
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
       ),
     );
   }
