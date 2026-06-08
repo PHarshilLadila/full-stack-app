@@ -1,326 +1,339 @@
+// lib/features/customer/customer_web/web_widgets/flash_deal_section.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../customer_web_home/bloc/flash_deals/flash_deals_bloc.dart';
+import '../customer_web_home/bloc/flash_deals/flash_deals_event.dart';
+import '../customer_web_home/bloc/flash_deals/flash_deals_state.dart';
+import '../models/product_model.dart';
+import 'package:app_frontend_customer/service/customer_web_service.dart';
 
 class FlashDealsSection extends StatelessWidget {
   const FlashDealsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return BlocProvider(
+      create:
+          (context) =>
+              FlashDealsBloc(customerWebService: CustomerWebService())
+                ..add(const LoadFlashDeals()),
+      child: const _FlashDealsContent(),
+    );
+  }
+}
+
+class _FlashDealsContent extends StatefulWidget {
+  const _FlashDealsContent();
+
+  @override
+  State<_FlashDealsContent> createState() => _FlashDealsContentState();
+}
+
+class _FlashDealsContentState extends State<_FlashDealsContent> {
+  @override
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
     final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal:
-            isMobile
-                ? 20
-                : isTablet
-                ? 40
-                : 60,
-        vertical: isMobile ? 30 : 40,
-      ),
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section with Flash Deals and Timer (Exactly as in image)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+    return BlocBuilder<FlashDealsBloc, FlashDealsState>(
+      builder: (context, state) {
+        if (state is FlashDealsLoading) {
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal:
+                  isMobile
+                      ? 20
+                      : isTablet
+                      ? 40
+                      : 60,
+              vertical: 60,
+            ),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is FlashDealsError) {
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal:
+                  isMobile
+                      ? 20
+                      : isTablet
+                      ? 40
+                      : 60,
+              vertical: 60,
+            ),
+            child: Center(
+              child: Column(
                 children: [
-                  const Icon(Icons.flash_on, color: Colors.red, size: 16),
+                  const Icon(Icons.error, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
                   Text(
-                    'Limited Time',
-                    style: TextStyle(
-                      fontSize: isMobile ? 12 : 14,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.5,
-                      color: Colors.red,
-                    ),
+                    'Error: ${state.message}',
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<FlashDealsBloc>().add(
+                        const LoadFlashDeals(),
+                      );
+                    },
+                    child: const Text('Retry'),
                   ),
                 ],
               ),
-              // Container(
-              //   padding: const EdgeInsets.symmetric(
-              //     horizontal: 12,
-              //     vertical: 6,
-              //   ),
-              //   decoration: BoxDecoration(
-              //     color: const Color(0xFFFDF1F0),
-              //     borderRadius: BorderRadius.circular(30),
-              //   ),
-              //   child: Row(
-              //     children: [
-              //       const Icon(
-              //         Icons.flash_on,
-              //         color: Color(0xFFE67E22),
-              //         size: 16,
-              //       ),
-              //       const SizedBox(width: 6),
-              //       Text(
-              //         'Flash Deals',
-              //         style: GoogleFonts.inter(
-              //           fontWeight: FontWeight.bold,
-              //           fontSize: 13,
-              //           color: const Color(0xFFE67E22),
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xff4f46e5),
-                ),
-                child: Row(
+            ),
+          );
+        }
+
+        if (state is FlashDealsLoaded) {
+          final products = state.products;
+
+          if (products.isEmpty) {
+            return Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal:
+                    isMobile
+                        ? 20
+                        : isTablet
+                        ? 40
+                        : 60,
+                vertical: 60,
+              ),
+              child: const Center(child: Text('No flash deals available')),
+            );
+          }
+
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal:
+                  isMobile
+                      ? 20
+                      : isTablet
+                      ? 40
+                      : 60,
+              vertical: isMobile ? 30 : 40,
+            ),
+            color: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Section with Flash Deals and Timer
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'View All Deals',
-                      style: GoogleFonts.inter(
-                        fontSize: isMobile ? 13 : 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xff4f46e5),
-                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.flash_on, color: Colors.red, size: 16),
+                        Text(
+                          'Limited Time',
+                          style: TextStyle(
+                            fontSize: isMobile ? 12 : 14,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.5,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 16,
-                      color: Color(0xff4f46e5),
+                    TextButton(
+                      onPressed: () {
+                        // Navigate to all deals
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xff4f46e5),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'View All Deals',
+                            style: GoogleFonts.inter(
+                              fontSize: isMobile ? 13 : 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xff4f46e5),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 16,
+                            color: Color(0xff4f46e5),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          // Timer Row (Exactly as in image)
-          Row(
-            children: [
-              Text(
-                'Flash Deals',
-                style: GoogleFonts.playfairDisplay(
-                  fontSize:
-                      isMobile
-                          ? 24
-                          : isTablet
-                          ? 28
-                          : 36,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(width: 24),
-              Row(
-                children: [
-                  TimerDigit(digit: '02'),
-                  const SizedBox(width: 4),
-                  const ColonDot(),
-                  const SizedBox(width: 4),
-                  TimerDigit(digit: '14'),
-                  const SizedBox(width: 4),
-                  const ColonDot(),
-                  const SizedBox(width: 4),
-                  TimerDigit(digit: '38'),
-                ],
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Hrs',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Min',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black54,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          // Product Cards Layout - Fully Responsive, No GridView, Using ProductCard UI from FeaturedProducts
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // Determine number of columns based on width
-              int crossAxisCount = 1;
-              if (constraints.maxWidth >= 1200) {
-                crossAxisCount = 4;
-              } else if (constraints.maxWidth >= 800) {
-                crossAxisCount = 3;
-              } else if (constraints.maxWidth >= 550) {
-                crossAxisCount = 2;
-              } else {
-                crossAxisCount = 1;
-              }
-
-              // Product data matching the image exactly
-              final flashDealProducts = [
-                FlashProductData(
-                  imageUrl:
-                      "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=400&h=400&fit=crop", // Sneakers
-                  brandName: "Puma",
-                  productName: "Cloud Comfort Sneakers",
-                  rating: 4.0,
-                  reviewCount: 538,
-                  currentPrice: 2999,
-                  originalPrice: 5499,
-                  tag: "",
-                  discountPercentage: 45,
-                ),
-                FlashProductData(
-                  imageUrl:
-                      "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=400&h=400&fit=crop", // Canvas Tote Bag
-                  brandName: "Velmora Studio",
-                  productName: "Canvas Tote Bag",
-                  rating: 4.0,
-                  reviewCount: 21,
-                  currentPrice: 899,
-                  originalPrice: 1499,
-                  tag: "",
-                  discountPercentage: 40,
-                ),
-                FlashProductData(
-                  imageUrl:
-                      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=400&fit=crop", // Structured Mini Bag
-                  brandName: "Caprese",
-                  productName: "Structured Mini Bag",
-                  rating: 4.0,
-                  reviewCount: 187,
-                  currentPrice: 2499,
-                  originalPrice: 3999,
-                  tag: "",
-                  discountPercentage: 37,
-                ),
-                FlashProductData(
-                  imageUrl:
-                      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=400&fit=crop", // High-Rise Skinny Jeans
-                  brandName: "Levi's",
-                  productName: "High-Rise Skinny Jeans",
-                  rating: 4.0,
-                  reviewCount: 629,
-                  currentPrice: 1999,
-                  originalPrice: 3499,
-                  tag: "",
-                  discountPercentage: 42,
-                ),
-              ];
-
-              return Column(
-                children: [
-                  for (
-                    int i = 0;
-                    i < flashDealProducts.length;
-                    i += crossAxisCount
-                  )
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(
-                          (i + crossAxisCount <= flashDealProducts.length)
-                              ? crossAxisCount
-                              : flashDealProducts.length - i,
-                          (index) {
-                            final product = flashDealProducts[i + index];
-                            final itemWidth =
-                                (constraints.maxWidth -
-                                    (crossAxisCount - 1) * 24) /
-                                crossAxisCount;
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                right: index != crossAxisCount - 1 ? 24 : 0,
-                              ),
-                              child: SizedBox(
-                                width: itemWidth,
-                                child: FlashProductCard(
-                                  imageUrl: product.imageUrl,
-                                  brandName: product.brandName,
-                                  productName: product.productName,
-                                  rating: product.rating,
-                                  reviewCount: product.reviewCount,
-                                  currentPrice: product.currentPrice,
-                                  originalPrice: product.originalPrice,
-                                  tag: product.tag,
-                                  discountPercentage:
-                                      product.discountPercentage,
-                                  onTap: () {},
-                                  onShopTap: () {},
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                // Timer Row
+                Row(
+                  children: [
+                    Text(
+                      'Flash Deals',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize:
+                            isMobile
+                                ? 24
+                                : isTablet
+                                ? 28
+                                : 36,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
                       ),
                     ),
-                ],
-              );
-            },
-          ),
-        ],
+                    const SizedBox(width: 24),
+                    Row(
+                      children: [
+                        _buildTimerDigit('02'),
+                        const SizedBox(width: 4),
+                        const _ColonDot(),
+                        const SizedBox(width: 4),
+                        _buildTimerDigit('14'),
+                        const SizedBox(width: 4),
+                        const _ColonDot(),
+                        const SizedBox(width: 4),
+                        _buildTimerDigit('38'),
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Hrs',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Min',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+
+                // Products Grid
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    int crossAxisCount = 1;
+                    if (constraints.maxWidth >= 1200) {
+                      crossAxisCount = 4;
+                    } else if (constraints.maxWidth >= 800) {
+                      crossAxisCount = 3;
+                    } else if (constraints.maxWidth >= 550) {
+                      crossAxisCount = 2;
+                    } else {
+                      crossAxisCount = 1;
+                    }
+
+                    final spacing = 24.0;
+                    final itemWidth =
+                        (constraints.maxWidth -
+                            (crossAxisCount - 1) * spacing) /
+                        crossAxisCount;
+
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children:
+                          products.map((product) {
+                            return SizedBox(
+                              width: itemWidth,
+                              child: FlashProductCard(
+                                product: product,
+                                onTap: () {
+                                  _navigateToProductDetail(context, product);
+                                },
+                                onShopTap: () {
+                                  _addToCart(context, product);
+                                },
+                              ),
+                            );
+                          }).toList(),
+                    );
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildTimerDigit(String digit) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        digit,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToProductDetail(BuildContext context, ProductData product) {
+    debugPrint('Navigate to product: ${product.productName}');
+  }
+
+  void _addToCart(BuildContext context, ProductData product) {
+    debugPrint('Add to cart: ${product.productName}');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.productName} added to cart'),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 }
 
-class FlashProductData {
-  final String imageUrl;
-  final String brandName;
-  final String productName;
-  final double rating;
-  final int reviewCount;
-  final int currentPrice;
-  final int originalPrice;
-  final String tag;
-  final int discountPercentage;
+class _ColonDot extends StatelessWidget {
+  const _ColonDot();
 
-  FlashProductData({
-    required this.imageUrl,
-    required this.brandName,
-    required this.productName,
-    required this.rating,
-    required this.reviewCount,
-    required this.currentPrice,
-    required this.originalPrice,
-    required this.tag,
-    required this.discountPercentage,
-  });
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      ':',
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+    );
+  }
 }
 
-// Product Card matching the style from your FeaturedProductsSection (exactly same UI)
+// Flash Product Card Widget
 class FlashProductCard extends StatelessWidget {
-  final String imageUrl;
-  final String brandName;
-  final String productName;
-  final double rating;
-  final int reviewCount;
-  final int currentPrice;
-  final int originalPrice;
-  final String tag;
-  final int discountPercentage;
+  final ProductData product;
   final VoidCallback? onTap;
   final VoidCallback? onShopTap;
 
   const FlashProductCard({
     super.key,
-    required this.imageUrl,
-    required this.brandName,
-    required this.productName,
-    this.rating = 4.5,
-    this.reviewCount = 0,
-    required this.currentPrice,
-    required this.originalPrice,
-    this.tag = "",
-    this.discountPercentage = 0,
+    required this.product,
     this.onTap,
     this.onShopTap,
   });
@@ -331,10 +344,14 @@ class FlashProductCard extends StatelessWidget {
     final isMobile = screenWidth < 600;
     final imageHeight = isMobile ? 180.0 : 200.0;
 
-    final int displayDiscount =
-        discountPercentage > 0
-            ? discountPercentage
-            : ((originalPrice - currentPrice) / originalPrice * 100).round();
+    // Get display tag (other than Sale)
+    String displayTag = '';
+    for (var tag in product.tags) {
+      if (tag != 'Sale') {
+        displayTag = tag;
+        break;
+      }
+    }
 
     return GestureDetector(
       onTap: onTap,
@@ -361,10 +378,19 @@ class FlashProductCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.network(
-                    imageUrl,
+                    product.mainBannerImage,
                     height: imageHeight,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: imageHeight,
+                        width: double.infinity,
+                        color: Colors.grey.shade100,
+                        child: const Center(child: CircularProgressIndicator()),
+                      );
+                    },
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: imageHeight,
@@ -379,8 +405,8 @@ class FlashProductCard extends StatelessWidget {
                     },
                   ),
                 ),
-                // Discount Badge - Top Right
-                if (displayDiscount > 0)
+                // Discount Badge - Top Left
+                if (product.discountPercentage > 0)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -403,7 +429,7 @@ class FlashProductCard extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        "${displayDiscount}% OFF",
+                        "${product.discountPercentage}% OFF",
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -412,11 +438,11 @@ class FlashProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                // Tag Badge - Top Left (if any)
-                if (tag.isNotEmpty)
+                // Tag Badge - Top Right (if any)
+                if (displayTag.isNotEmpty)
                   Positioned(
                     top: 8,
-                    left: 8,
+                    right: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -436,7 +462,7 @@ class FlashProductCard extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        tag,
+                        displayTag,
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
@@ -445,6 +471,7 @@ class FlashProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                // Wishlist Button
                 Positioned(
                   bottom: 8,
                   right: 8,
@@ -458,35 +485,35 @@ class FlashProductCard extends StatelessWidget {
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 4,
-                          offset: Offset(0, 2),
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      icon: Icon(
-                        Icons.favorite,
+                      icon: const Icon(
+                        Icons.favorite_border,
                         color: Colors.red,
-                        // isFavorite ? Icons.favorite : Icons.favorite_border,
-                        // color: isFavorite ? Colors.red : Colors.grey,
                         size: 18,
                       ),
                       onPressed: () {
-                        // setState(() {
-                        //   isFavorite = !isFavorite;
-                        // });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Added to wishlist'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
                       },
                     ),
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
 
-            // Brand Name
+            // Seller/Brand Name
             Text(
-              brandName,
+              product.sellerName,
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -494,21 +521,19 @@ class FlashProductCard extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
             ),
-
             const SizedBox(height: 4),
 
             // Product Name
             Text(
-              productName,
+              product.productName,
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey.shade900,
               ),
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-
             const SizedBox(height: 6),
 
             // Rating Stars
@@ -520,23 +545,23 @@ class FlashProductCard extends StatelessWidget {
                     Icons.star_rounded,
                     size: 14,
                     color:
-                        index < rating.floor()
+                        index < product.rating.floor()
                             ? Colors.amber.shade600
                             : Colors.grey.shade300,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  rating.toString(),
+                  product.rating.toString(),
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: Colors.grey.shade600,
                   ),
                 ),
-                if (reviewCount > 0)
+                if (product.totalReviews > 0)
                   Text(
-                    " ($reviewCount)",
+                    " (${product.totalReviews})",
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: Colors.grey.shade500,
@@ -544,7 +569,6 @@ class FlashProductCard extends StatelessWidget {
                   ),
               ],
             ),
-
             const SizedBox(height: 10),
 
             // Price and Add to Cart Button
@@ -556,16 +580,16 @@ class FlashProductCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        "₹$currentPrice",
+                        "₹${product.discountPrice.toInt()}",
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xff4f46e5),
                         ),
                       ),
-                      if (originalPrice > currentPrice)
+                      if (product.price > product.discountPrice)
                         Text(
-                          "₹$originalPrice",
+                          "₹${product.price.toInt()}",
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             decoration: TextDecoration.lineThrough,
@@ -602,48 +626,6 @@ class FlashProductCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class TimerDigit extends StatelessWidget {
-  final String digit;
-  const TimerDigit({super.key, required this.digit});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        digit,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          letterSpacing: 1,
-        ),
-      ),
-    );
-  }
-}
-
-class ColonDot extends StatelessWidget {
-  const ColonDot({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Text(
-      ':',
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
       ),
     );
   }

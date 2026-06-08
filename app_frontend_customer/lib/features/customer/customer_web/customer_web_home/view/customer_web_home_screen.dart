@@ -3,6 +3,10 @@ import 'package:app_frontend_customer/features/customer/customer_web/common_widg
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_footer.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_bloc.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/best_sellers_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/featured_products_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/flash_deal_section.dart';
@@ -28,6 +32,18 @@ class CustomerHomeScreen extends StatelessWidget {
               (context) =>
                   CategoryBloc(customerWebService: CustomerWebService())
                     ..add(LoadCategories()),
+        ),
+        BlocProvider(
+          create:
+              (context) =>
+                  FeaturedProductsBloc(customerWebService: CustomerWebService())
+                    ..add(const LoadFeaturedProducts()),
+        ),
+        BlocProvider(
+          create:
+              (context) =>
+                  FlashDealsBloc(customerWebService: CustomerWebService())
+                    ..add(const LoadFlashDeals()),
         ),
       ],
       child: const CustomerHomeScreenContent(),
