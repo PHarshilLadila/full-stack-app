@@ -3,6 +3,8 @@ import 'package:app_frontend_customer/features/customer/customer_web/customer_we
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/all_categories_screen.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/category_products_screen.dart';
 import 'package:app_frontend_customer/utils/helper/category_style_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,7 +36,7 @@ class ShopCategoriesSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(isMobile),
+                _buildHeader(isMobile, context),
                 const SizedBox(height: 32),
                 _buildCategoriesGrid(state.categories, isMobile, context),
               ],
@@ -51,7 +53,7 @@ class ShopCategoriesSection extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(bool isMobile) {
+  Widget _buildHeader(bool isMobile, BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -75,7 +77,14 @@ class ShopCategoriesSection extends StatelessWidget {
           ],
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AllCategoriesScreen(),
+              ),
+            );
+          },
           child: Text(
             'View All',
             style: GoogleFonts.inter(
@@ -115,8 +124,13 @@ class ShopCategoriesSection extends StatelessWidget {
     // ⭐⭐⭐ MAGIC HAPPENS HERE - Using Extension Methods ⭐⭐⭐
     return GestureDetector(
       onTap: () {
-        context.read<CategoryBloc>().add(
-          LoadProductsByCategory(categoryName: category.name),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) =>
+                    CategoryProductsScreen(initialCategory: category.name),
+          ),
         );
       },
       child: Container(
