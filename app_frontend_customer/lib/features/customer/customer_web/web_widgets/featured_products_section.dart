@@ -1,394 +1,284 @@
-// lib/widgets/featured_products_section.dart
+// lib/features/customer/customer_web/web_widgets/featured_products_section.dart
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/models/product_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../customer_web_home/bloc/featured_products/featured_products_bloc.dart';
+import 'package:app_frontend_customer/service/customer_web_service.dart';
 
-class FeaturedProductsSection extends StatefulWidget {
+class FeaturedProductsSection extends StatelessWidget {
   const FeaturedProductsSection({super.key});
 
   @override
-  State<FeaturedProductsSection> createState() =>
-      _FeaturedProductsSectionState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create:
+          (context) =>
+              FeaturedProductsBloc(customerWebService: CustomerWebService())
+                ..add(const LoadFeaturedProducts()),
+      child: const _FeaturedProductsContent(),
+    );
+  }
 }
 
-class _FeaturedProductsSectionState extends State<FeaturedProductsSection> {
-  String selectedFilter = 'All';
+class _FeaturedProductsContent extends StatefulWidget {
+  const _FeaturedProductsContent();
 
-  final List<String> filters = ['All', 'Women', 'Men', 'Accessories'];
+  @override
+  State<_FeaturedProductsContent> createState() =>
+      _FeaturedProductsContentState();
+}
 
-  final List<ProductData> allProducts = [
-    ProductData(
-      imageUrl: "https://www.motiwalaperfumes.com/cdn/shop/files/veluro-4.png",
-      brandName: "The Label Life",
-      productName: "Oversized Linen Blazer",
-      rating: 4.5,
-      reviewCount: 234,
-      currentPrice: 3299,
-      originalPrice: 4999,
-      tag: "Premium",
-      discountPercentage: 34,
-    ),
-    ProductData(
-      imageUrl:
-          "https://www.motiwalaperfumes.com/cdn/shop/files/Fanatic-attire-blue-12_5f594cc0-9473-401c-bec2-b29e50b91aed.png",
-      brandName: "Urbano Fashion",
-      productName: "Slim Fit Chinos",
-      rating: 4.3,
-      reviewCount: 189,
-      currentPrice: 1599,
-      originalPrice: 2299,
-      tag: "",
-      discountPercentage: 30,
-    ),
-    ProductData(
-      imageUrl:
-          "https://res.cloudinary.com/dyorzq6ir/image/upload/v1780501149/ecommerce/products/fk53ydxeoxchqygcuko1.webp",
-      brandName: "Accessorize",
-      productName: "Pearl Drop Earrings",
-      rating: 4.7,
-      reviewCount: 412,
-      currentPrice: 799,
-      originalPrice: 1999,
-      tag: "Bestseller",
-      discountPercentage: 33,
-    ),
-    ProductData(
-      imageUrl: "https://www.motiwalaperfumes.com/cdn/shop/files/veluro-4.png",
-      brandName: "Velmora Studio",
-      productName: "Floral Midi Dress",
-      rating: 4.6,
-      reviewCount: 316,
-      currentPrice: 2199,
-      originalPrice: 2999,
-      tag: "",
-      discountPercentage: 26,
-    ),
-    ProductData(
-      imageUrl:
-          "https://www.motiwalaperfumes.com/cdn/shop/files/Fanatic-attire-blue-12_5f594cc0-9473-401c-bec2-b29e50b91aed.png",
-      brandName: "The Label Life",
-      productName: "Wool Blend Coat",
-      rating: 4.8,
-      reviewCount: 567,
-      currentPrice: 4599,
-      originalPrice: 6999,
-      tag: "Premium",
-      discountPercentage: 34,
-    ),
-    ProductData(
-      imageUrl:
-          "https://res.cloudinary.com/dyorzq6ir/image/upload/v1780501149/ecommerce/products/fk53ydxeoxchqygcuko1.webp",
-      brandName: "Urbano Fashion",
-      productName: "Leather Jacket",
-      rating: 4.4,
-      reviewCount: 278,
-      currentPrice: 3499,
-      originalPrice: 5499,
-      tag: "Trending",
-      discountPercentage: 36,
-    ),
-    ProductData(
-      imageUrl: "https://www.motiwalaperfumes.com/cdn/shop/files/veluro-4.png",
-      brandName: "Accessorize",
-      productName: "Designer Handbag",
-      rating: 4.9,
-      reviewCount: 892,
-      currentPrice: 2899,
-      originalPrice: 3999,
-      tag: "Bestseller",
-      discountPercentage: 27,
-    ),
-    ProductData(
-      imageUrl:
-          "https://www.motiwalaperfumes.com/cdn/shop/files/Fanatic-attire-blue-12_5f594cc0-9473-401c-bec2-b29e50b91aed.png",
-      brandName: "Velmora Studio",
-      productName: "Silk Scarf",
-      rating: 4.2,
-      reviewCount: 145,
-      currentPrice: 599,
-      originalPrice: 1299,
-      tag: "",
-      discountPercentage: 54,
-    ),
-  ];
-
-  List<ProductData> get filteredProducts {
-    if (selectedFilter == 'All') {
-      return allProducts;
-    }
-    return allProducts.where((product) {
-      if (selectedFilter == 'Women') {
-        return product.productName.contains('Dress') ||
-            product.productName.contains('Blazer') ||
-            product.productName.contains('Scarf');
-      } else if (selectedFilter == 'Men') {
-        return product.productName.contains('Chinos') ||
-            product.productName.contains('Jacket') ||
-            product.productName.contains('Coat');
-      } else if (selectedFilter == 'Accessories') {
-        return product.productName.contains('Earrings') ||
-            product.productName.contains('Handbag') ||
-            product.productName.contains('Scarf');
-      }
-      return true;
-    }).toList();
-  }
-
+class _FeaturedProductsContentState extends State<_FeaturedProductsContent> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
     final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal:
-            isMobile
-                ? 20
-                : isTablet
-                ? 40
-                : 60,
-        vertical: isMobile ? 40 : 60,
-      ),
-      color: Color(0xfff1f5f9),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Handpicked For You',
-                style: GoogleFonts.poppins(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<FeaturedProductsBloc, FeaturedProductsState>(
+      builder: (context, state) {
+        if (state is FeaturedProductsLoading) {
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal:
+                  isMobile
+                      ? 20
+                      : isTablet
+                      ? 40
+                      : 60,
+              vertical: 60,
+            ),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is FeaturedProductsError) {
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal:
+                  isMobile
+                      ? 20
+                      : isTablet
+                      ? 40
+                      : 60,
+              vertical: 60,
+            ),
+            child: Center(
+              child: Column(
                 children: [
+                  const Icon(Icons.error, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
                   Text(
-                    'Featured Products',
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize:
-                          isMobile
-                              ? 28
-                              : isTablet
-                              ? 36
-                              : 40,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade900,
-                    ),
+                    'Error: ${state.message}',
+                    style: const TextStyle(color: Colors.red),
                   ),
-                  // Ultra Clean Filter Chips - Minimalist Design
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      child: Row(
-                        children:
-                            filters.map((filter) {
-                              final isSelected = selectedFilter == filter;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedFilter = filter;
-                                  });
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(right: 12),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isSelected
-                                            ? const Color(0xff4f46e5)
-                                            : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(30),
-                                    border: Border.all(
-                                      color:
-                                          isSelected
-                                              ? const Color(0xff4f46e5)
-                                              : Colors.grey.shade300,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    filter,
-                                    style: GoogleFonts.inter(
-                                      fontSize: isMobile ? 11 : 13,
-                                      fontWeight:
-                                          isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.w500,
-                                      color:
-                                          isSelected
-                                              ? Colors.white
-                                              : Colors.grey.shade700,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                      ),
-                    ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<FeaturedProductsBloc>().add(
+                        const LoadFeaturedProducts(),
+                      );
+                    },
+                    child: const Text('Retry'),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          );
+        }
 
-          const SizedBox(height: 24),
+        if (state is FeaturedProductsLoaded) {
+          final products = state.products;
 
-          // Filter Chips
-          const SizedBox(height: 32),
+          if (products.isEmpty) {
+            return Container(
+              padding: EdgeInsets.symmetric(
+                horizontal:
+                    isMobile
+                        ? 20
+                        : isTablet
+                        ? 40
+                        : 60,
+                vertical: 60,
+              ),
+              child: const Center(child: Text('No featured products found')),
+            );
+          }
 
-          // Products using Wrap (No GridView)
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final cardWidth =
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal:
                   isMobile
-                      ? 280.0
+                      ? 20
                       : isTablet
-                      ? 260.0
-                      : 280.0;
-              final spacing = isMobile ? 16.0 : 24.0;
-
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                alignment: WrapAlignment.start,
-                children:
-                    filteredProducts.map((product) {
-                      return SizedBox(
-                        width: cardWidth,
-                        child: ProductCard(
-                          imageUrl: product.imageUrl,
-                          brandName: product.brandName,
-                          productName: product.productName,
-                          rating: product.rating,
-                          reviewCount: product.reviewCount,
-                          currentPrice: product.currentPrice,
-                          originalPrice: product.originalPrice,
-                          tag: product.tag,
-                          discountPercentage: product.discountPercentage,
-                          onTap: () {},
-                          onShopTap: () {},
-                        ),
-                      );
-                    }).toList(),
-              );
-            },
-          ),
-
-          const SizedBox(height: 48),
-
-          // View All Products Button
-          Center(
-            child: GestureDetector(
-              onTap: () {},
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xff4f46e5), Color(0xff6366f1)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xff4f46e5).withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                      ? 40
+                      : 60,
+              vertical: isMobile ? 40 : 60,
+            ),
+            color: const Color(0xfff1f5f9),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Section (Without Filters)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'View All Products',
-                      style: GoogleFonts.inter(
-                        fontSize: isMobile ? 14 : 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                      'Handpicked For You',
+                      style: GoogleFonts.poppins(
+                        fontSize: isMobile ? 12 : 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
+                        letterSpacing: 0.5,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 18,
+                    const SizedBox(height: 4),
+                    Text(
+                      'Featured Products',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize:
+                            isMobile
+                                ? 28
+                                : isTablet
+                                ? 36
+                                : 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade900,
+                      ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 32),
+
+                // Products Grid
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cardWidth =
+                        isMobile
+                            ? 280.0
+                            : isTablet
+                            ? 260.0
+                            : 280.0;
+                    final spacing = isMobile ? 16.0 : 24.0;
+
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      alignment: WrapAlignment.start,
+                      children:
+                          products.map((product) {
+                            return SizedBox(
+                              width: cardWidth,
+                              child: FeaturedProductCard(
+                                product: product,
+                                onTap: () {
+                                  // Navigate to product detail
+                                  _navigateToProductDetail(context, product);
+                                },
+                                onShopTap: () {
+                                  // Add to cart
+                                  _addToCart(context, product);
+                                },
+                              ),
+                            );
+                          }).toList(),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 48),
+
+                // View All Products Button
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      // Navigate to all products
+                      _navigateToAllProducts(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xff4f46e5), Color(0xff6366f1)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xff4f46e5).withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'View All Products',
+                            style: GoogleFonts.inter(
+                              fontSize: isMobile ? 14 : 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  void _navigateToProductDetail(BuildContext context, ProductData product) {
+    // TODO: Navigate to product detail page
+    debugPrint('Navigate to product: ${product.productName}');
+  }
+
+  void _addToCart(BuildContext context, ProductData product) {
+    // TODO: Implement add to cart functionality
+    debugPrint('Add to cart: ${product.productName}');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.productName} added to cart'),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
+
+  void _navigateToAllProducts(BuildContext context) {
+    // TODO: Navigate to all products page
+    debugPrint('Navigate to all products');
+  }
 }
 
-class ProductData {
-  final String imageUrl;
-  final String brandName;
-  final String productName;
-  final double rating;
-  final int reviewCount;
-  final int currentPrice;
-  final int originalPrice;
-  final String tag;
-  final int discountPercentage;
-
-  ProductData({
-    required this.imageUrl,
-    required this.brandName,
-    required this.productName,
-    required this.rating,
-    required this.reviewCount,
-    required this.currentPrice,
-    required this.originalPrice,
-    required this.tag,
-    required this.discountPercentage,
-  });
-}
-
-// Your existing ProductCard widget here (keep as is)
-class ProductCard extends StatelessWidget {
-  final String imageUrl;
-  final String brandName;
-  final String productName;
-  final double rating;
-  final int reviewCount;
-  final int currentPrice;
-  final int originalPrice;
-  final String tag;
-  final int discountPercentage;
+// Featured Product Card Widget
+class FeaturedProductCard extends StatelessWidget {
+  final ProductData product;
   final VoidCallback? onTap;
   final VoidCallback? onShopTap;
 
-  const ProductCard({
+  const FeaturedProductCard({
     super.key,
-    required this.imageUrl,
-    required this.brandName,
-    required this.productName,
-    this.rating = 4.5,
-    this.reviewCount = 0,
-    required this.currentPrice,
-    required this.originalPrice,
-    this.tag = "",
-    this.discountPercentage = 0,
+    required this.product,
     this.onTap,
     this.onShopTap,
   });
@@ -399,10 +289,14 @@ class ProductCard extends StatelessWidget {
     final isMobile = screenWidth < 600;
     final imageHeight = isMobile ? 180.0 : 200.0;
 
-    final int displayDiscount =
-        discountPercentage > 0
-            ? discountPercentage
-            : ((originalPrice - currentPrice) / originalPrice * 100).round();
+    // Get display tag (other than Featured)
+    String displayTag = '';
+    for (var tag in product.tags) {
+      if (tag != 'Featured') {
+        displayTag = tag;
+        break;
+      }
+    }
 
     return GestureDetector(
       onTap: onTap,
@@ -429,10 +323,19 @@ class ProductCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.network(
-                    imageUrl,
+                    product.mainBannerImage,
                     height: imageHeight,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: imageHeight,
+                        width: double.infinity,
+                        color: Colors.grey.shade100,
+                        child: const Center(child: CircularProgressIndicator()),
+                      );
+                    },
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: imageHeight,
@@ -448,7 +351,7 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
                 // Discount Badge - Top Right
-                if (displayDiscount > 0)
+                if (product.discountPercentage > 0)
                   Positioned(
                     top: 8,
                     right: 8,
@@ -471,7 +374,7 @@ class ProductCard extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        "${displayDiscount}% OFF",
+                        "${product.discountPercentage}% OFF",
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -480,8 +383,8 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                // Tag Badge - Top Left
-                if (tag.isNotEmpty)
+                // Tag Badge - Top Left (New, Trending, etc.)
+                if (displayTag.isNotEmpty)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -504,7 +407,7 @@ class ProductCard extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        tag,
+                        displayTag,
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
@@ -513,7 +416,7 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-
+                // Wishlist Button
                 Positioned(
                   bottom: 8,
                   right: 8,
@@ -533,29 +436,30 @@ class ProductCard extends StatelessWidget {
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      icon: Icon(
-                        Icons.favorite,
+                      icon: const Icon(
+                        Icons.favorite_border,
                         color: Colors.red,
-                        // isFavorite ? Icons.favorite : Icons.favorite_border,
-                        // color: isFavorite ? Colors.red : Colors.grey,
                         size: 18,
                       ),
                       onPressed: () {
-                        // setState(() {
-                        //   isFavorite = !isFavorite;
-                        // });
+                        // TODO: Add to wishlist
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Added to wishlist'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
                       },
                     ),
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
 
-            // Brand Name
+            // Seller/Brand Name
             Text(
-              brandName,
+              product.sellerName,
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -563,21 +467,19 @@ class ProductCard extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
             ),
-
             const SizedBox(height: 4),
 
             // Product Name
             Text(
-              productName,
+              product.productName,
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey.shade900,
               ),
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-
             const SizedBox(height: 6),
 
             // Rating Stars
@@ -589,23 +491,23 @@ class ProductCard extends StatelessWidget {
                     Icons.star_rounded,
                     size: 14,
                     color:
-                        index < rating.floor()
+                        index < product.rating.floor()
                             ? Colors.amber.shade600
                             : Colors.grey.shade300,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  rating.toString(),
+                  product.rating.toString(),
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: Colors.grey.shade600,
                   ),
                 ),
-                if (reviewCount > 0)
+                if (product.totalReviews > 0)
                   Text(
-                    " ($reviewCount)",
+                    " (${product.totalReviews})",
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: Colors.grey.shade500,
@@ -613,7 +515,6 @@ class ProductCard extends StatelessWidget {
                   ),
               ],
             ),
-
             const SizedBox(height: 10),
 
             // Price and Add to Cart Button
@@ -625,16 +526,16 @@ class ProductCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        "₹$currentPrice",
+                        "₹${product.discountPrice.toInt()}",
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xff4f46e5),
                         ),
                       ),
-                      if (originalPrice > currentPrice)
+                      if (product.price > product.discountPrice)
                         Text(
-                          "₹$originalPrice",
+                          "₹${product.price.toInt()}",
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             decoration: TextDecoration.lineThrough,

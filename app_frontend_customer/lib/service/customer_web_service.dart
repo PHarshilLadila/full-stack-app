@@ -1,7 +1,9 @@
+// lib/service/customer_web_service.dart
 import 'dart:convert';
-
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
 import 'package:http/http.dart' as http;
+import '../features/customer/customer_web/models/product_model.dart';
+import '../features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
+import '../features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_model.dart';
 
 class CustomerWebService {
   static const String baseUrl = 'http://localhost:8080';
@@ -15,7 +17,7 @@ class CustomerWebService {
     };
   }
 
-  // Get all products (for extracting categories)
+  // Get all products
   Future<ProductListResponse> getAllProducts() async {
     try {
       final response = await http.get(
@@ -39,7 +41,6 @@ class CustomerWebService {
       final productsResponse = await getAllProducts();
       final products = productsResponse.data;
 
-      // Extract unique categories with subcategories
       final Map<String, Set<String>> categoryMap = {};
       final Map<String, int> productCountMap = {};
 
@@ -47,20 +48,15 @@ class CustomerWebService {
         final category = product.category;
         final subCategory = product.subCategory;
 
-        // Add category
         if (!categoryMap.containsKey(category)) {
           categoryMap[category] = {};
           productCountMap[category] = 0;
         }
 
-        // Add subcategory
         categoryMap[category]?.add(subCategory);
-
-        // Count products
         productCountMap[category] = (productCountMap[category] ?? 0) + 1;
       }
 
-      // Convert to CategoryData list
       final categoriesList =
           categoryMap.entries.map((entry) {
             return CategoryData(
@@ -142,6 +138,25 @@ class CustomerWebService {
       }
     } catch (e) {
       throw Exception('Network error: $e');
+    }
+  }
+
+  // Get featured products
+  Future<FeaturedProductsResponse> getFeaturedProducts() async {
+    try {
+      final allProductsResponse = await getAllProducts();
+      final featuredProducts =
+          allProductsResponse.data
+              .where((product) => product.isFeatured)
+              .toList();
+
+      return FeaturedProductsResponse(
+        message: 'Featured products fetched successfully',
+        data: featuredProducts,
+        pagination: allProductsResponse.pagination,
+      );
+    } catch (e) {
+      throw Exception('Failed to load featured products: $e');
     }
   }
 }
