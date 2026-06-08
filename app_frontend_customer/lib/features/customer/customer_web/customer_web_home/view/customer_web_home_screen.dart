@@ -4,6 +4,8 @@ import 'package:app_frontend_customer/features/customer/customer_web/web_widgets
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/featured_products_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/flash_deal_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/home_hero_banner.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/promo_banner_section.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/recently_viewed_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/shop_categories_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/trending_now.dart';
 import 'package:flutter/material.dart';
@@ -98,52 +100,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   FlashDealsSection(),
                   TrendingNowSection(),
                   BestSellersSection(),
-
+                  PromoBannerSection(),
+                  RecentlyViewedSection(),
                   // Category Section
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: SectionHeader(
-                      title: "Shop by Category",
-                      subtitle: "Explore our curated collections",
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  CategoryGrid(),
-                  const SizedBox(height: 60),
-
-                  // Featured Products Section
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: SectionHeader(
-                      title: "Featured Products",
-                      subtitle: "Best selling items this week",
-                      showViewAll: true,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const FeaturedProductsCarousel(),
-                  const SizedBox(height: 60),
-
-                  // Promo Banner
-                  const PromoBanner(),
-                  const SizedBox(height: 60),
-
-                  // New Arrivals Section
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: SectionHeader(
-                      title: "New Arrivals",
-                      subtitle: "Fresh styles just for you",
-                      showViewAll: true,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const NewArrivalsGrid(),
-                  const SizedBox(height: 60),
-
-                  // Testimonials
-                  const TestimonialsSection(),
-                  const SizedBox(height: 60),
 
                   // Footer
                   const CommonFooter(),

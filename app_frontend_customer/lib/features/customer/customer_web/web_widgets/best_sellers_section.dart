@@ -56,7 +56,7 @@ class BestSellersSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 60),
-      color: const Color(0xffF5F7FA),
+      color: Color(0xfff1f5f9),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -78,7 +78,7 @@ class BestSellersSection extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     "Best Sellers",
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.playfairDisplay(
                       fontSize: 40,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xff111827),
