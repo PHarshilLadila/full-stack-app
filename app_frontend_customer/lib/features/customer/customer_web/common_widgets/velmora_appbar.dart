@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 class VelmoraAppBar extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;

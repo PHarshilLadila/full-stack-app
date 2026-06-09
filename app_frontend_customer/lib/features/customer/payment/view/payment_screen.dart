@@ -248,7 +248,7 @@ class _PaymentScreenState extends State<PaymentScreen>
     required Color iconColor,
     required Color bgColor,
   }) {
-    final isSelected = value == groupValue;
+    // final isSelected = value == groupValue;
     return RadioListTile<String>(
       value: value,
       groupValue: groupValue,

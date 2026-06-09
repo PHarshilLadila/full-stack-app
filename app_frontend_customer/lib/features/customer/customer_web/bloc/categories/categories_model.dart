@@ -1,6 +1,5 @@
 // lib/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart
-import '../../models/product_model.dart';
-
+ 
 class CategoryResponse {
   final String message;
   final List<CategoryData> data;

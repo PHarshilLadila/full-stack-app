@@ -57,11 +57,11 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
     );
   }
 
-  void _loadProductsBySubCategory(String subCategory) {
-    context.read<CategoryBloc>().add(
-      LoadProductsBySubCategory(subCategoryName: subCategory),
-    );
-  }
+  // void _loadProductsBySubCategory(String subCategory) {
+  //   context.read<CategoryBloc>().add(
+  //     LoadProductsBySubCategory(subCategoryName: subCategory),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {

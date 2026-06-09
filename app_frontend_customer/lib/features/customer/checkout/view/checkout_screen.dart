@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'package:app_frontend_customer/features/customer/cart/bloc/cart_event.dart';
 import 'package:app_frontend_customer/features/customer/checkout/model/checkout_model.dart';
 import 'package:app_frontend_customer/features/customer/payment/view/payment_screen.dart';
@@ -279,7 +281,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildAddressTile(AddressModel address) {
-    final isSelected = _selectedAddressId == address.id;
+    // final isSelected = _selectedAddressId == address.id;
 
     return RadioListTile<String>(
       value: address.id!,
@@ -916,19 +918,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  void _showPaymentDialog(OrderData orderData) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) => PaymentScreen(
-              orderId: orderData.orderId,
-              amount: orderData.totalAmount,
-              orderData: orderData.orderId,
-            ),
-      ),
-    );
-  }
+  // void _showPaymentDialog(OrderData orderData) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder:
+  //           (context) => PaymentScreen(
+  //             orderId: orderData.orderId,
+  //             amount: orderData.totalAmount,
+  //             orderData: orderData.orderId,
+  //           ),
+  //     ),
+  //   );
+  // }
 
   void _navigateToAddAddress() async {
     final token = await getTokenFromPrefs();

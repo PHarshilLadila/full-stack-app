@@ -975,6 +975,8 @@
 //   }
 // }
 
+// ignore_for_file: inference_failure_on_collection_literal
+
 import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';

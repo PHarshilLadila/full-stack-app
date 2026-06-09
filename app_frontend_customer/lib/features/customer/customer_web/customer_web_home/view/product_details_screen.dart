@@ -12,7 +12,7 @@ import 'package:app_frontend_customer/service/customer_web_service.dart';
 // ─── Velmora colour tokens ───────────────────────────────────────────────────
 const _kPrimary = Color(0xFF5B21B6); // deep-purple brand
 const _kPrimaryLight = Color(0xFFF5F3FF);
-const _kAccent = Color(0xFFFF6B35); // discount badge orange
+// const _kAccent = Color(0xFFFF6B35); // discount badge orange
 const _kBg = Color(0xFFF8F9FA);
 const _kSurface = Colors.white;
 const _kBorder = Color(0xFFE5E7EB);
@@ -2116,7 +2116,7 @@ class _RelatedProducts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
+    // final w = MediaQuery.of(context).size.width;
     final hPad = isMobile ? 16.0 : (isTablet ? 32.0 : 80.0);
     final crossCount = isMobile ? 2 : (isTablet ? 3 : 4);
 
