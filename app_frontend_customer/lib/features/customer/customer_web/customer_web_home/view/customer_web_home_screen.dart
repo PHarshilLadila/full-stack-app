@@ -9,6 +9,9 @@ import 'package:app_frontend_customer/features/customer/customer_web/bloc/flash_
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/flash_deals/flash_deals_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/trending_products/trending_products_bloc.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/trending_products/trending_products_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/all_categories_screen.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/category_products_screen.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/product_details_screen.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/best_sellers_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/featured_products_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/flash_deal_section.dart';
@@ -78,25 +81,37 @@ class _CustomerHomeScreenContentState extends State<CustomerHomeScreenContent> {
       body: Column(
         children: [
           VelmoraAppBar(scaffoldKey: _scaffoldKey),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const HeroBanner(),
-                  const SizedBox(height: 40),
-                  const ShopCategoriesSection(),
-                  const FeaturedProductsSection(),
-                  const FlashDealsSection(),
-                  const TrendingNowSection(),
-                  const BestSellersSection(),
-                  const PromoBannerSection(),
-                  const RecentlyViewedSection(),
-                  const CommonFooter(),
-                ],
-              ),
-            ),
-          ),
+          HomeMainContent(),
+          CategoryProductsScreen(),
+          AllCategoriesScreen(),
+          ProductDetailsScreen(productId: ''),
         ],
+      ),
+    );
+  }
+}
+
+class HomeMainContent extends StatelessWidget {
+  const HomeMainContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const HeroBanner(),
+            const SizedBox(height: 40),
+            const ShopCategoriesSection(),
+            const FeaturedProductsSection(),
+            const FlashDealsSection(),
+            const TrendingNowSection(),
+            const BestSellersSection(),
+            const PromoBannerSection(),
+            const RecentlyViewedSection(),
+            const CommonFooter(),
+          ],
+        ),
       ),
     );
   }

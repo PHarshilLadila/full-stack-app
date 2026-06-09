@@ -39,7 +39,7 @@ class BaseScaffold extends StatelessWidget {
       key: scaffoldKey,
       drawer: const CustomDrawer(),
       body: Column(
-        children: [
+        children: [ 
           VelmoraAppBar(scaffoldKey: scaffoldKey),
           Expanded(
             child: SingleChildScrollView(

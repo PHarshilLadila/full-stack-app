@@ -4,15 +4,15 @@ import 'package:app_frontend_customer/features/customer/customer_web/bloc/produc
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/product_details/product_details_model.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/product_details/product_details_state.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/product_review/product_reviews_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app_frontend_customer/service/customer_web_service.dart';
 
 // ─── Velmora colour tokens ───────────────────────────────────────────────────
-const _kPrimary = Color(0xFF5B21B6); // deep-purple brand
+const _kPrimary = Color(0xFF5B21B6);
 const _kPrimaryLight = Color(0xFFF5F3FF);
-// const _kAccent = Color(0xFFFF6B35); // discount badge orange
 const _kBg = Color(0xFFF8F9FA);
 const _kSurface = Colors.white;
 const _kBorder = Color(0xFFE5E7EB);
@@ -68,7 +68,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
     final isTablet = w >= 768 && w < 1200;
 
     return Scaffold(
-      backgroundColor: _kBg,
       body: BlocBuilder<ProductDetailsBloc, ProductDetailsState>(
         builder: (context, state) {
           if (state is ProductDetailsLoading) {
@@ -104,18 +103,10 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Breadcrumb ──────────────────────────────────────────────────
           _Breadcrumb(isMobile: isMobile),
-
-          // ── Main product section ─────────────────────────────────────────
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal:
-                  isMobile
-                      ? 16
-                      : isTablet
-                      ? 32
-                      : 80,
+              horizontal: isMobile ? 16 : (isTablet ? 32 : 80),
               vertical: 24,
             ),
             child:
@@ -149,16 +140,9 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                       bloc: context.read<ProductDetailsBloc>(),
                     ),
           ),
-
-          // ── Tab bar ───────────────────────────────────────────────────────
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal:
-                  isMobile
-                      ? 16
-                      : isTablet
-                      ? 32
-                      : 80,
+              horizontal: isMobile ? 16 : (isTablet ? 32 : 80),
             ),
             child: _TabBar(
               selected: _selectedTab,
@@ -166,49 +150,26 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
               onTap: (i) => setState(() => _selectedTab = i),
             ),
           ),
-
-          // ── Tab content ───────────────────────────────────────────────────
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal:
-                  isMobile
-                      ? 16
-                      : isTablet
-                      ? 32
-                      : 80,
+              horizontal: isMobile ? 16 : (isTablet ? 32 : 80),
               vertical: 24,
             ),
             child: _buildTabContent(state, isMobile),
           ),
-
-          // ── Seller card ───────────────────────────────────────────────────
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal:
-                  isMobile
-                      ? 16
-                      : isTablet
-                      ? 32
-                      : 80,
+              horizontal: isMobile ? 16 : (isTablet ? 32 : 80),
               vertical: 8,
             ),
             child: _SellerCard(sellerName: state.product.sellerName),
           ),
-
           const SizedBox(height: 40),
-
-          // ── Customer Reviews ──────────────────────────────────────────────
           _ReviewsSection(state: state, isMobile: isMobile),
-
           const SizedBox(height: 40),
-
-          // ── Related Products ──────────────────────────────────────────────
           _RelatedProducts(isMobile: isMobile, isTablet: isTablet),
-
           const SizedBox(height: 40),
-
-          // ── Footer ────────────────────────────────────────────────────────
-          const _Footer(),
+          CommonFooter(),
         ],
       ),
     );
@@ -245,9 +206,6 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BREADCRUMB
-// ─────────────────────────────────────────────────────────────────────────────
 class _Breadcrumb extends StatelessWidget {
   final bool isMobile;
   const _Breadcrumb({required this.isMobile});
@@ -293,9 +251,6 @@ class _Breadcrumb extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DESKTOP PRODUCT TOP (left=gallery, right=info)
-// ─────────────────────────────────────────────────────────────────────────────
 class _DesktopProductTop extends StatelessWidget {
   final ProductDetailsLoaded state;
   final int quantity;
@@ -330,10 +285,8 @@ class _DesktopProductTop extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Gallery
         SizedBox(width: 480, child: _ImageGallery(state: state, bloc: bloc)),
         const SizedBox(width: 48),
-        // Info
         Expanded(
           child: _ProductInfo(
             state: state,
@@ -354,9 +307,6 @@ class _DesktopProductTop extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MOBILE PRODUCT TOP (stacked)
-// ─────────────────────────────────────────────────────────────────────────────
 class _MobileProductTop extends StatelessWidget {
   final ProductDetailsLoaded state;
   final int quantity;
@@ -410,9 +360,6 @@ class _MobileProductTop extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// IMAGE GALLERY
-// ─────────────────────────────────────────────────────────────────────────────
 class _ImageGallery extends StatelessWidget {
   final ProductDetailsLoaded state;
   final ProductDetailsBloc bloc;
@@ -430,7 +377,6 @@ class _ImageGallery extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Vertical thumbnails (desktop only)
         if (!isMobile) ...[
           SizedBox(
             width: 72,
@@ -461,8 +407,6 @@ class _ImageGallery extends StatelessWidget {
           ),
           const SizedBox(width: 12),
         ],
-
-        // Main image
         Expanded(
           child: Column(
             children: [
@@ -483,7 +427,6 @@ class _ImageGallery extends StatelessWidget {
                         width: double.infinity,
                         height: double.infinity,
                       ),
-                      // Nav arrows
                       if (allImages.length > 1) ...[
                         Positioned(
                           left: 8,
@@ -520,7 +463,6 @@ class _ImageGallery extends StatelessWidget {
                           ),
                         ),
                       ],
-                      // Zoom icon
                       Positioned(
                         right: 12,
                         bottom: 12,
@@ -541,8 +483,6 @@ class _ImageGallery extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Mobile horizontal thumbnails
               if (isMobile && allImages.length > 1) ...[
                 const SizedBox(height: 12),
                 SizedBox(
@@ -607,9 +547,6 @@ class _ArrowButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PRODUCT INFO (right column)
-// ─────────────────────────────────────────────────────────────────────────────
 class _ProductInfo extends StatelessWidget {
   final ProductDetailsLoaded state;
   final int quantity;
@@ -645,7 +582,6 @@ class _ProductInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Tags row
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -668,8 +604,6 @@ class _ProductInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
-
-        // Product name
         Text(
           product.productName,
           style: GoogleFonts.playfairDisplay(
@@ -680,25 +614,37 @@ class _ProductInfo extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-
-        // Seller
-        Row(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
           children: [
-            Icon(Icons.storefront_outlined, size: 15, color: _kTextSecondary),
-            const SizedBox(width: 5),
-            Text(
-              'Sold by ',
-              style: GoogleFonts.inter(fontSize: 13, color: _kTextSecondary),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.storefront_outlined,
+                  size: 15,
+                  color: _kTextSecondary,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  'Sold by ',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: _kTextSecondary,
+                  ),
+                ),
+                Text(
+                  product.sellerName,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: _kPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              product.sellerName,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: _kPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
@@ -717,26 +663,34 @@ class _ProductInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-
-        // Rating
-        Row(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 6,
           children: [
-            _StarRow(rating: product.rating),
-            const SizedBox(width: 8),
-            Text(
-              '${product.rating}',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: _kTextPrimary,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _StarRow(rating: product.rating),
+                const SizedBox(width: 8),
+                Text(
+                  '${product.rating}',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: _kTextPrimary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '(${state.totalReviews} reviews)',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: _kTextSecondary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 4),
-            Text(
-              '(${state.totalReviews} reviews)',
-              style: GoogleFonts.inter(fontSize: 13, color: _kTextSecondary),
-            ),
-            const SizedBox(width: 12),
             Text(
               '2.4k+ Sold',
               style: GoogleFonts.inter(fontSize: 12, color: _kTextSecondary),
@@ -744,78 +698,83 @@ class _ProductInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-
-        // Price
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 10,
+          runSpacing: 8,
           children: [
-            Text(
-              '₹${product.discountPrice.toInt()}',
-              style: GoogleFonts.poppins(
-                fontSize: isMobile ? 26 : 32,
-                fontWeight: FontWeight.bold,
-                color: _kTextPrimary,
-              ),
-            ),
-            const SizedBox(width: 10),
-            if (product.discountPercentage > 0) ...[
-              Text(
-                '₹${product.price.toInt()}',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  decoration: TextDecoration.lineThrough,
-                  color: _kTextSecondary,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: _kRed,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  '${product.discountPercentage}% OFF',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '₹${product.discountPrice.toInt()}',
+                  style: GoogleFonts.poppins(
+                    fontSize: isMobile ? 26 : 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: _kTextPrimary,
                   ),
                 ),
+                if (product.discountPercentage > 0) ...[
+                  const SizedBox(width: 10),
+                  Text(
+                    '₹${product.price.toInt()}',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      decoration: TextDecoration.lineThrough,
+                      color: _kTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _kRed,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '${product.discountPercentage}% OFF',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            if (product.discountPercentage > 0)
+              Text(
+                'You save ₹${(product.price - product.discountPrice).toInt()} on this order!',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: _kGreen,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ],
           ],
         ),
-
-        if (product.discountPercentage > 0) ...[
-          const SizedBox(height: 4),
-          Text(
-            'You save ₹${(product.price - product.discountPrice).toInt()} on this order!',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: _kGreen,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
         const SizedBox(height: 8),
-
-        // Promo code
         Container(
+          width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: const Color(0xFFFFFBEB),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0xFFFDE68A)),
           ),
-          child: Row(
+          child: Wrap(
+            spacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               const Icon(
                 Icons.local_offer_outlined,
                 size: 14,
                 color: Color(0xFF92400E),
               ),
-              const SizedBox(width: 8),
               Text(
                 'Apply code: ',
                 style: GoogleFonts.inter(
@@ -842,8 +801,6 @@ class _ProductInfo extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // Stock
         Row(
           children: [
             Icon(
@@ -865,8 +822,6 @@ class _ProductInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-
-        // Colour selector
         _SectionLabel(label: 'Colour – $selectedColor'),
         const SizedBox(height: 10),
         Wrap(
@@ -900,8 +855,6 @@ class _ProductInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-
-        // Size selector
         Row(
           children: [
             _SectionLabel(label: 'Size'),
@@ -951,8 +904,6 @@ class _ProductInfo extends StatelessWidget {
               }).toList(),
         ),
         const SizedBox(height: 20),
-
-        // Quantity
         _SectionLabel(label: 'Qty'),
         const SizedBox(height: 10),
         Row(
@@ -981,8 +932,6 @@ class _ProductInfo extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 24),
-
-        // CTA buttons
         isMobile
             ? Column(
               children: [
@@ -1003,12 +952,8 @@ class _ProductInfo extends StatelessWidget {
               ],
             ),
         const SizedBox(height: 24),
-
-        // Delivery & Services
         _DeliveryInfo(),
         const SizedBox(height: 16),
-
-        // Tags
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -1280,22 +1225,27 @@ class _DeliveryRow extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: color),
         const SizedBox(width: 10),
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: '$title  ',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _kTextPrimary,
+        Flexible(
+          child: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '$title  ',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _kTextPrimary,
+                  ),
                 ),
-              ),
-              TextSpan(
-                text: sub,
-                style: GoogleFonts.inter(fontSize: 12, color: _kTextSecondary),
-              ),
-            ],
+                TextSpan(
+                  text: sub,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: _kTextSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -1303,9 +1253,6 @@ class _DeliveryRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TAB BAR
-// ─────────────────────────────────────────────────────────────────────────────
 class _TabBar extends StatelessWidget {
   final int selected;
   final int totalReviews;
@@ -1367,9 +1314,6 @@ class _TabBar extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DESCRIPTION TAB
-// ─────────────────────────────────────────────────────────────────────────────
 class _DescriptionTab extends StatelessWidget {
   final ProductDetailsData product;
   const _DescriptionTab({required this.product});
@@ -1425,9 +1369,6 @@ class _DescriptionTab extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SPECIFICATIONS TAB
-// ─────────────────────────────────────────────────────────────────────────────
 class _SpecificationsTab extends StatelessWidget {
   final ProductDetailsData product;
   const _SpecificationsTab({required this.product});
@@ -1504,9 +1445,6 @@ class _SpecificationsTab extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// REVIEWS TAB (inside tabs)
-// ─────────────────────────────────────────────────────────────────────────────
 class _ReviewsTab extends StatelessWidget {
   final ProductDetailsLoaded state;
   final bool isMobile;
@@ -1514,9 +1452,8 @@ class _ReviewsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (state.reviews.isEmpty) {
+    if (state.reviews.isEmpty)
       return const Center(child: Text('No reviews yet'));
-    }
     return Column(
       children: state.reviews.map((r) => _ReviewCard(review: r)).toList(),
     );
@@ -1525,19 +1462,14 @@ class _ReviewsTab extends StatelessWidget {
 
 class _RelatedProductsTab extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Related products coming soon…',
-        style: GoogleFonts.inter(color: _kTextSecondary),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Center(
+    child: Text(
+      'Related products coming soon…',
+      style: GoogleFonts.inter(color: _kTextSecondary),
+    ),
+  );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SELLER CARD
-// ─────────────────────────────────────────────────────────────────────────────
 class _SellerCard extends StatelessWidget {
   final String sellerName;
   const _SellerCard({required this.sellerName});
@@ -1551,7 +1483,10 @@ class _SellerCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: _kBorder),
       ),
-      child: Row(
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 14,
+        runSpacing: 12,
         children: [
           Container(
             width: 48,
@@ -1562,8 +1497,7 @@ class _SellerCard extends StatelessWidget {
             ),
             child: const Icon(Icons.storefront_outlined, color: _kPrimary),
           ),
-          const SizedBox(width: 14),
-          Expanded(
+          Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1578,18 +1512,24 @@ class _SellerCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 6,
                   children: [
-                    const Icon(Icons.star_rounded, size: 13, color: _kGold),
-                    const SizedBox(width: 3),
-                    Text(
-                      '4.8 Seller Rating',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: _kTextSecondary,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star_rounded, size: 13, color: _kGold),
+                        const SizedBox(width: 3),
+                        Text(
+                          '4.8 Seller Rating',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: _kTextSecondary,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
                     Text(
                       '1240 Products',
                       style: GoogleFonts.inter(
@@ -1597,7 +1537,6 @@ class _SellerCard extends StatelessWidget {
                         color: _kTextSecondary,
                       ),
                     ),
-                    const SizedBox(width: 12),
                     Text(
                       'Ships within 24 hours',
                       style: GoogleFonts.inter(
@@ -1634,9 +1573,6 @@ class _SellerCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// REVIEWS SECTION (full page section below tabs)
-// ─────────────────────────────────────────────────────────────────────────────
 class _ReviewsSection extends StatelessWidget {
   final ProductDetailsLoaded state;
   final bool isMobile;
@@ -1662,17 +1598,11 @@ class _ReviewsSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
-          // Rating summary
           isMobile
               ? _RatingSummaryMobile(state: state)
               : _RatingSummaryDesktop(state: state),
-
           const SizedBox(height: 32),
-
-          // Individual reviews
           ...state.reviews.map((r) => _ReviewCard(review: r)),
-
           const SizedBox(height: 16),
           Center(
             child: OutlinedButton(
@@ -1712,7 +1642,6 @@ class _RatingSummaryDesktop extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Big rating
         SizedBox(
           width: 160,
           child: Column(
@@ -1741,7 +1670,6 @@ class _RatingSummaryDesktop extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 48),
-        // Bars
         Expanded(
           child: _RatingBars(
             distribution: state.ratingDistribution,
@@ -1876,7 +1804,10 @@ class _ReviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
             children: [
               CircleAvatar(
                 radius: 20,
@@ -1891,12 +1822,13 @@ class _ReviewCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           review.userName,
@@ -1906,7 +1838,6 @@ class _ReviewCard extends StatelessWidget {
                             color: _kTextPrimary,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         if (review.isVerifiedPurchase)
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -1949,8 +1880,8 @@ class _ReviewCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
           if (review.comment.isNotEmpty) ...[
+            const SizedBox(height: 12),
             Text(
               _getReviewTitle(review.comment),
               style: GoogleFonts.inter(
@@ -1994,13 +1925,13 @@ class _ReviewCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 12),
-          Row(
+          Wrap(
+            spacing: 16,
             children: [
               _ReviewAction(
                 icon: Icons.thumb_up_outlined,
                 label: 'Helpful (0)',
               ),
-              const SizedBox(width: 16),
               _ReviewAction(icon: Icons.flag_outlined, label: 'Report'),
             ],
           ),
@@ -2031,6 +1962,7 @@ class _ReviewAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
     children: [
       Icon(icon, size: 14, color: _kTextSecondary),
       const SizedBox(width: 4),
@@ -2048,14 +1980,15 @@ class _StarRowRight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
     children: List.generate(
       5,
       (i) => Icon(
         i < rating.floor()
             ? Icons.star_rounded
-            : i < rating
-            ? Icons.star_half_rounded
-            : Icons.star_border_rounded,
+            : (i < rating
+                ? Icons.star_half_rounded
+                : Icons.star_border_rounded),
         size: 14,
         color: _kGold,
       ),
@@ -2063,9 +1996,6 @@ class _StarRowRight extends StatelessWidget {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RELATED PRODUCTS
-// ─────────────────────────────────────────────────────────────────────────────
 class _RelatedProducts extends StatelessWidget {
   final bool isMobile;
   final bool isTablet;
@@ -2116,7 +2046,6 @@ class _RelatedProducts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final w = MediaQuery.of(context).size.width;
     final hPad = isMobile ? 16.0 : (isTablet ? 32.0 : 80.0);
     final crossCount = isMobile ? 2 : (isTablet ? 3 : 4);
 
@@ -2212,11 +2141,9 @@ class _RelatedProductCard extends StatelessWidget {
               Container(
                 height: 180,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F0),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF5F5F0),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                 ),
                 child: const Center(
                   child: Icon(
@@ -2315,7 +2242,9 @@ class _RelatedProductCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Row(
+                Wrap(
+                  spacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       '₹${data['price']}',
@@ -2325,7 +2254,6 @@ class _RelatedProductCard extends StatelessWidget {
                         color: _kPrimary,
                       ),
                     ),
-                    const SizedBox(width: 6),
                     if (data['discount'] > 0)
                       Text(
                         '₹${data['original']}',
@@ -2369,270 +2297,6 @@ class _RelatedProductCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FOOTER
-// ─────────────────────────────────────────────────────────────────────────────
-class _Footer extends StatelessWidget {
-  const _Footer();
-
-  @override
-  Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
-
-    return Container(
-      color: const Color(0xFF111827),
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : 80,
-        vertical: 48,
-      ),
-      child: isMobile ? _FooterMobile() : _FooterDesktop(),
-    );
-  }
-}
-
-class _FooterDesktop extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Brand
-            Expanded(
-              flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _kPrimary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'V',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Velmora',
-                        style: GoogleFonts.poppins(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Your destination for premium fashion, beauty, and lifestyle. Discover the best brands, curated just for you.',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: Colors.white60,
-                      height: 1.6,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children:
-                        [
-                              Icons.facebook,
-                              Icons.flutter_dash,
-                              Icons.link,
-                              Icons.photo_camera,
-                            ]
-                            .map(
-                              (icon) => Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: Icon(
-                                  icon,
-                                  size: 20,
-                                  color: Colors.white54,
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 48),
-            Expanded(
-              child: _FooterCol(
-                title: 'Company',
-                items: ['About Us', 'Careers', 'Press', 'Blog', 'Investors'],
-              ),
-            ),
-            Expanded(
-              child: _FooterCol(
-                title: 'Help',
-                items: [
-                  'Customer Support',
-                  'Track Order',
-                  'Returns & Exchanges',
-                  'FAQs',
-                  'Size Guide',
-                ],
-              ),
-            ),
-            Expanded(
-              child: _FooterCol(
-                title: 'Legal',
-                items: [
-                  'Privacy Policy',
-                  'Terms of Service',
-                  'Cookie Policy',
-                  'Accessibility',
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
-        Container(height: 1, color: Colors.white12),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '© 2025 Velmora. All rights reserved.',
-              style: GoogleFonts.inter(fontSize: 12, color: Colors.white38),
-            ),
-            Row(
-              children: [
-                Icon(Icons.payment, size: 24, color: Colors.white38),
-                const SizedBox(width: 8),
-                Icon(Icons.credit_card, size: 24, color: Colors.white38),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.account_balance_wallet_outlined,
-                  size: 24,
-                  color: Colors.white38,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _FooterMobile extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: _kPrimary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'V',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Velmora',
-              style: GoogleFonts.poppins(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Your destination for premium fashion & lifestyle.',
-          style: GoogleFonts.inter(fontSize: 13, color: Colors.white60),
-        ),
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _FooterCol(
-              title: 'Company',
-              items: ['About Us', 'Careers', 'Press', 'Blog'],
-            ),
-            _FooterCol(
-              title: 'Help',
-              items: ['Support', 'Track Order', 'Returns', 'FAQs'],
-            ),
-            _FooterCol(title: 'Legal', items: ['Privacy', 'Terms', 'Cookies']),
-          ],
-        ),
-        const SizedBox(height: 24),
-        Container(height: 1, color: Colors.white12),
-        const SizedBox(height: 16),
-        Text(
-          '© 2025 Velmora. All rights reserved.',
-          style: GoogleFonts.inter(fontSize: 11, color: Colors.white38),
-        ),
-      ],
-    );
-  }
-}
-
-class _FooterCol extends StatelessWidget {
-  final String title;
-  final List<String> items;
-  const _FooterCol({required this.title, required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 14),
-        ...items.map(
-          (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              item,
-              style: GoogleFonts.inter(fontSize: 13, color: Colors.white54),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
 class _StarRow extends StatelessWidget {
   final double rating;
   final double size;
@@ -2646,9 +2310,9 @@ class _StarRow extends StatelessWidget {
       (i) => Icon(
         i < rating.floor()
             ? Icons.star_rounded
-            : i < rating
-            ? Icons.star_half_rounded
-            : Icons.star_border_rounded,
+            : (i < rating
+                ? Icons.star_half_rounded
+                : Icons.star_border_rounded),
         size: size,
         color: _kGold,
       ),
@@ -2671,7 +2335,7 @@ class _NetworkImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (url.isEmpty) {
+    if (url.isEmpty)
       return Container(
         color: const Color(0xFFF5F5F0),
         child: const Icon(
@@ -2680,26 +2344,26 @@ class _NetworkImageWidget extends StatelessWidget {
           color: Color(0xFFD1D5DB),
         ),
       );
-    }
     return Image.network(
       url,
       fit: fit,
       width: width,
       height: height,
-      loadingBuilder: (_, child, progress) {
-        if (progress == null) return child;
-        return Center(
-          child: CircularProgressIndicator(
-            value:
-                progress.expectedTotalBytes != null
-                    ? progress.cumulativeBytesLoaded /
-                        progress.expectedTotalBytes!
-                    : null,
-            strokeWidth: 2,
-            color: _kPrimary,
-          ),
-        );
-      },
+      loadingBuilder:
+          (_, child, progress) =>
+              progress == null
+                  ? child
+                  : Center(
+                    child: CircularProgressIndicator(
+                      value:
+                          progress.expectedTotalBytes != null
+                              ? progress.cumulativeBytesLoaded /
+                                  progress.expectedTotalBytes!
+                              : null,
+                      strokeWidth: 2,
+                      color: _kPrimary,
+                    ),
+                  ),
       errorBuilder:
           (_, __, ___) => Container(
             color: const Color(0xFFF5F5F0),

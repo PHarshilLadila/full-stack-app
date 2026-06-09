@@ -1,10 +1,8 @@
-// lib/features/customer/customer_web/screens/category_products_screen.dart
-import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/base_scaffold.dart';
+// lib/features/customer/customer_web/customer_web_home/view/category_products_screen.dart
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_bloc.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_model.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_state.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/product_details_screen.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/models/product_model.dart';
 import 'package:app_frontend_customer/utils/helper/category_style_manager.dart';
 import 'package:flutter/material.dart';
@@ -14,24 +12,40 @@ import 'package:google_fonts/google_fonts.dart';
 class CategoryProductsScreen extends StatelessWidget {
   final String? initialCategory;
 
-  const CategoryProductsScreen({super.key, this.initialCategory});
+  /// Called when the user taps a product card. Receives the product id.
+  final void Function(String productId)? onProductTap;
+
+  /// Called when the user taps "View All Categories" so the parent can show
+  /// AllCategoriesScreen without Navigator.push.
+  final VoidCallback? onViewAllCategories;
+
+  const CategoryProductsScreen({
+    super.key,
+    this.initialCategory,
+    this.onProductTap,
+    this.onViewAllCategories,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
-    return BaseScaffold(
-      scaffoldKey: scaffoldKey,
-      showFooter: true,
-      child: _CategoryProductsContent(initialCategory: initialCategory),
+    return _CategoryProductsContent(
+      initialCategory: initialCategory,
+      onProductTap: onProductTap,
+      onViewAllCategories: onViewAllCategories,
     );
   }
 }
 
 class _CategoryProductsContent extends StatefulWidget {
   final String? initialCategory;
+  final void Function(String productId)? onProductTap;
+  final VoidCallback? onViewAllCategories;
 
-  const _CategoryProductsContent({this.initialCategory});
+  const _CategoryProductsContent({
+    this.initialCategory,
+    this.onProductTap,
+    this.onViewAllCategories,
+  });
 
   @override
   State<_CategoryProductsContent> createState() =>
@@ -56,12 +70,6 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
       LoadProductsByCategory(categoryName: category),
     );
   }
-
-  // void _loadProductsBySubCategory(String subCategory) {
-  //   context.read<CategoryBloc>().add(
-  //     LoadProductsBySubCategory(subCategoryName: subCategory),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +146,7 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
           const SizedBox(height: 32),
           LayoutBuilder(
             builder: (context, constraints) {
-              int crossAxisCount = 2;
+              int crossAxisCount;
               if (constraints.maxWidth >= 1200) {
                 crossAxisCount = 6;
               } else if (constraints.maxWidth >= 900) {
@@ -149,7 +157,7 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
                 crossAxisCount = 2;
               }
 
-              final spacing = 16.0;
+              const spacing = 16.0;
               final itemWidth =
                   (constraints.maxWidth - (crossAxisCount - 1) * spacing) /
                   crossAxisCount;
@@ -310,7 +318,7 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
               padding: EdgeInsets.all(isMobile ? 16 : 24),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  int crossAxisCount = 2;
+                  int crossAxisCount;
                   if (constraints.maxWidth >= 1200) {
                     crossAxisCount = 5;
                   } else if (constraints.maxWidth >= 900) {
@@ -321,7 +329,7 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
                     crossAxisCount = 2;
                   }
 
-                  final spacing = 16.0;
+                  const spacing = 16.0;
                   final itemWidth =
                       (constraints.maxWidth - (crossAxisCount - 1) * spacing) /
                       crossAxisCount;
@@ -357,7 +365,10 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
 
     return GestureDetector(
       onTap: () {
-        _navigateToProductDetail(context, product);
+        // Use callback instead of Navigator.push
+        if (widget.onProductTap != null) {
+          widget.onProductTap!(product.id);
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -519,15 +530,6 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _navigateToProductDetail(BuildContext context, ProductData product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailsScreen(productId: product.id),
       ),
     );
   }
