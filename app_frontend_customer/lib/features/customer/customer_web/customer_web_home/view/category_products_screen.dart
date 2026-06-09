@@ -1,9 +1,10 @@
 // lib/features/customer/customer_web/screens/category_products_screen.dart
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/base_scaffold.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_bloc.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_event.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/product_details_screen.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/models/product_model.dart';
 import 'package:app_frontend_customer/utils/helper/category_style_manager.dart';
 import 'package:flutter/material.dart';
@@ -356,7 +357,7 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
 
     return GestureDetector(
       onTap: () {
-        _navigateToProductDetail(product);
+        _navigateToProductDetail(context, product);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -522,7 +523,12 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
     );
   }
 
-  void _navigateToProductDetail(ProductData product) {
-    debugPrint('Navigate to: ${product.productName}');
+  void _navigateToProductDetail(BuildContext context, ProductData product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailsScreen(productId: product.id),
+      ),
+    );
   }
 }

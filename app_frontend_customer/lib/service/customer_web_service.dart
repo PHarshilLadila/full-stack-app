@@ -1,11 +1,14 @@
 // lib/service/customer_web_service.dart
 import 'dart:convert';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_model.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/trending_products/trending_products_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/flash_deals/flash_deals_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/product_details/product_details_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/product_review/product_reviews_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/trending_products/trending_products_model.dart';
+
 import 'package:http/http.dart' as http;
 import '../features/customer/customer_web/models/product_model.dart';
-import '../features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
-import '../features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_model.dart';
+import '../features/customer/customer_web/bloc/categories/categories_model.dart';
+import '../features/customer/customer_web/bloc/featured_products/featured_products_model.dart';
 
 class CustomerWebService {
   static const String baseUrl = 'http://localhost:8080';
@@ -193,6 +196,47 @@ class CustomerWebService {
       );
     } catch (e) {
       throw Exception('Failed to load trending products: $e');
+    }
+  }
+  // lib/service/customer_web_service.dart - Add these methods
+
+  // Get product details by ID
+  Future<ProductDetailsResponse> getProductDetails(String productId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/product/details?id=$productId'),
+        headers: getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return ProductDetailsResponse.fromJson(json.decode(response.body));
+      } else {
+        throw Exception(
+          'Failed to load product details: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Get product reviews by product ID
+  Future<ProductReviewsResponse> getProductReviews(String productId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/product/review/list?productId=$productId'),
+        headers: getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return ProductReviewsResponse.fromJson(json.decode(response.body));
+      } else {
+        throw Exception(
+          'Failed to load product reviews: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
     }
   }
 }

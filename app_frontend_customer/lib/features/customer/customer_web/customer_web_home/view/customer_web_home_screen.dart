@@ -1,14 +1,14 @@
 // lib/features/customer/customer_web/customer_home_screen.dart (Updated)
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_appbar.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_footer.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_bloc.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_event.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_bloc.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_event.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_bloc.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_event.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/trending_products/trending_products_bloc.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/trending_products/trending_products_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/featured_products/featured_products_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/featured_products/featured_products_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/flash_deals/flash_deals_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/flash_deals/flash_deals_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/trending_products/trending_products_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/trending_products/trending_products_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/best_sellers_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/featured_products_section.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/web_widgets/flash_deal_section.dart';

@@ -1,10 +1,10 @@
 // lib/features/customer/customer_web/screens/all_categories_screen.dart
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/base_scaffold.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/common_widgets/velmora_appbar.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_bloc.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_event.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_state.dart';
 import 'package:app_frontend_customer/utils/helper/category_style_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

@@ -1,8 +1,8 @@
 // lib/features/customer/customer_web/web_widgets/shop_categories_section_simple.dart
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_bloc.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_event.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_bloc.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_state.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/all_categories_screen.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/category_products_screen.dart';
 import 'package:app_frontend_customer/utils/helper/category_style_manager.dart';

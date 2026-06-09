@@ -1,6 +1,6 @@
 // lib/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_bloc.dart
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_event.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/flash_deals/flash_deals_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/flash_deals/flash_deals_state.dart';
 import 'package:app_frontend_customer/service/customer_web_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

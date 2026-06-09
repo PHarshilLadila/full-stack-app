@@ -11,14 +11,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'velmora_appbar.dart';
 import 'velmora_footer.dart';
-import '../customer_web_home/bloc/categories/categories_bloc.dart';
-import '../customer_web_home/bloc/categories/categories_event.dart';
-import '../customer_web_home/bloc/featured_products/featured_products_bloc.dart';
-import '../customer_web_home/bloc/featured_products/featured_products_event.dart';
-import '../customer_web_home/bloc/flash_deals/flash_deals_bloc.dart';
-import '../customer_web_home/bloc/flash_deals/flash_deals_event.dart';
-import '../customer_web_home/bloc/trending_products/trending_products_bloc.dart';
-import '../customer_web_home/bloc/trending_products/trending_products_event.dart';
+import '../bloc/categories/categories_bloc.dart';
+import '../bloc/categories/categories_event.dart';
+import '../bloc/featured_products/featured_products_bloc.dart';
+import '../bloc/featured_products/featured_products_event.dart';
+import '../bloc/flash_deals/flash_deals_bloc.dart';
+import '../bloc/flash_deals/flash_deals_event.dart';
+import '../bloc/trending_products/trending_products_bloc.dart';
+import '../bloc/trending_products/trending_products_event.dart';
 import 'package:app_frontend_customer/service/customer_web_service.dart';
 
 class BaseScaffold extends StatelessWidget {

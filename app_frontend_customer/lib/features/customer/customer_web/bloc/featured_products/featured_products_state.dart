@@ -1,6 +1,6 @@
 // lib/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_state.dart
 import 'package:equatable/equatable.dart';
-import '../../../models/product_model.dart';
+import '../../models/product_model.dart';
 
 abstract class FeaturedProductsState extends Equatable {
   const FeaturedProductsState();

@@ -1,11 +1,12 @@
 // lib/features/customer/customer_web/web_widgets/featured_products_section.dart
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_event.dart';
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/featured_products/featured_products_event.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/featured_products/featured_products_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/product_details_screen.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/models/product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../customer_web_home/bloc/featured_products/featured_products_bloc.dart';
+import '../bloc/featured_products/featured_products_bloc.dart';
 import 'package:app_frontend_customer/service/customer_web_service.dart';
 
 class FeaturedProductsSection extends StatelessWidget {
@@ -249,9 +250,13 @@ class _FeaturedProductsContentState extends State<_FeaturedProductsContent> {
   }
 
   void _navigateToProductDetail(BuildContext context, ProductData product) {
-    // TODO: Navigate to product detail page
-    debugPrint('Navigate to product: ${product.productName}');
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ProductDetailsScreen(productId: product.id),
+    ),
+  );
+}
 
   void _addToCart(BuildContext context, ProductData product) {
     // TODO: Implement add to cart functionality

@@ -1,7 +1,7 @@
 // lib/features/customer/customer_web/bloc/category/category_event.dart
  
 
-import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/bloc/categories/categories_model.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_model.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class CategoryEvent extends Equatable {

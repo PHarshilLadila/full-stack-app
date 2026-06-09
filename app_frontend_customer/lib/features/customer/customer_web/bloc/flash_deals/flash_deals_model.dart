@@ -1,5 +1,5 @@
 // lib/features/customer/customer_web/customer_web_home/bloc/flash_deals/flash_deals_model.dart
-import '../../../models/product_model.dart';
+import '../../models/product_model.dart';
 
 class FlashDealsResponse {
   final String message;

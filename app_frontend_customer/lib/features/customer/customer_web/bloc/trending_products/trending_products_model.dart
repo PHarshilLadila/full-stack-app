@@ -1,5 +1,5 @@
 // lib/features/customer/customer_web/customer_web_home/bloc/trending_products/trending_products_model.dart
-import '../../../models/product_model.dart';
+import '../../models/product_model.dart';
 
 class TrendingProductsResponse {
   final String message;

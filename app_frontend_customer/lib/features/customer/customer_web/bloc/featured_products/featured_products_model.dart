@@ -1,5 +1,5 @@
 // lib/features/customer/customer_web/customer_web_home/bloc/featured_products/featured_products_model.dart
-import '../../../models/product_model.dart';
+import '../../models/product_model.dart';
 
 class FeaturedProductsResponse {
   final String message;

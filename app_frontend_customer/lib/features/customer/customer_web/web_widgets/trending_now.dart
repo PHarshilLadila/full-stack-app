@@ -1,10 +1,11 @@
 // lib/features/customer/customer_web/web_widgets/trending_now.dart
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/product_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../customer_web_home/bloc/trending_products/trending_products_bloc.dart';
-import '../customer_web_home/bloc/trending_products/trending_products_event.dart';
-import '../customer_web_home/bloc/trending_products/trending_products_state.dart';
+import '../bloc/trending_products/trending_products_bloc.dart';
+import '../bloc/trending_products/trending_products_event.dart';
+import '../bloc/trending_products/trending_products_state.dart';
 import '../models/product_model.dart';
 import 'package:app_frontend_customer/service/customer_web_service.dart';
 
@@ -240,9 +241,14 @@ class _TrendingNowContentState extends State<_TrendingNowContent> {
     );
   }
 
-  void _navigateToProductDetail(BuildContext context, ProductData product) {
-    debugPrint('Navigate to product: ${product.productName}');
-  }
+void _navigateToProductDetail(BuildContext context, ProductData product) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ProductDetailsScreen(productId: product.id),
+    ),
+  );
+}
 
   void _addToCart(BuildContext context, ProductData product) {
     debugPrint('Add to cart: ${product.productName}');
