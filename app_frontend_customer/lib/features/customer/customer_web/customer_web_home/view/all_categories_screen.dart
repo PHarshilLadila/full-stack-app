@@ -256,59 +256,61 @@ class _AllCategoriesContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CategoryBloc, CategoryState>(
-      builder: (context, state) {
-        if (state is CategoriesLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return Scaffold(
+      body: BlocBuilder<CategoryBloc, CategoryState>(
+        builder: (context, state) {
+          if (state is CategoriesLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (state is CategoriesLoaded) {
-          final categories = state.categories;
+          if (state is CategoriesLoaded) {
+            final categories = state.categories;
 
-          if (categories.isEmpty) {
+            if (categories.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.category, size: 64, color: Colors.grey.shade400),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No categories found',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return _buildCategoriesGrid(categories, context);
+          }
+
+          if (state is CategoriesError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.category, size: 64, color: Colors.grey.shade400),
+                  const Icon(Icons.error, size: 64, color: Colors.red),
                   const SizedBox(height: 16),
-                  Text(
-                    'No categories found',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: Colors.grey.shade600,
-                    ),
+                  Text(state.message),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<CategoryBloc>().add(LoadCategories());
+                    },
+                    child: const Text('Retry'),
                   ),
                 ],
               ),
             );
           }
 
-          return _buildCategoriesGrid(categories, context);
-        }
-
-        if (state is CategoriesError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(state.message),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<CategoryBloc>().add(LoadCategories());
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return const Center(child: CircularProgressIndicator());
-      },
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
 
@@ -357,17 +359,18 @@ class _AllCategoriesContent extends StatelessWidget {
               const spacing = 16.0;
               final itemWidth =
                   (constraints.maxWidth - (crossAxisCount - 1) * spacing) /
-                      crossAxisCount;
+                  crossAxisCount;
 
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
-                children: categories.map((category) {
-                  return SizedBox(
-                    width: itemWidth,
-                    child: _buildCategoryCard(category, isMobile),
-                  );
-                }).toList(),
+                children:
+                    categories.map((category) {
+                      return SizedBox(
+                        width: itemWidth,
+                        child: _buildCategoryCard(category, isMobile),
+                      );
+                    }).toList(),
               );
             },
           ),
@@ -424,8 +427,7 @@ class _AllCategoriesContent extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: category.name.categoryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),

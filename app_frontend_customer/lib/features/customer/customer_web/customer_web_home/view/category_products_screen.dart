@@ -1,8 +1,11 @@
 // lib/features/customer/customer_web/customer_web_home/view/category_products_screen.dart
+import 'dart:developer';
+
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_bloc.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_event.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_model.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/bloc/categories/categories_state.dart';
+import 'package:app_frontend_customer/features/customer/customer_web/customer_web_home/view/product_details_screen.dart';
 import 'package:app_frontend_customer/features/customer/customer_web/models/product_model.dart';
 import 'package:app_frontend_customer/utils/helper/category_style_manager.dart';
 import 'package:flutter/material.dart';
@@ -76,48 +79,50 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
-    return BlocBuilder<CategoryBloc, CategoryState>(
-      builder: (context, state) {
-        // Show categories list when no category selected
-        if (_selectedCategory == null && state is CategoriesLoaded) {
-          return _buildAllCategoriesView(state.categories, isMobile);
-        }
+    return Scaffold(
+      body: BlocBuilder<CategoryBloc, CategoryState>(
+        builder: (context, state) {
+          // Show categories list when no category selected
+          if (_selectedCategory == null && state is CategoriesLoaded) {
+            return _buildAllCategoriesView(state.categories, isMobile);
+          }
 
-        // Show products for selected category
-        if (state is ProductsByCategoryLoaded) {
-          return _buildProductsView(state.products, isMobile);
-        }
+          // Show products for selected category
+          if (state is ProductsByCategoryLoaded) {
+            return _buildProductsView(state.products, isMobile);
+          }
 
-        if (state is ProductsByCategoryLoading) {
+          if (state is ProductsByCategoryLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is CategoriesLoaded) {
+            return _buildAllCategoriesView(state.categories, isMobile);
+          }
+
+          if (state is CategoriesError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(state.message),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<CategoryBloc>().add(LoadCategories());
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state is CategoriesLoaded) {
-          return _buildAllCategoriesView(state.categories, isMobile);
-        }
-
-        if (state is CategoriesError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(state.message),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<CategoryBloc>().add(LoadCategories());
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return const Center(child: CircularProgressIndicator());
-      },
+        },
+      ),
     );
   }
 
@@ -365,10 +370,13 @@ class _CategoryProductsContentState extends State<_CategoryProductsContent> {
 
     return GestureDetector(
       onTap: () {
-        // Use callback instead of Navigator.push
-        if (widget.onProductTap != null) {
-          widget.onProductTap!(product.id);
-        }
+        log("${product.productName} taped..!");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsScreen(productId: product.id),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
