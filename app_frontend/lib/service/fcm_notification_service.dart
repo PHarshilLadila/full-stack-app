@@ -273,7 +273,7 @@
 //       );
 
 //       final response = await http.post(
-//         Uri.parse('https://full-stack-app-1-4iqk.onrender.com/fcm/token'),
+//         Uri.parse('https://full-stack-app-2-2ijc.onrender.com/fcm/token'),
 //         headers: {
 //           'Authorization': 'Bearer $authToken',
 //           'Content-Type': 'application/json',
@@ -317,7 +317,7 @@
 //       if (fcmToken == null) return;
 
 //       final response = await http.delete(
-//         Uri.parse('https://full-stack-app-1-4iqk.onrender.com/fcm/token'),
+//         Uri.parse('https://full-stack-app-2-2ijc.onrender.com/fcm/token'),
 //         headers: {
 //           'Authorization': 'Bearer $authToken',
 //           'Content-Type': 'application/json',

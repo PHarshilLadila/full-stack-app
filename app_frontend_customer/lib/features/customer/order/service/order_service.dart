@@ -5,7 +5,7 @@ import 'package:app_frontend_customer/features/customer/order/model/order_model.
 import 'package:http/http.dart' as http;
 
 class OrderService {
-  final String baseUrl = "https://full-stack-app-1-4iqk.onrender.com";
+  final String baseUrl = "https://full-stack-app-2-2ijc.onrender.com";
   final String token;
 
   OrderService({required this.token});

@@ -175,15 +175,20 @@ class AnalyticsService {
   }
 
   /// Get product performance
+  // Add this method to AnalyticsService class if not already present
+
+  /// Get product performance data
   Future<List<Map<String, dynamic>>> getProductPerformance() async {
+    // This method should already exist in your AnalyticsService
+    // If not, here's the implementation:
+
     final products =
         await MongoService.products!.find({'sellerId': sellerId}).toList();
-
     final orders = await _getSellerOrders();
 
     final productPerformance = <String, Map<String, dynamic>>{};
 
-    /// Initialize product data
+    // Initialize product data
     for (final product in products) {
       final productId = (product['_id'] as ObjectId).oid;
 
@@ -198,10 +203,12 @@ class AnalyticsService {
         'reviews': product['totalReviews'] as int? ?? 0,
         'stockAvailable': product['stock'] as int? ?? 0,
         'isLowStock': (product['stock'] as int? ?? 0) < 10,
+        'totalViews': 0,
+        'conversionRate': 0.0,
       };
     }
 
-    /// Calculate sales data
+    // Calculate sales data
     for (final order in orders) {
       final items = order['sellerItems'] as List? ?? [];
 
@@ -210,33 +217,17 @@ class AnalyticsService {
 
         if (productId != null && productPerformance.containsKey(productId)) {
           final quantity = item['quantity'] as int? ?? 1;
-
           final price = (item['totalPrice'] as num?)?.toDouble() ?? 0;
 
           productPerformance[productId]!['totalSold'] =
               (productPerformance[productId]!['totalSold'] as int) + quantity;
-
           productPerformance[productId]!['totalRevenue'] =
               (productPerformance[productId]!['totalRevenue'] as double) +
               price;
-
           productPerformance[productId]!['totalOrders'] =
               (productPerformance[productId]!['totalOrders'] as int) + 1;
         }
       }
-    }
-
-    /// Calculate conversion rate
-    for (final productId in productPerformance.keys) {
-      final views = await _getProductViews(productId);
-
-      final totalOrders = productPerformance[productId]!['totalOrders'] as int;
-
-      final conversionRate = views > 0 ? (totalOrders / views) * 100 : 0.0;
-
-      productPerformance[productId]!['conversionRate'] = conversionRate;
-
-      productPerformance[productId]!['totalViews'] = views;
     }
 
     return productPerformance.values.toList();

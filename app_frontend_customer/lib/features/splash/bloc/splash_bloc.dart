@@ -21,7 +21,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   Future<void> _checkApiConnection(Emitter<SplashState> emit) async {
     try {
       final response = await http
-          .get(Uri.parse("https://full-stack-app-1-4iqk.onrender.com/"))
+          .get(Uri.parse("https://full-stack-app-2-2ijc.onrender.com/"))
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {

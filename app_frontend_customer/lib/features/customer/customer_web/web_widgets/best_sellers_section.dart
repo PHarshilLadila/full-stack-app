@@ -38,7 +38,7 @@ class BestSellersSection extends StatelessWidget {
         "oldPrice": "₹2,299",
         "sold": "1.7k sold",
         "image":
-            "https://images.unsplash.com/photo-1583391733981-8498402d1c8a?w=300",
+            "https://dailywoman.in/cdn/shop/files/Roman_Silk_White_Color_Kurta_set_-_Buy_Best_Ethnic_Wear_for_Women_Girls_Daily_Woman_-_-5026189.jpg?v=1730215195",
       },
       {
         "rank": "04",

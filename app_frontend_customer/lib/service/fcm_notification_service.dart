@@ -107,7 +107,7 @@ class FCMNotificationService {
       log('📤 Saving FCM token to backend...');
 
       final response = await http.post(
-        Uri.parse('https://full-stack-app-1-4iqk.onrender.com/fcm/token'),
+        Uri.parse('https://full-stack-app-2-2ijc.onrender.com/fcm/token'),
         headers: {
           'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ class FCMNotificationService {
       if (fcmToken == null || fcmToken.isEmpty) return;
 
       final response = await http.delete(
-        Uri.parse('https://full-stack-app-1-4iqk.onrender.com/fcm/token'),
+        Uri.parse('https://full-stack-app-2-2ijc.onrender.com/fcm/token'),
         headers: {
           'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',

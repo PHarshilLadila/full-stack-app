@@ -10,21 +10,21 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   SplashBloc() : super(SplashInitial()) {
     on<CheckAuthStatus>((event, emit) async {
       emit(SplashLoading());
-      
+
       // First, check API connection
       await _checkApiConnection(emit);
-      
+
       // Then check authentication status and get role
       await _checkAuthStatusAndRole(emit);
     });
   }
-  
+
   Future<void> _checkApiConnection(Emitter<SplashState> emit) async {
     try {
-      final response = await http.get(
-        Uri.parse("https://full-stack-app-1-4iqk.onrender.com/"),
-      ).timeout(const Duration(seconds: 5));
-      
+      final response = await http
+          .get(Uri.parse("https://full-stack-app-2-2ijc.onrender.com/"))
+          .timeout(const Duration(seconds: 5));
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         emit(SplashApiSuccess(data['message'] ?? 'API Working'));
@@ -35,19 +35,19 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       log("API Connection Error: $e");
       emit(SplashApiError('Unable to connect to server'));
     }
-    
+
     // Wait for 1 second so user can see the splash
     await Future.delayed(const Duration(milliseconds: 1000));
   }
-  
+
   Future<void> _checkAuthStatusAndRole(Emitter<SplashState> emit) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final userRole = prefs.getString('user_role');
-    
+
     log("Splash - Token exists: ${token != null}");
     log("Splash - User Role: $userRole");
-    
+
     if (token != null && token.isNotEmpty) {
       // Emit authenticated with role
       emit(Authenticated(role: userRole));

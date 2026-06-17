@@ -50,7 +50,7 @@ class UserService {
   }) async {
     try {
       final uri = Uri.parse(
-        "https://full-stack-app-1-4iqk.onrender.com/user/update",
+        "https://full-stack-app-2-2ijc.onrender.com/user/update",
       );
 
       final request = http.MultipartRequest('PUT', uri);

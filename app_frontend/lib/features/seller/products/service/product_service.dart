@@ -8,9 +8,9 @@ import 'package:http/http.dart' as http;
 
 class ProductService {
   final ApiClient apiClient = ApiClient();
-  final String baseUrl = 'https://full-stack-app-1-4iqk.onrender.com';
+  final String baseUrl = 'https://full-stack-app-2-2ijc.onrender.com';
 
-    Future<PaginatedProductResponse> fetchSellerProducts({
+  Future<PaginatedProductResponse> fetchSellerProducts({
     int page = 1,
     int limit = 10,
   }) async {
